@@ -1,1 +1,65 @@
 @import "tailwindcss";
+
+/* ── Tam ekran sabitleme ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  /* Zoom engelle */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #080808;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  /* Bounce/pull-to-refresh engelle */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+
+#root {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scroll sadece main içinde */
+main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Scrollbar gizle */
+main::-webkit-scrollbar { display: none; }
+main { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Input placeholder */
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+input, textarea, select { -webkit-tap-highlight-color: transparent; }
+a { -webkit-tap-highlight-color: transparent; }
+
+/* Animasyonlar */
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -66,9 +66,9 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => {
 // ── TRAX Logo (header için küçük) ──────────────────────────────
 const TraxLogoHeader = () => (
   <img
-    src="/trax-logo.png"
+    src="/trax-logo-amber.png"
     alt="TRAX"
-    style={{ height: '20px', width: 'auto', mixBlendMode: 'screen', filter: 'brightness(2) contrast(1.1)' }}
+    style={{ height: '20px', width: 'auto',  }}
   />
 );
 
@@ -371,7 +371,7 @@ const Layout = () => {
   return (
     <div style={{ width: '100%', height: '100%', background: '#080808', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       <Header onAddMember={() => setShowAddModal(true)} onBell={() => setShowBell(true)} urgentCount={urgentCount} />
-      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: hideNav ? '24px' : '110px' }}>
+      <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: hideNav ? '24px' : '110px', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
         <Outlet />
       </main>
       {!hideNav && <BottomNav />}
@@ -743,9 +743,9 @@ const MemberDetailScreen = () => {
 
 // ── Router — TELEFON FRAME YOK, TAM EKRAN ─────────────────────
 const router = createBrowserRouter([
-  { path: '/', element: <div style={{ width: '100vw', height: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}><Login /></div> },
-  { path: '/login', element: <div style={{ width: '100vw', height: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}><Login /></div> },
-  { path: '/app', element: <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}><Layout /></div>, children: [
+  { path: '/', element: <div style={{ width: '100%', height: '100%', background: '#080808', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><Login /></div> },
+  { path: '/login', element: <div style={{ width: '100%', height: '100%', background: '#080808', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><Login /></div> },
+  { path: '/app', element: <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}><Layout /></div>, children: [
     { path: 'home', element: <DashboardScreen /> },
     { path: 'members', element: <MembersScreen /> },
     { path: 'members/:id', element: <MemberDetailScreen /> },
