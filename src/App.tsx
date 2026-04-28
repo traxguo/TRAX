@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { RouterProvider, createBrowserRouter, Outlet, useNavigate, useLocation, useParams, Link } from 'react-router';
 import {
   Bell, Home, Users, ChevronRight, ChevronLeft,
   Phone, Mail, Search, Plus, X, Check, Clock,
   BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus,
-  Dumbbell, CheckCircle2, Zap,
+  Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save,
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Login } from './Login';
@@ -15,7 +15,13 @@ let membersStore: Member[] = [...initialMembers];
 
 const A = '#D97706';
 const AL = '#F59E0B';
-const AG = 'rgba(217,119,6,0.35)';
+const AG = 'rgba(217,119,6,0.3)';
+
+// Varsayılan WhatsApp mesaj şablonları
+const DEFAULT_TEMPLATES = {
+  expiring: 'Merhaba {isim}, paketinizin süresi {gun} gün içinde dolmaktadır. Üyeliğinizi yenilemek için bizimle iletişime geçebilirsiniz. Görüşmek dileğiyle! 🏋️',
+  expired: 'Merhaba {isim}, paketinizin süresi maalesef dolmuştur. Sizi yeniden aramızda görmek isteriz! Bilgi için bize ulaşabilirsiniz. 💪',
+};
 
 const getStatusColor = (days: number): 'green' | 'yellow' | 'red' => {
   if (days < 0) return 'red';
@@ -24,65 +30,239 @@ const getStatusColor = (days: number): 'green' | 'yellow' | 'red' => {
 };
 const getStatusLabel = (days: number) => days < 0 ? 'Süresi doldu' : `${days} gün kaldı`;
 
-// Sadece üye detayı sayfasında kullanılan tam badge
-const PaymentBadgeFull = ({ status }: { status: 'paid' | 'partial' | 'unpaid' }) => {
-  if (status === 'paid') return <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ödeme Tamamlandı</span>;
-  if (status === 'partial') return <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Kısmi Ödeme</span>;
-  return <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">Ödeme Bekleniyor</span>;
+const buildWhatsAppMsg = (template: string, member: Member) =>
+  template
+    .replace(/{isim}/g, member.name.split(' ')[0])
+    .replace(/{gun}/g, String(Math.max(0, member.daysRemaining)));
+
+const openWhatsApp = (phone: string, message: string) => {
+  const cleaned = phone.replace(/\D/g, '');
+  const intl = cleaned.startsWith('0') ? '90' + cleaned.slice(1) : cleaned;
+  const url = `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
 };
 
-// Liste ve dashboard kartlarında sadece durum noktası
+const PaymentBadgeFull = ({ status }: { status: 'paid' | 'partial' | 'unpaid' }) => {
+  if (status === 'paid') return <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>Ödeme Tamamlandı</span>;
+  if (status === 'partial') return <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>Kısmi Ödeme</span>;
+  return <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', background: 'rgba(244,63,94,0.1)', color: '#f43f5e', border: '1px solid rgba(244,63,94,0.2)' }}>Ödeme Bekleniyor</span>;
+};
 
-// TRAX Logo — küçük header versiyonu
-const TraxLogoSmall = () => (
-  <svg viewBox="0 0 290 82" className="h-[18px] w-auto" xmlns="http://www.w3.org/2000/svg" fill="white">
-    <polygon points="8,6 8,20 42,20 42,76 58,76 58,20 92,20 92,6" />
-    <path d="M104,6 L104,76 L120,76 L120,46 L143,46 L160,76 L178,76 L158,44 C167,40 172,32 172,22 C172,12 164,6 151,6 Z M120,20 L149,20 C154,20 157,23 157,28 C157,33 154,36 149,36 L120,36 Z" />
-    <polygon points="187,6 160,76 176,76 192,30 208,76 224,76 197,6" />
-    <line x1="232" y1="6" x2="262" y2="44" stroke="white" strokeWidth="13" strokeLinecap="round"/>
-    <line x1="262" y1="44" x2="232" y2="76" stroke="white" strokeWidth="13" strokeLinecap="round"/>
-    <line x1="284" y1="6" x2="262" y2="44" stroke="white" strokeWidth="13" strokeLinecap="round"/>
-    <line x1="265" y1="38" x2="286" y2="10" stroke="white" strokeWidth="10" strokeLinecap="round"/>
-    <polygon points="278,4 292,2 290,17" fill="white" />
-  </svg>
+// Animasyonlu sayfa wrapper
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [vis, setVis] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setVis(true), 30); return () => clearTimeout(t); }, []);
+  return (
+    <div style={{
+      opacity: vis ? 1 : 0,
+      transform: vis ? 'translateY(0)' : 'translateY(12px)',
+      transition: 'opacity 0.35s ease, transform 0.35s ease',
+    }}>
+      {children}
+    </div>
+  );
+};
+
+// ── TRAX Logo (header için küçük) ──────────────────────────────
+const TraxLogoHeader = () => (
+  <img
+    src="/trax-logo.png"
+    alt="TRAX"
+    style={{ height: '20px', width: 'auto', mixBlendMode: 'screen', filter: 'brightness(2) contrast(1.1)' }}
+  />
 );
 
+// ── Bildirim / WhatsApp Paneli ─────────────────────────────────
+const NotificationPanel = ({ onClose, members }: { onClose: () => void; members: Member[] }) => {
+  const urgents = members.filter(m => m.daysRemaining <= 7);
+  const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
+  const [editMode, setEditMode] = useState<'expiring' | 'expired' | null>(null);
+  const [draft, setDraft] = useState('');
+  const [sent, setSent] = useState<string[]>([]);
+
+  const startEdit = (type: 'expiring' | 'expired') => {
+    setDraft(templates[type]);
+    setEditMode(type);
+  };
+  const saveEdit = () => {
+    if (editMode) setTemplates(t => ({ ...t, [editMode]: draft }));
+    setEditMode(null);
+  };
+  const handleSend = (member: Member) => {
+    const tpl = member.daysRemaining < 0 ? templates.expired : templates.expiring;
+    openWhatsApp(member.phone, buildWhatsAppMsg(tpl, member));
+    setSent(s => [...s, member.id]);
+  };
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 60,
+      background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+      display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+    }}>
+      <div style={{
+        background: '#0F0F0F', borderRadius: '28px 28px 0 0',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        padding: '20px 20px 36px', display: 'flex', flexDirection: 'column', gap: '14px',
+        maxHeight: '82%', overflow: 'hidden',
+        animation: 'slideUp 0.3s ease',
+      }}>
+        {/* Başlık */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MessageCircle style={{ width: '16px', height: '16px', color: AL }} />
+            <span style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>WhatsApp Bildirimler</span>
+          </div>
+          <button onClick={onClose} style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.5)' }} />
+          </button>
+        </div>
+
+        {/* Mesaj şablonları */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Mesaj Şablonları</p>
+          {(['expiring', 'expired'] as const).map(type => (
+            <div key={type} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: type === 'expiring' ? '#fbbf24' : '#f43f5e' }}>
+                  {type === 'expiring' ? '⚠️ Az kalan' : '🔴 Süresi dolan'}
+                </span>
+                {editMode === type ? (
+                  <button onClick={saveEdit} style={{ fontSize: '11px', fontWeight: 700, color: AL, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Save style={{ width: '12px', height: '12px' }} /> Kaydet
+                  </button>
+                ) : (
+                  <button onClick={() => startEdit(type)} style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Edit3 style={{ width: '12px', height: '12px' }} /> Düzenle
+                  </button>
+                )}
+              </div>
+              {editMode === type ? (
+                <textarea
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  rows={3}
+                  style={{
+                    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(217,119,6,0.3)',
+                    borderRadius: '10px', padding: '8px', color: 'white', fontSize: '12px',
+                    resize: 'none', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5,
+                  }}
+                />
+              ) : (
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>{templates[type]}</p>
+              )}
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>{'{isim}'} ve {'{gun}'} otomatik dolar</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Üye listesi — mesaj gönder */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            Bildirim Gönderilecekler ({urgents.length})
+          </p>
+          {urgents.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '24px', color: 'rgba(255,255,255,0.2)' }}>
+              <Check style={{ width: '24px', height: '24px', margin: '0 auto 8px' }} />
+              <p style={{ fontSize: '13px' }}>Tüm üyeler aktif 🎉</p>
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {urgents.map(member => {
+              const isSent = sent.includes(member.id);
+              const isExpired = member.daysRemaining < 0;
+              return (
+                <div key={member.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '14px', padding: '10px 12px',
+                }}>
+                  <img src={member.img} alt={member.name} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: '2px' }}>{member.name}</p>
+                    <p style={{ fontSize: '11px', color: isExpired ? '#f43f5e' : '#fbbf24' }}>{getStatusLabel(member.daysRemaining)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleSend(member)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '7px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                      fontSize: '12px', fontWeight: 700, flexShrink: 0,
+                      background: isSent ? 'rgba(52,211,153,0.12)' : 'rgba(37,211,102,0.12)',
+                      color: isSent ? '#34d399' : '#25D366',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {isSent ? <><Check style={{ width: '13px', height: '13px' }} /> Gönderildi</> : <><Send style={{ width: '13px', height: '13px' }} /> Gönder</>}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <style>{`@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
+    </div>
+  );
+};
+
 // ── Header ─────────────────────────────────────────────────────
-const Header = ({ onAddMember }: { onAddMember?: () => void }) => {
+const Header = ({ onAddMember, onBell, urgentCount }: { onAddMember?: () => void; onBell: () => void; urgentCount: number }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isDetail = location.pathname.includes('/members/');
   const isMembers = location.pathname === '/app/members';
 
   if (isDetail) return (
-    <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 z-10 bg-[#080808]/95 backdrop-blur-xl border-b border-white/[0.04]">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-white/50 hover:text-white transition-colors active:opacity-70 h-10">
-        <ChevronLeft className="w-4 h-4" />
-        <span className="font-semibold text-[13px]">Geri</span>
+    <header style={{
+      padding: '52px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      position: 'sticky', top: 0, zIndex: 10,
+      background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.04)',
+    }}>
+      <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>
+        <ChevronLeft style={{ width: '16px', height: '16px' }} />
+        <span style={{ fontSize: '13px', fontWeight: 600 }}>Geri</span>
       </button>
-      <span className="text-[11px] font-bold text-white/25 tracking-widest uppercase">Üye Detayı</span>
-      <div className="w-14" />
+      <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Üye Detayı</span>
+      <div style={{ width: '56px' }} />
     </header>
   );
 
   return (
-    <header className="px-5 pt-14 pb-4 flex items-center justify-between sticky top-0 z-10 bg-[#080808]/95 backdrop-blur-xl border-b border-white/[0.04]">
-      {/* Sadece logo */}
-      <TraxLogoSmall />
-
-      <div className="flex items-center gap-2">
+    <header style={{
+      padding: '52px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      position: 'sticky', top: 0, zIndex: 10,
+      background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.04)',
+    }}>
+      <TraxLogoHeader />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {isMembers && onAddMember && (
-          <button
-            onClick={onAddMember}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:scale-95 transition-transform"
-            style={{ background: `linear-gradient(135deg, ${A}, ${AL})`, boxShadow: `0 4px 14px ${AG}` }}
-          >
-            <Plus className="w-4 h-4 text-[#080808]" strokeWidth={2.5} />
+          <button onClick={onAddMember} style={{
+            width: '32px', height: '32px', borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: `linear-gradient(135deg, ${A}, ${AL})`,
+            boxShadow: `0 4px 12px ${AG}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'transform 0.15s', flexShrink: 0,
+          }}>
+            <Plus style={{ width: '16px', height: '16px', color: '#080808' }} />
           </button>
         )}
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-full bg-white/[0.05] border border-white/[0.06] active:scale-95 transition-transform">
-          <Bell className="w-[15px] h-[15px] text-white/50" strokeWidth={1.5} />
-          <span className="absolute top-[7px] right-[8px] w-[6px] h-[6px] rounded-full ring-[1.5px] ring-[#080808]" style={{ background: AL }} />
+        <button onClick={onBell} style={{
+          position: 'relative', width: '32px', height: '32px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Bell style={{ width: '15px', height: '15px', color: urgentCount > 0 ? AL : 'rgba(255,255,255,0.45)' }} strokeWidth={1.5} />
+          {urgentCount > 0 && (
+            <span style={{
+              position: 'absolute', top: '6px', right: '6px',
+              width: '8px', height: '8px', borderRadius: '50%',
+              background: AL, boxShadow: `0 0 6px ${AG}`,
+              border: '1.5px solid #080808',
+            }} />
+          )}
         </button>
       </div>
     </header>
@@ -97,19 +277,30 @@ const BottomNav = () => {
     { path: '/app/members', icon: Users, label: 'Üyeler' },
   ];
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#080808] to-transparent pt-4 pb-8 flex items-end justify-center z-20 pointer-events-none">
-      <div className="bg-[#141414]/90 backdrop-blur-2xl border border-white/[0.07] rounded-full h-[58px] flex items-center justify-center gap-12 px-10 shadow-[0_16px_40px_rgba(0,0,0,0.6)] pointer-events-auto">
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: '100px',
+      background: 'linear-gradient(to top, #080808 50%, transparent)',
+      paddingBottom: '24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      zIndex: 20, pointerEvents: 'none',
+    }}>
+      <div style={{
+        background: 'rgba(18,18,18,0.92)', backdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,0.07)', borderRadius: '999px',
+        height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: '48px', padding: '0 40px',
+        boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+        pointerEvents: 'auto',
+      }}>
         {tabs.map(({ path, icon: Icon, label }) => {
           const active = location.pathname === path;
           return (
-            <Link key={path} to={path} className={`relative flex flex-col items-center justify-center w-10 h-10 gap-0.5 transition-all duration-250 active:scale-90 ${active ? '' : 'text-white/30'}`}>
-              <Icon
-                className="w-[20px] h-[20px] transition-all duration-250"
-                strokeWidth={active ? 2.5 : 1.5}
-                style={{ color: active ? AL : undefined }}
-              />
-              <span className={`text-[8px] font-bold tracking-wide transition-all duration-250 ${active ? 'opacity-100' : 'opacity-0'}`} style={{ color: AL }}>{label}</span>
-              {active && <span className="absolute -bottom-0.5 w-1 h-1 rounded-full" style={{ background: AL }} />}
+            <Link key={path} to={path} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '2px', width: '40px', height: '40px', justifyContent: 'center',
+              textDecoration: 'none', transition: 'transform 0.15s',
+            }}>
+              <Icon style={{ width: '20px', height: '20px', color: active ? AL : 'rgba(255,255,255,0.28)', transition: 'color 0.2s' }} strokeWidth={active ? 2.5 : 1.5} />
+              <span style={{ fontSize: '8px', fontWeight: 700, color: active ? AL : 'transparent', letterSpacing: '0.06em', transition: 'color 0.2s' }}>{label}</span>
             </Link>
           );
         })}
@@ -123,7 +314,12 @@ const AddMemberModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (m: Me
   const [form, setForm] = useState({ name: '', phone: '', email: '', package: '', totalAmount: '', startDate: '', endDate: '' });
   const [saving, setSaving] = useState(false);
   const packages = ['Aylık Sınırsız', '10 Derslik Paket', '5 Derslik Paket', '20 Derslik Paket', 'Yıllık Üyelik'];
-  const inputCls = "w-full px-4 py-3.5 bg-white/[0.04] border border-white/[0.07] rounded-2xl text-white placeholder-white/20 focus:outline-none text-[14px] transition-all";
+  const inp = (extra = ''): React.CSSProperties => ({
+    width: '100%', padding: '14px 16px', borderRadius: '14px', fontSize: '14px',
+    color: 'white', outline: 'none', background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.07)', boxSizing: 'border-box',
+    ...JSON.parse(extra || '{}'),
+  });
   const handleSubmit = () => {
     if (!form.name || !form.phone || !form.package) return;
     setSaving(true);
@@ -133,32 +329,31 @@ const AddMemberModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (m: Me
     }, 600);
   };
   return (
-    <div className="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end">
-      <div className="w-full bg-[#0F0F0F] rounded-t-[28px] border-t border-white/[0.06] p-6 pb-10 flex flex-col gap-4">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-[16px] font-bold text-white">Yeni Üye</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center"><X className="w-4 h-4 text-white/50" /></button>
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 50, display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', background: '#0F0F0F', borderRadius: '28px 28px 0 0', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: '10px', animation: 'slideUp 0.3s ease' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 800, color: 'white' }}>Yeni Üye</span>
+          <button onClick={onClose} style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.5)' }} /></button>
         </div>
-        <div className="flex flex-col gap-2.5 max-h-[400px] overflow-y-auto">
-          <input className={inputCls} placeholder="Ad Soyad *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <input className={inputCls} placeholder="Telefon *" value={form.phone} type="tel" onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-          <input className={inputCls} placeholder="E-posta" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-          <select className={inputCls + " appearance-none"} value={form.package} onChange={e => setForm(f => ({ ...f, package: e.target.value }))}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
+          <input style={inp()} placeholder="Ad Soyad *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <input style={inp()} placeholder="Telefon *" value={form.phone} type="tel" onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+          <input style={inp()} placeholder="E-posta" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+          <select style={{ ...inp(), appearance: 'none' } as React.CSSProperties} value={form.package} onChange={e => setForm(f => ({ ...f, package: e.target.value }))}>
             <option value="" disabled>Paket Seçin *</option>
             {packages.map(p => <option key={p} value={p} style={{ background: '#0F0F0F' }}>{p}</option>)}
           </select>
-          <input className={inputCls} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e => setForm(f => ({ ...f, totalAmount: e.target.value }))} />
-          <div className="grid grid-cols-2 gap-2.5">
-            <div><label className="text-[10px] text-white/30 font-semibold pl-1 mb-1 block tracking-wider uppercase">Başlangıç</label><input className={inputCls} type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} /></div>
-            <div><label className="text-[10px] text-white/30 font-semibold pl-1 mb-1 block tracking-wider uppercase">Bitiş</label><input className={inputCls} type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} /></div>
+          <input style={inp()} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e => setForm(f => ({ ...f, totalAmount: e.target.value }))} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div><label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Başlangıç</label><input style={inp()} type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} /></div>
+            <div><label style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Bitiş</label><input style={inp()} type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} /></div>
           </div>
         </div>
-        <button onClick={handleSubmit} disabled={saving || !form.name || !form.phone || !form.package}
-          className="w-full py-4 rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30 text-[#080808] mt-1"
-          style={{ background: `linear-gradient(135deg, ${A}, ${AL})`, boxShadow: `0 8px 24px ${AG}` }}>
-          {saving ? 'Kaydediliyor...' : <><UserPlus className="w-4 h-4" /> Üye Ekle</>}
+        <button onClick={handleSubmit} disabled={saving || !form.name || !form.phone || !form.package} style={{ width: '100%', padding: '16px', borderRadius: '16px', fontWeight: 800, fontSize: '14px', border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${A}, ${AL})`, color: '#080808', boxShadow: `0 8px 24px ${AG}`, opacity: saving || !form.name || !form.phone || !form.package ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '4px' }}>
+          {saving ? 'Kaydediliyor...' : <><UserPlus style={{ width: '16px', height: '16px' }} /> Üye Ekle</>}
         </button>
       </div>
+      <style>{`@keyframes slideUp { from { transform: translateY(40px); opacity:0; } to { transform: translateY(0); opacity:1; } } input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }`}</style>
     </div>
   );
 };
@@ -167,21 +362,21 @@ const AddMemberModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (m: Me
 const Layout = () => {
   const location = useLocation();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBell, setShowBell] = useState(false);
   const [, forceUpdate] = useState(0);
   const hideNav = location.pathname.includes('/members/');
   const handleAddMember = (m: Member) => { membersStore = [m, ...membersStore]; forceUpdate(n => n + 1); };
+  const urgentCount = membersStore.filter(m => m.daysRemaining <= 7).length;
+
   return (
-    <div className="min-h-screen bg-[#040404] flex items-center justify-center p-4 sm:p-8">
-      <div className="relative w-full max-w-[393px] h-[852px] bg-[#080808] rounded-[50px] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.95)] ring-[5px] ring-[#111111] flex flex-col">
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[126px] h-[33px] bg-black rounded-full z-50 pointer-events-none" />
-        <Header onAddMember={() => setShowAddModal(true)} />
-        <main className={`flex-1 overflow-y-auto scrollbar-hide ${hideNav ? 'pb-6' : 'pb-32'}`}>
-          <Outlet />
-        </main>
-        {!hideNav && <BottomNav />}
-        {showAddModal && <AddMemberModal onClose={() => setShowAddModal(false)} onAdd={handleAddMember} />}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[4px] bg-white/10 rounded-full z-50 pointer-events-none" />
-      </div>
+    <div style={{ width: '100%', height: '100%', background: '#080808', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <Header onAddMember={() => setShowAddModal(true)} onBell={() => setShowBell(true)} urgentCount={urgentCount} />
+      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: hideNav ? '24px' : '110px' }}>
+        <Outlet />
+      </main>
+      {!hideNav && <BottomNav />}
+      {showAddModal && <AddMemberModal onClose={() => setShowAddModal(false)} onAdd={handleAddMember} />}
+      {showBell && <NotificationPanel onClose={() => setShowBell(false)} members={membersStore} />}
     </div>
   );
 };
@@ -196,145 +391,133 @@ const DashboardScreen = () => {
   const pendingRevenue = members.reduce((s, m) => s + (m.totalAmount - m.paidAmount), 0);
   const urgentMembers = members.filter(m => m.daysRemaining < 0 || m.daysRemaining <= 7);
 
+  const card: React.CSSProperties = { background: '#0F0F0F', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.04)', padding: '20px', position: 'relative', overflow: 'hidden' };
+
   return (
-    <div className="flex flex-col gap-2.5 px-4 pt-3 pb-2">
+    <PageWrapper>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 16px 8px' }}>
 
-      {/* Gelir kartı */}
-      <div className="rounded-[20px] p-5 border border-white/[0.04] overflow-hidden relative" style={{ background: '#0F0F0F' }}>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at top left, rgba(217,119,6,0.07) 0%, transparent 60%)' }} />
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <BarChart2 className="w-3.5 h-3.5 text-white/30" />
-            <span className="text-[11px] font-semibold text-white/40 tracking-wider uppercase">Son 7 Gün</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.07]">
-            <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] text-emerald-400 font-bold">+14%</span>
-          </div>
-        </div>
-        <div className="flex items-baseline gap-1 mb-3">
-          <span className="text-[32px] leading-none font-black tracking-tighter text-white">₺32.450</span>
-        </div>
-        <div className="h-[64px] -mx-1 -mb-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={A} stopOpacity={0.25} />
-                  <stop offset="100%" stopColor={A} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="value" stroke={AL} strokeWidth={2} fillOpacity={1} fill="url(#ag)" isAnimationActive={false} dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 3 istatistik */}
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { label: 'Süresi Doldu', count: red, color: '#f43f5e', border: 'rgba(244,63,94,0.12)', bg: 'rgba(244,63,94,0.06)' },
-          { label: 'Bu Hafta', count: yellow, color: '#fbbf24', border: 'rgba(251,191,36,0.12)', bg: 'rgba(251,191,36,0.06)' },
-          { label: 'Aktif', count: green, color: '#34d399', border: 'rgba(52,211,153,0.12)', bg: 'rgba(52,211,153,0.06)' },
-        ].map(({ label, count, color, border, bg }) => (
-          <div key={label} className="rounded-[16px] p-3.5 flex flex-col gap-2.5" style={{ background: bg, border: `1px solid ${border}` }}>
-            <span className="w-2 h-2 rounded-full" style={{ background: color }} />
-            <span className="text-[24px] font-black text-white leading-none">{count}</span>
-            <span className="text-[10px] font-semibold text-white/30 leading-tight tracking-wide">{label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Bekleyen tahsilat — sadece dashboard'da, tek yerde */}
-      {pendingRevenue > 0 && (
-        <div className="rounded-[18px] p-4 flex items-center gap-3" style={{ background: 'rgba(217,119,6,0.05)', border: '1px solid rgba(217,119,6,0.12)' }}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(217,119,6,0.1)' }}>
-            <CreditCard className="w-3.5 h-3.5" style={{ color: AL }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: 'rgba(245,158,11,0.6)' }}>Bekleyen Tahsilat</p>
-            <p className="text-[16px] font-black leading-tight" style={{ color: AL }}>₺{pendingRevenue.toLocaleString('tr-TR')}</p>
-          </div>
-          <Link to="/app/members" className="text-[11px] font-bold px-3 py-1.5 rounded-full border active:opacity-70 whitespace-nowrap" style={{ color: AL, borderColor: 'rgba(217,119,6,0.2)', background: 'rgba(217,119,6,0.08)' }}>
-            Görüntüle
-          </Link>
-        </div>
-      )}
-
-      {/* Dikkat gerektiriyor */}
-      {urgentMembers.length > 0 && (
-        <div className="rounded-[20px] border border-white/[0.04] overflow-hidden" style={{ background: '#0F0F0F' }}>
-          <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
-            <div className="flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-rose-400" />
-              <h2 className="text-[13px] font-bold text-white/80">Dikkat Gerektiriyor</h2>
+        {/* Gelir kartı */}
+        <div style={card}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(217,119,6,0.07) 0%, transparent 60%)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <BarChart2 style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.25)' }} />
+              <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Son 7 Gün</span>
             </div>
-            <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/15">{urgentMembers.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '999px', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)' }}>
+              <ArrowUpRight style={{ width: '11px', height: '11px', color: '#34d399' }} />
+              <span style={{ fontSize: '10px', color: '#34d399', fontWeight: 700 }}>+14%</span>
+            </div>
           </div>
-          <div className="flex flex-col px-3 pb-3 gap-1.5">
-            {urgentMembers.map(member => (
-              <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)}
-                className="flex items-center gap-3 p-3 rounded-[14px] bg-white/[0.02] border border-white/[0.03] active:scale-[0.98] transition-all text-left w-full">
-                <img src={member.img} alt={member.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-white/90 truncate">{member.name}</p>
-                  <p className="text-[11px] text-white/30 truncate">{member.package}</p>
-                </div>
-                <span className={`text-[10px] font-bold ${member.daysRemaining < 0 ? 'text-rose-400' : 'text-amber-400'}`}>
-                  {getStatusLabel(member.daysRemaining)}
-                </span>
-              </button>
-            ))}
+          <div style={{ fontSize: '30px', fontWeight: 900, color: 'white', letterSpacing: '-0.03em', marginBottom: '12px' }}>₺32.450</div>
+          <div style={{ height: '60px', marginLeft: '-4px', marginRight: '-4px', marginBottom: '-4px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={A} stopOpacity={0.22} /><stop offset="100%" stopColor={A} stopOpacity={0} /></linearGradient></defs>
+                <Area type="monotone" dataKey="value" stroke={AL} strokeWidth={2} fillOpacity={1} fill="url(#ag)" isAnimationActive={false} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      )}
 
-      {/* Tüm üyeler özet */}
-      <div className="rounded-[20px] border border-white/[0.04] overflow-hidden" style={{ background: '#0F0F0F' }}>
-        <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
-          <div className="flex items-center gap-2">
-            <Users className="w-3.5 h-3.5 text-white/30" />
-            <h2 className="text-[13px] font-bold text-white/80">Tüm Üyeler</h2>
-          </div>
-          <Link to="/app/members" className="flex items-center gap-0.5 text-[11px] font-bold active:opacity-70" style={{ color: AL }}>
-            Tümü <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <div className="flex flex-col px-3 pb-3 gap-1.5">
-          {members.slice(0, 4).map(member => (
-            <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)}
-              className="flex items-center gap-3 p-3 rounded-[14px] bg-white/[0.02] border border-white/[0.03] active:scale-[0.98] transition-all text-left w-full">
-              <div className="relative flex-shrink-0">
-                <img src={member.img} alt={member.name} className="w-9 h-9 rounded-full object-cover" />
-                <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0F0F0F] ${getStatusColor(member.daysRemaining) === 'green' ? 'bg-emerald-400' : getStatusColor(member.daysRemaining) === 'yellow' ? 'bg-amber-400' : 'bg-rose-500'}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-white/90 truncate">{member.name}</p>
-                <p className="text-[11px] text-white/30">{member.package}</p>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-white/15" />
-            </button>
+        {/* 3 istatistik */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          {[
+            { label: 'Süresi Doldu', count: red, color: '#f43f5e', border: 'rgba(244,63,94,0.12)', bg: 'rgba(244,63,94,0.06)' },
+            { label: 'Bu Hafta', count: yellow, color: '#fbbf24', border: 'rgba(251,191,36,0.12)', bg: 'rgba(251,191,36,0.06)' },
+            { label: 'Aktif', count: green, color: '#34d399', border: 'rgba(52,211,153,0.12)', bg: 'rgba(52,211,153,0.06)' },
+          ].map(({ label, count, color, border, bg }) => (
+            <div key={label} style={{ background: bg, border: `1px solid ${border}`, borderRadius: '16px', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, display: 'block' }} />
+              <span style={{ fontSize: '24px', fontWeight: 900, color: 'white', lineHeight: 1 }}>{count}</span>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.28)', lineHeight: 1.3 }}>{label}</span>
+            </div>
           ))}
         </div>
+
+        {/* Bekleyen tahsilat */}
+        {pendingRevenue > 0 && (
+          <div style={{ borderRadius: '18px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(217,119,6,0.05)', border: '1px solid rgba(217,119,6,0.1)' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(217,119,6,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CreditCard style={{ width: '14px', height: '14px', color: AL }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(245,158,11,0.55)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Bekleyen Tahsilat</p>
+              <p style={{ fontSize: '16px', fontWeight: 900, color: AL, lineHeight: 1.3 }}>₺{pendingRevenue.toLocaleString('tr-TR')}</p>
+            </div>
+            <Link to="/app/members" style={{ fontSize: '11px', fontWeight: 700, padding: '6px 12px', borderRadius: '999px', textDecoration: 'none', color: AL, background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.15)' }}>Görüntüle</Link>
+          </div>
+        )}
+
+        {/* Dikkat gerektiriyor */}
+        {urgentMembers.length > 0 && (
+          <div style={{ background: '#0F0F0F', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 16px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Zap style={{ width: '13px', height: '13px', color: '#f43f5e' }} />
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>Dikkat Gerektiriyor</span>
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#f43f5e', background: 'rgba(244,63,94,0.1)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(244,63,94,0.15)' }}>{urgentMembers.length}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 12px 12px' }}>
+              {urgentMembers.map(member => (
+                <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '14px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'opacity 0.15s' }}>
+                  <img src={member.img} alt={member.name} style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.88)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</p>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.package}</p>
+                  </div>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: member.daysRemaining < 0 ? '#f43f5e' : '#fbbf24', flexShrink: 0 }}>{getStatusLabel(member.daysRemaining)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tüm üyeler özet */}
+        <div style={{ background: '#0F0F0F', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 16px 10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Users style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.25)' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>Tüm Üyeler</span>
+            </div>
+            <Link to="/app/members" style={{ fontSize: '11px', fontWeight: 700, color: AL, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px' }}>
+              Tümü <ChevronRight style={{ width: '13px', height: '13px' }} />
+            </Link>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 12px 12px' }}>
+            {members.slice(0, 4).map(member => {
+              const sc = getStatusColor(member.daysRemaining);
+              return (
+                <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '14px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <img src={member.img} alt={member.name} style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <span style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #0F0F0F', background: sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.88)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</p>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)' }}>{member.package}</p>
+                  </div>
+                  <ChevronRight style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 
 // ── Members Screen ─────────────────────────────────────────────
 type FilterType = 'all' | 'red' | 'yellow' | 'green';
-
 const MembersScreen = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const members = membersStore;
-  const filters: { key: FilterType; label: string }[] = [
-    { key: 'all', label: 'Tümü' },
-    { key: 'red', label: 'Süresi Doldu' },
-    { key: 'yellow', label: 'Bu Hafta' },
-    { key: 'green', label: 'Aktif' },
-  ];
+  const filters: { key: FilterType; label: string }[] = [{ key: 'all', label: 'Tümü' }, { key: 'red', label: 'Süresi Doldu' }, { key: 'yellow', label: 'Bu Hafta' }, { key: 'green', label: 'Aktif' }];
   const filtered = useMemo(() => {
     let list = members;
     if (search.trim()) list = list.filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.phone.includes(search));
@@ -345,63 +528,48 @@ const MembersScreen = () => {
   }, [members, search, filter]);
 
   return (
-    <div className="flex flex-col gap-3 px-4 pt-3">
-      {/* Arama */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
-        <input type="text" placeholder="İsim veya telefon ara..." value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-9 py-3.5 bg-white/[0.04] border border-white/[0.06] rounded-2xl text-white placeholder-white/20 focus:outline-none text-[14px] transition-all" />
-        {search && <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center"><X className="w-3 h-3 text-white/50" /></button>}
+    <PageWrapper>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 16px' }}>
+        {/* Arama */}
+        <div style={{ position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: 'rgba(255,255,255,0.22)' }} />
+          <input type="text" placeholder="İsim veya telefon..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', paddingLeft: '40px', paddingRight: search ? '36px' : '16px', paddingTop: '13px', paddingBottom: '13px', borderRadius: '14px', fontSize: '14px', color: 'white', outline: 'none', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', boxSizing: 'border-box' }} />
+          {search && <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X style={{ width: '12px', height: '12px', color: 'rgba(255,255,255,0.5)' }} /></button>}
+        </div>
+        {/* Filtreler */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {filters.map(({ key, label }) => (
+            <button key={key} onClick={() => setFilter(key)} style={{ flexShrink: 0, padding: '7px 14px', borderRadius: '999px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all 0.2s', background: filter === key ? `linear-gradient(135deg, ${A}, ${AL})` : 'rgba(255,255,255,0.05)', color: filter === key ? '#080808' : 'rgba(255,255,255,0.35)', boxShadow: filter === key ? `0 4px 12px ${AG}` : 'none' }}>{label}</button>
+          ))}
+        </div>
+        {/* Sayı */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: '2px' }}>
+          <Filter style={{ width: '11px', height: '11px', color: 'rgba(255,255,255,0.18)' }} />
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', fontWeight: 500 }}>{filtered.length} üye</span>
+        </div>
+        {/* Liste */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '48px 0', color: 'rgba(255,255,255,0.18)' }}><Users style={{ width: '28px', height: '28px', margin: '0 auto 10px' }} /><p style={{ fontSize: '13px' }}>Üye bulunamadı</p></div>}
+          {filtered.map((member, i) => {
+            const sc = getStatusColor(member.daysRemaining);
+            return (
+              <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 14px', borderRadius: '18px', background: '#0F0F0F', border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', opacity: 0, animation: `fadeUp 0.3s ease ${i * 0.05}s forwards` }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <img src={member.img} alt={member.name} style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '12px', height: '12px', borderRadius: '50%', border: '2px solid #0F0F0F', background: sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.92)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px' }}>{member.name}</p>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.32)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.package}</p>
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: sc === 'red' ? '#f43f5e' : sc === 'yellow' ? '#fbbf24' : 'rgba(255,255,255,0.22)', flexShrink: 0 }}>{getStatusLabel(member.daysRemaining)}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Filtre */}
-      <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-        {filters.map(({ key, label }) => (
-          <button key={key} onClick={() => setFilter(key)}
-            className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95 ${filter !== key ? 'bg-white/[0.04] text-white/35 border border-white/[0.06]' : ''}`}
-            style={filter === key ? { background: `linear-gradient(135deg, ${A}, ${AL})`, color: '#080808', boxShadow: `0 4px 12px ${AG}` } : {}}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Sayı */}
-      <div className="flex items-center gap-1.5 px-0.5">
-        <Filter className="w-3 h-3 text-white/20" />
-        <span className="text-[11px] text-white/20 font-medium">{filtered.length} üye</span>
-      </div>
-
-      {/* Liste — sadece durum noktası, hiç badge yok */}
-      <div className="flex flex-col gap-2 pb-2">
-        {filtered.length === 0 && (
-          <div className="text-center py-14">
-            <Users className="w-7 h-7 mx-auto mb-3 text-white/15" />
-            <p className="text-[13px] text-white/20 font-medium">Üye bulunamadı</p>
-          </div>
-        )}
-        {filtered.map(member => {
-          const sc = getStatusColor(member.daysRemaining);
-          return (
-            <button key={member.id} onClick={() => navigate(`/app/members/${member.id}`)}
-              className="flex items-center gap-3.5 p-3.5 rounded-[18px] border border-white/[0.04] active:scale-[0.98] transition-all text-left w-full"
-              style={{ background: '#0F0F0F' }}>
-              <div className="relative flex-shrink-0">
-                <img src={member.img} alt={member.name} className="w-11 h-11 rounded-full object-cover" />
-                <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0F0F0F] ${sc === 'green' ? 'bg-emerald-400' : sc === 'yellow' ? 'bg-amber-400' : 'bg-rose-500'}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-white/95 truncate mb-0.5">{member.name}</p>
-                <p className="text-[11px] text-white/35 truncate">{member.package}</p>
-              </div>
-              {/* Sadece kalan gün — rengiyle zaten anlaşılıyor */}
-              <span className={`text-[11px] font-semibold flex-shrink-0 ${sc === 'red' ? 'text-rose-400' : sc === 'yellow' ? 'text-amber-400' : 'text-white/25'}`}>
-                {getStatusLabel(member.daysRemaining)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+      <style>{`@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:translateY(0); } }`}</style>
+    </PageWrapper>
   );
 };
 
@@ -415,7 +583,7 @@ const MemberDetailScreen = () => {
   const [saving, setSaving] = useState(false);
   const [paid, setPaid] = useState(false);
 
-  if (!member) return <div className="text-white/30 text-center py-16 text-sm">Üye bulunamadı.</div>;
+  if (!member) return <div style={{ color: 'rgba(255,255,255,0.25)', textAlign: 'center', padding: '64px 0', fontSize: '14px' }}>Üye bulunamadı.</div>;
 
   const remaining = member.totalAmount - member.paidAmount;
   const payPct = member.totalAmount > 0 ? Math.round((member.paidAmount / member.totalAmount) * 100) : 0;
@@ -433,178 +601,151 @@ const MemberDetailScreen = () => {
     }, 700);
   };
 
+  const card: React.CSSProperties = { background: '#0F0F0F', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.04)', padding: '20px' };
+
   return (
-    <div className="flex flex-col gap-2.5 px-4 pt-3 pb-4">
+    <PageWrapper>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 16px 16px' }}>
+        {/* Profil */}
+        <div style={{ ...card, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top, rgba(217,119,6,0.04) 0%, transparent 60%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', marginBottom: '12px' }}>
+            <img src={member.img} alt={member.name} style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+            <span style={{ position: 'absolute', bottom: '1px', right: '1px', width: '14px', height: '14px', borderRadius: '50%', border: '2px solid #0F0F0F', background: sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e' }} />
+          </div>
+          <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'white', letterSpacing: '-0.02em', marginBottom: '8px' }}>{member.name}</h2>
+          <div style={{ marginBottom: '14px' }}><PaymentBadgeFull status={member.paymentStatus} /></div>
+          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <a href={`tel:${member.phone}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+              <Phone style={{ width: '14px', height: '14px' }} /> {member.phone}
+            </a>
+            <a href={`mailto:${member.email}`} style={{ width: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>
+              <Mail style={{ width: '14px', height: '14px' }} />
+            </a>
+          </div>
+        </div>
 
-      {/* Profil */}
-      <div className="rounded-[20px] p-5 border border-white/[0.04] flex flex-col items-center text-center relative overflow-hidden" style={{ background: '#0F0F0F' }}>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at top, rgba(217,119,6,0.05) 0%, transparent 60%)' }} />
-        <div className="relative mb-3">
-          <img src={member.img} alt={member.name} className="w-[72px] h-[72px] rounded-full object-cover border border-white/10" />
-          <span className={`absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-[2px] border-[#0F0F0F] ${sc === 'green' ? 'bg-emerald-400' : sc === 'yellow' ? 'bg-amber-400' : 'bg-rose-500'}`} />
+        {/* Paket */}
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+            <Dumbbell style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.22)' }} />
+            <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Paket</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.88)' }}>{member.package}</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', background: sc === 'green' ? 'rgba(52,211,153,0.1)' : sc === 'yellow' ? 'rgba(251,191,36,0.1)' : 'rgba(244,63,94,0.1)', color: sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e' }}>{getStatusLabel(member.daysRemaining)}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <Calendar style={{ width: '12px', height: '12px', color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+              <div><p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', fontWeight: 500 }}>Başlangıç</p><p style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.78)' }}>{member.startDate}</p></div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <Clock style={{ width: '12px', height: '12px', color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+              <div><p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', fontWeight: 500 }}>Bitiş</p><p style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.78)' }}>{member.endDate}</p></div>
+            </div>
+          </div>
         </div>
-        <h2 className="text-[18px] font-black text-white tracking-tight mb-1.5">{member.name}</h2>
-        <div className="mb-3">
-          <PaymentBadgeFull status={member.paymentStatus} />
-        </div>
-        <div className="flex gap-2 w-full">
-          <a href={`tel:${member.phone}`} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/[0.04] border border-white/[0.06] rounded-2xl text-white/65 text-[12px] font-semibold active:opacity-70">
-            <Phone className="w-3.5 h-3.5" /> {member.phone}
-          </a>
-          <a href={`mailto:${member.email}`} className="w-10 flex items-center justify-center bg-white/[0.04] border border-white/[0.06] rounded-2xl text-white/35 active:opacity-70">
-            <Mail className="w-3.5 h-3.5" />
-          </a>
-        </div>
-      </div>
 
-      {/* Paket */}
-      <div className="rounded-[20px] p-5 border border-white/[0.04]" style={{ background: '#0F0F0F' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Dumbbell className="w-3.5 h-3.5 text-white/25" />
-          <h3 className="text-[11px] font-bold text-white/40 tracking-widest uppercase">Paket</h3>
-        </div>
-        <div className="flex items-center justify-between mb-2.5 p-3 bg-white/[0.03] rounded-[14px] border border-white/[0.04]">
-          <span className="text-[13px] font-bold text-white/90">{member.package}</span>
-          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${sc === 'green' ? 'text-emerald-400 bg-emerald-500/10' : sc === 'yellow' ? 'text-amber-400 bg-amber-500/10' : 'text-rose-400 bg-rose-500/10'}`}>
-            {getStatusLabel(member.daysRemaining)}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 p-3 bg-white/[0.03] rounded-[14px] border border-white/[0.04]">
-            <Calendar className="w-3 h-3 text-white/20 flex-shrink-0" />
-            <div><p className="text-[10px] text-white/30 font-medium">Başlangıç</p><p className="text-[12px] font-bold text-white/80">{member.startDate}</p></div>
+        {/* Ödeme */}
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+            <CreditCard style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.22)' }} />
+            <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Ödeme</span>
           </div>
-          <div className="flex items-center gap-2 p-3 bg-white/[0.03] rounded-[14px] border border-white/[0.04]">
-            <Clock className="w-3 h-3 text-white/20 flex-shrink-0" />
-            <div><p className="text-[10px] text-white/30 font-medium">Bitiş</p><p className="text-[12px] font-bold text-white/80">{member.endDate}</p></div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', marginBottom: '4px' }}>Toplam</p>
+              <p style={{ fontSize: '17px', fontWeight: 900, color: 'white' }}>₺{member.totalAmount.toLocaleString('tr-TR')}</p>
+            </div>
+            <div style={{ padding: '12px', background: 'rgba(52,211,153,0.05)', borderRadius: '14px', border: '1px solid rgba(52,211,153,0.12)' }}>
+              <p style={{ fontSize: '10px', color: 'rgba(52,211,153,0.5)', marginBottom: '4px' }}>Ödenen</p>
+              <p style={{ fontSize: '17px', fontWeight: 900, color: '#34d399' }}>₺{member.paidAmount.toLocaleString('tr-TR')}</p>
+            </div>
           </div>
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.22)' }}>İlerleme</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.38)' }}>{payPct}%</span>
+            </div>
+            <div style={{ height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: '999px', width: `${payPct}%`, background: `linear-gradient(90deg, ${A}, ${AL})`, transition: 'width 0.5s ease' }} />
+            </div>
+          </div>
+          {remaining > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: '12px', background: 'rgba(217,119,6,0.05)', border: '1px solid rgba(217,119,6,0.1)', marginBottom: '10px' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(245,158,11,0.55)', fontWeight: 600 }}>Kalan</span>
+            <span style={{ fontSize: '15px', fontWeight: 900, color: AL }}>₺{remaining.toLocaleString('tr-TR')}</span>
+          </div>}
+          <button onClick={() => setShowPayModal(true)} disabled={remaining <= 0} style={{ width: '100%', padding: '14px', borderRadius: '16px', fontWeight: 800, fontSize: '14px', border: 'none', cursor: remaining > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: remaining > 0 ? `linear-gradient(135deg, ${A}, ${AL})` : 'rgba(255,255,255,0.05)', color: remaining > 0 ? '#080808' : 'rgba(255,255,255,0.2)', boxShadow: remaining > 0 ? `0 8px 20px ${AG}` : 'none' }}>
+            <CreditCard style={{ width: '15px', height: '15px' }} />{remaining <= 0 ? 'Ödeme Tamamlandı' : 'Ödeme Al'}
+          </button>
         </div>
-      </div>
 
-      {/* Ödeme */}
-      <div className="rounded-[20px] p-5 border border-white/[0.04]" style={{ background: '#0F0F0F' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <CreditCard className="w-3.5 h-3.5 text-white/25" />
-          <h3 className="text-[11px] font-bold text-white/40 tracking-widest uppercase">Ödeme</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="p-3 bg-white/[0.03] rounded-[14px] border border-white/[0.04]">
-            <p className="text-[10px] text-white/30 font-medium mb-1">Toplam</p>
-            <p className="text-[17px] font-black text-white">₺{member.totalAmount.toLocaleString('tr-TR')}</p>
-          </div>
-          <div className="p-3 rounded-[14px] border border-emerald-500/[0.12] bg-emerald-500/[0.04]">
-            <p className="text-[10px] text-emerald-400/50 font-medium mb-1">Ödenen</p>
-            <p className="text-[17px] font-black text-emerald-400">₺{member.paidAmount.toLocaleString('tr-TR')}</p>
-          </div>
-        </div>
-        <div className="mb-3">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] text-white/25 font-medium">İlerleme</span>
-            <span className="text-[10px] font-bold text-white/40">{payPct}%</span>
-          </div>
-          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${payPct}%`, background: `linear-gradient(90deg, ${A}, ${AL})` }} />
-          </div>
-        </div>
-        {remaining > 0 && (
-          <div className="flex items-center justify-between p-3 rounded-[14px] border mb-3" style={{ borderColor: 'rgba(217,119,6,0.12)', background: 'rgba(217,119,6,0.04)' }}>
-            <span className="text-[12px] font-semibold" style={{ color: 'rgba(245,158,11,0.6)' }}>Kalan</span>
-            <span className="text-[15px] font-black" style={{ color: AL }}>₺{remaining.toLocaleString('tr-TR')}</span>
+        {/* Geçmiş ödemeler */}
+        {member.pastPayments.length > 0 && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <Clock style={{ width: '13px', height: '13px', color: 'rgba(255,255,255,0.22)' }} />
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Geçmiş Ödemeler</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {member.pastPayments.map((p, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>{p.month}</span>
+                  {p.status === 'paid' ? <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>Ödendi ✓</span> : p.status === 'partial' ? <span style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>Eksik</span> : <span style={{ fontSize: '11px', fontWeight: 700, color: '#f43f5e' }}>Bekleniyor</span>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
-        <button onClick={() => setShowPayModal(true)} disabled={remaining <= 0}
-          className="w-full py-3.5 rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30 text-[#080808]"
-          style={remaining > 0 ? { background: `linear-gradient(135deg, ${A}, ${AL})`, boxShadow: `0 8px 20px ${AG}` } : { background: '#1a1a1a', color: 'rgba(255,255,255,0.2)' }}>
-          <CreditCard className="w-4 h-4" />
-          {remaining <= 0 ? 'Ödeme Tamamlandı' : 'Ödeme Al'}
-        </button>
+
+        {/* Ödeme modalı */}
+        {showPayModal && (
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)', zIndex: 50, display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ width: '100%', background: '#0F0F0F', borderRadius: '28px 28px 0 0', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: '12px', animation: 'slideUp 0.3s ease' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>Ödeme Al</span>
+                <button onClick={() => { setShowPayModal(false); setPaid(false); }} style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.5)' }} /></button>
+              </div>
+              <div style={{ padding: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px' }}>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.28)', marginBottom: '4px' }}>{member.name} — Kalan</p>
+                <p style={{ fontSize: '22px', fontWeight: 900, color: AL }}>₺{remaining.toLocaleString('tr-TR')}</p>
+              </div>
+              {paid ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '16px 0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(52,211,153,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CheckCircle2 style={{ width: '28px', height: '28px', color: '#34d399' }} /></div>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#34d399' }}>Kaydedildi!</p>
+                </div>
+              ) : (
+                <>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.28)', fontSize: '16px', fontWeight: 700 }}>₺</span>
+                    <input type="number" placeholder="Tutar girin" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={{ width: '100%', paddingLeft: '32px', paddingRight: '16px', paddingTop: '15px', paddingBottom: '15px', borderRadius: '16px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'white', fontSize: '16px', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {[500, 1000, remaining].filter((v, i, arr) => arr.indexOf(v) === i && v > 0).map(v => (
+                      <button key={v} onClick={() => setPayAmount(String(v))} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: 700, color: AL, background: 'rgba(217,119,6,0.08)', border: `1px solid rgba(217,119,6,0.15)`, borderRadius: '12px', cursor: 'pointer' }}>₺{v.toLocaleString('tr-TR')}</button>
+                    ))}
+                  </div>
+                  <button onClick={handlePayment} disabled={saving || !payAmount || parseInt(payAmount) <= 0} style={{ width: '100%', padding: '16px', borderRadius: '16px', fontWeight: 800, fontSize: '15px', border: 'none', cursor: 'pointer', background: `linear-gradient(135deg, ${A}, ${AL})`, color: '#080808', boxShadow: `0 8px 20px ${AG}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: saving || !payAmount || parseInt(payAmount) <= 0 ? 0.4 : 1 }}>
+                    {saving ? 'Kaydediliyor...' : <><Check style={{ width: '18px', height: '18px' }} />Onayla</>}
+                  </button>
+                </>
+              )}
+              <style>{`@keyframes slideUp { from { transform: translateY(40px); opacity:0; } to { transform:translateY(0); opacity:1; } }`}</style>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Geçmiş ödemeler */}
-      {member.pastPayments.length > 0 && (
-        <div className="rounded-[20px] p-5 border border-white/[0.04]" style={{ background: '#0F0F0F' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-3.5 h-3.5 text-white/25" />
-            <h3 className="text-[11px] font-bold text-white/40 tracking-widest uppercase">Geçmiş Ödemeler</h3>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            {member.pastPayments.map((p, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[12px] bg-white/[0.02] border border-white/[0.04]">
-                <span className="text-[13px] font-medium text-white/65">{p.month}</span>
-                {p.status === 'paid'
-                  ? <span className="text-[10px] font-bold text-emerald-400">Ödendi ✓</span>
-                  : p.status === 'partial'
-                  ? <span className="text-[10px] font-bold text-amber-400">Eksik</span>
-                  : <span className="text-[10px] font-bold text-rose-400">Bekleniyor</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Ödeme modalı */}
-      {showPayModal && (
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end">
-          <div className="w-full rounded-t-[28px] border-t border-white/[0.06] p-6 pb-10 flex flex-col gap-4" style={{ background: '#0F0F0F' }}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-bold text-white">Ödeme Al</h2>
-              <button onClick={() => { setShowPayModal(false); setPaid(false); }} className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center"><X className="w-4 h-4 text-white/50" /></button>
-            </div>
-            <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4">
-              <p className="text-[11px] text-white/30 font-medium mb-1">{member.name} — Kalan Tutar</p>
-              <p className="text-[24px] font-black" style={{ color: AL }}>₺{remaining.toLocaleString('tr-TR')}</p>
-            </div>
-            {paid ? (
-              <div className="flex flex-col items-center gap-2 py-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                  <CheckCircle2 className="w-7 h-7 text-emerald-400" />
-                </div>
-                <p className="text-[14px] font-bold text-emerald-400">Kaydedildi!</p>
-              </div>
-            ) : (
-              <>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[15px]" style={{ color: 'rgba(255,255,255,0.3)' }}>₺</span>
-                  <input type="number" placeholder="Tutar girin" value={payAmount} onChange={e => setPayAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-4 bg-white/[0.04] border border-white/[0.06] rounded-2xl text-white placeholder-white/20 focus:outline-none text-[16px] font-bold" />
-                </div>
-                <div className="flex gap-2">
-                  {[500, 1000, remaining].filter((v, i, arr) => arr.indexOf(v) === i && v > 0).map(v => (
-                    <button key={v} onClick={() => setPayAmount(String(v))}
-                      className="flex-1 py-2 text-[11px] font-bold rounded-xl border active:opacity-70"
-                      style={{ color: AL, borderColor: `${A}25`, background: `${A}0A` }}>
-                      ₺{v.toLocaleString('tr-TR')}
-                    </button>
-                  ))}
-                </div>
-                <button onClick={handlePayment} disabled={saving || !payAmount || parseInt(payAmount) <= 0}
-                  className="w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 text-[#080808]"
-                  style={{ background: `linear-gradient(135deg, ${A}, ${AL})`, boxShadow: `0 8px 20px ${AG}` }}>
-                  {saving ? 'Kaydediliyor...' : <><Check className="w-5 h-5" /> Onayla</>}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    </PageWrapper>
   );
 };
 
-// ── Router ─────────────────────────────────────────────────────
-const PhoneShell = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen bg-[#040404] flex items-center justify-center p-4 sm:p-8">
-    <div className="relative w-full max-w-[393px] h-[852px] bg-[#080808] rounded-[50px] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.95)] ring-[5px] ring-[#111111] flex flex-col">
-      <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[126px] h-[33px] bg-black rounded-full z-50 pointer-events-none" />
-      {children}
-    </div>
-  </div>
-);
-
+// ── Router — TELEFON FRAME YOK, TAM EKRAN ─────────────────────
 const router = createBrowserRouter([
-  { path: '/', element: <PhoneShell><Login /></PhoneShell> },
-  { path: '/login', element: <PhoneShell><Login /></PhoneShell> },
-  { path: '/app', element: <Layout />, children: [
+  { path: '/', element: <div style={{ width: '100vw', height: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}><Login /></div> },
+  { path: '/login', element: <div style={{ width: '100vw', height: '100vh', background: '#080808', display: 'flex', flexDirection: 'column' }}><Login /></div> },
+  { path: '/app', element: <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}><Layout /></div>, children: [
     { path: 'home', element: <DashboardScreen /> },
     { path: 'members', element: <MembersScreen /> },
     { path: 'members/:id', element: <MemberDetailScreen /> },
