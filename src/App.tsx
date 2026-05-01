@@ -681,22 +681,21 @@ const MemberDetailScreen = () => {
         {/* Profil */}
         <div style={{ ...card, display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center' }}>
           <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at top,rgba(255,255,255,0.02) 0%,transparent 60%)', pointerEvents:'none' }}/>
-          {/* Aksiyonlar — sağ üst */}
-          <div style={{ position:'absolute', top:'14px', right:'14px', display:'flex', gap:'6px' }}>
-            <button onClick={() => setShowEditModal(true)} style={{ display:'flex', alignItems:'center', gap:'5px', padding:'6px 10px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', cursor:'pointer', color:'rgba(255,255,255,0.35)', fontSize:'11px', fontWeight:600 }}>
-              <Pencil style={{ width:'11px', height:'11px' }}/>Düzenle
-            </button>
-           <button onClick={() => setShowDeleteModal(true)} style={{ width:'32px', height:'32px', borderRadius:'10px', background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)',
-              <Trash2 style={{ width:'14px', height:'14px', color:'#f87171' }}/>
-            </button>
-          </div>
-
+          
+          {/* Düzenle — sağ üst, sadece bu */}
+          <button onClick={() => setShowEditModal(true)} style={{ position:'absolute', top:'14px', right:'14px', display:'flex', alignItems:'center', gap:'5px', padding:'6px 10px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', cursor:'pointer', color:'rgba(255,255,255,0.35)', fontSize:'11px', fontWeight:600 }}>
+            <Pencil style={{ width:'11px', height:'11px' }}/>Düzenle
+          </button>
+          
           <div style={{ position:'relative', marginBottom:'12px', marginTop:'8px' }}>
             <img src={member.img} alt={member.name} style={{ width:'70px', height:'70px', borderRadius:'50%', objectFit:'cover', border:'1px solid rgba(255,255,255,0.08)' }}/>
             <span style={{ position:'absolute', bottom:'1px', right:'1px', width:'13px', height:'13px', borderRadius:'50%', border:'2px solid #111', background:dotColor(sc) }}/>
           </div>
+          
           <h2 style={{ fontSize:'18px', fontWeight:900, color:'white', letterSpacing:'-0.02em', marginBottom:'8px' }}>{member.name}</h2>
+          
           <div style={{ marginBottom:'14px' }}><PaymentBadge status={member.paymentStatus}/></div>
+          
           <div style={{ display:'flex', gap:'8px', width:'100%' }}>
             <a href={`tel:${member.phone}`} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', padding:'11px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:'14px', color:'rgba(255,255,255,0.5)', fontSize:'12px', fontWeight:600, textDecoration:'none' }}>
               <Phone style={{ width:'14px', height:'14px' }}/>{member.phone}
@@ -709,10 +708,15 @@ const MemberDetailScreen = () => {
           </div>
         </div>
 
-        {/* WhatsApp */}
-        <a href={waHref} target="_blank" rel="noreferrer" style={{ width:'100%', padding:'13px', borderRadius:'16px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(37,211,102,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', background:'rgba(37,211,102,0.05)', color:'rgba(37,211,102,0.7)', textDecoration:'none', boxSizing:'border-box' }}>
-          <MessageCircle style={{ width:'15px', height:'15px' }}/>WhatsApp Mesaj Gönder
-        </a>
+        {/* WhatsApp + Sil — yan yana */}
+        <div style={{ display:'flex', gap:'8px' }}>
+          <a href={waHref} target="_blank" rel="noreferrer" style={{ flex:1, padding:'13px', borderRadius:'16px', fontWeight:700, fontSize:'13px', border:'1px solid rgba(37,211,102,0.12)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', background:'rgba(37,211,102,0.05)', color:'rgba(37,211,102,0.7)', textDecoration:'none', boxSizing:'border-box' }}>
+            <MessageCircle style={{ width:'15px', height:'15px' }}/>WhatsApp
+          </a>
+          <button onClick={() => setShowDeleteModal(true)} style={{ width:'48px', flexShrink:0, padding:'13px', borderRadius:'16px', border:'1px solid rgba(248,113,113,0.2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(248,113,113,0.06)' }}>
+            <Trash2 style={{ width:'16px', height:'16px', color:'#f87171' }}/>
+          </button>
+        </div>
 
         {/* Paket */}
         <div style={card}>
