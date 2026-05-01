@@ -686,8 +686,8 @@ const MemberDetailScreen = () => {
             <button onClick={() => setShowEditModal(true)} style={{ display:'flex', alignItems:'center', gap:'5px', padding:'6px 10px', borderRadius:'10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', cursor:'pointer', color:'rgba(255,255,255,0.35)', fontSize:'11px', fontWeight:600 }}>
               <Pencil style={{ width:'11px', height:'11px' }}/>Düzenle
             </button>
-            <button onClick={() => setShowDeleteModal(true)} style={{ width:'30px', height:'30px', borderRadius:'10px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Trash2 style={{ width:'13px', height:'13px', color:'rgba(255,255,255,0.3)' }}/>
+           <button onClick={() => setShowDeleteModal(true)} style={{ width:'32px', height:'32px', borderRadius:'10px', background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)',
+              <Trash2 style={{ width:'14px', height:'14px', color:'#f87171' }}/>
             </button>
           </div>
 
