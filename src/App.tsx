@@ -514,10 +514,10 @@ const DashboardScreen = () => {
       {/* 3 stat */}
       <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8 }}>
         {[
-          { label:'Süresi Doldu', count:red,    icon:'🕐', st:'expired'  as const },
-          { label:'Bu Hafta',     count:yellow,  icon:'⏳', st:'warning'  as const },
-          { label:'Aktif',        count:green,   icon:'✓',  st:'active'   as const },
-        ].map(({ label,count,icon,st },i)=>(
+          { label:'Süresi Doldu', count:red,    icon:'🕐' },
+          { label:'Bu Hafta',     count:yellow,  icon:'⏳' },
+          { label:'Aktif',        count:green,   icon:'✓' },
+        ].map(({ label,count,icon },i)=>(
           <div key={label} style={{ background:'#111',border:'1px solid rgba(255,255,255,0.06)',borderRadius:18,padding:'14px 12px',display:'flex',flexDirection:'column',gap:10,opacity:0,animation:`fadeUp 0.35s ease ${0.1+i*0.06}s forwards` }}>
             <span style={{ fontSize:16 }}>{icon}</span>
             <span style={{ fontSize:26,fontWeight:900,color:'white',lineHeight:1,animation:'countUp 0.4s ease both' }}>{count}</span>
