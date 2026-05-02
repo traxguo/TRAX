@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useRef, createContext, useContext } from 'react';
+import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { RouterProvider, createBrowserRouter, Outlet, useNavigate, useLocation, useParams, Link } from 'react-router';
-import { Bell, Home, Users, ChevronRight, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Bell, Home, Users, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil, Trash2 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Login } from './Login';
 import { mockMembers as initialMembers, revenueData } from './data';
@@ -285,13 +285,13 @@ const NotificationPanel = ({ onClose }: { onClose:()=>void }) => {
             ?<div style={{ textAlign:'center',padding:24,color:'rgba(255,255,255,0.2)' }}><p style={{ fontSize:13 }}>Tüm üyeler aktif 🎉</p></div>
             :<div style={{ display:'flex',flexDirection:'column',gap:8 }}>
               {urgents.map(m=>{
-                const st=getStatus(m.daysRemaining);
+                
                 const tpl=m.daysRemaining<0?templates.expired:templates.expiring;
                 const href=getWhatsAppHref(m.phone,buildMsg(tpl,m));
                 const isSent=sent.includes(m.id);
                 return (
                   <div key={m.id} style={{ display:'flex',alignItems:'center',gap:10,background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:14,padding:'10px 12px' }}>
-                    <Avatar name={m.name} size={36} status={st}/>
+                    <Avatar name={m.name} size={36} status={getStatus(m.daysRemaining)}/>
                     <div style={{ flex:1,minWidth:0 }}>
                       <p style={{ fontSize:13,fontWeight:700,color:'rgba(255,255,255,0.85)',marginBottom:2 }}>{m.name}</p>
                       <p style={{ fontSize:11,color:'rgba(255,255,255,0.3)' }}>{getStatusLabel(m.daysRemaining)}</p>
@@ -475,8 +475,7 @@ const Layout = () => {
 const DashboardScreen = () => {
   const navigate=useNavigate();
   const { members }=useStore();
-  const [loading,setLoading]=useState(true);
-  useEffect(()=>{ const t=setTimeout(()=>setLoading(false),800); return ()=>clearTimeout(t); },[]);
+  
 
   const red    = members.filter(m=>m.daysRemaining<0).length;
   const yellow = members.filter(m=>m.daysRemaining>=0&&m.daysRemaining<=7).length;
