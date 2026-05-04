@@ -308,18 +308,25 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
+// TAM EKRAN FİX: Artık position: fixed ile ekranın en altına mühürlendi. Siyah boşluk/duvar illüzyonu kaldırıldı.
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      position: 'absolute', bottom: 0, left: 0, right: 0,
-      background:'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0.8) 70%, transparent)',
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      background:'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'calc(env(safe-area-inset-bottom, 12px) + 12px)',
-      paddingTop:'32px', zIndex:20
+      paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 16px)',
+      paddingTop:'40px', zIndex:40, pointerEvents: 'none'
     }}>
-      <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
+      <div style={{
+        pointerEvents: 'auto',
+        background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',
+        border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',
+        height:'56px',display:'flex',alignItems:'center',justifyContent:'center',
+        gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'
+      }}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
           <Link key={path} to={path} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'40px',height:'40px',justifyContent:'center',textDecoration:'none'}}>
             <Icon style={{width:'20px',height:'20px',color:active?AL:'rgba(255,255,255,0.3)',transition:'color 0.2s'}} strokeWidth={active?2.5:1.5}/>
@@ -345,9 +352,18 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
+      <div style={{width:'100%',height:'100%', minHeight: '100dvh', background:'#000000',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
         
         <style dangerouslySetInnerHTML={{__html:`
+          /* SİSTEM KÖKÜNÜ TAM EKRANA ZORLAMA: Boşlukları Kesin Olarak Yok Eder */
+          html, body, #root {
+            height: 100dvh !important;
+            width: 100vw !important;
+            position: fixed !important;
+            top: 0; left: 0;
+            background: #000000;
+          }
+
           @keyframes travelPerimeter {
             0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
             40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
@@ -391,7 +407,7 @@ const Layout=()=>{
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '100px'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '110px'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
