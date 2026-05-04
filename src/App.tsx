@@ -278,7 +278,7 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   const isDetail=location.pathname.includes('/members/');
   const isMembers=location.pathname==='/app/members';
   const hdr:React.CSSProperties={
-    paddingTop: 'calc(env(safe-area-inset-top, 20px) + 12px)',
+    paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
     paddingBottom: '14px', paddingLeft: '20px', paddingRight: '20px',
     display:'flex',alignItems:'center',justifyContent:'space-between',
     position:'sticky',top:0,zIndex:10,background:'rgba(12,12,12,0.92)',
@@ -308,17 +308,16 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
-// TAM EKRAN FİX: Artık position: fixed ile ekranın en altına mühürlendi. Siyah boşluk/duvar illüzyonu kaldırıldı.
+// SIFIR BOŞLUKLU ALT MENÜ (Gölgeler kaldırıldı, tam dibe oturtuldu)
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background:'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 16px)',
-      paddingTop:'40px', zIndex:40, pointerEvents: 'none'
+      paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+      zIndex:40, pointerEvents: 'none'
     }}>
       <div style={{
         pointerEvents: 'auto',
@@ -352,18 +351,20 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      <div style={{width:'100%',height:'100%', minHeight: '100dvh', background:'#000000',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
+      {/* KÖK FIX: position fixed ve inset 0 ile tam ekran garantilendi */}
+      <div style={{position:'fixed', top:0, bottom:0, left:0, right:0, background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         
         <style dangerouslySetInnerHTML={{__html:`
-          /* SİSTEM KÖKÜNÜ TAM EKRANA ZORLAMA: Boşlukları Kesin Olarak Yok Eder */
+          /* SİSTEM KÖKÜNÜ TAM EKRANA ZORLAMA */
           html, body, #root {
-            height: 100dvh !important;
-            width: 100vw !important;
+            background: #000000 !important;
             position: fixed !important;
-            top: 0; left: 0;
-            background: #000000;
+            top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            width: 100% !important; height: 100% !important;
+            margin: 0 !important; padding: 0 !important;
           }
 
+          /* ALEV TOPU EFEKTİ */
           @keyframes travelPerimeter {
             0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
             40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
@@ -407,7 +408,7 @@ const Layout=()=>{
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '110px'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '90px'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
