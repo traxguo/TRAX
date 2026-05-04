@@ -72,7 +72,6 @@ const PaymentBadgeFull = ({status}:{status:'paid'|'partial'|'unpaid'}) => {
   return <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{cfg.label}</span>;
 };
 
-// SCROLL FIX: height zorlaması kalktı, içeriğin doğal akışı sağlandı.
 const PageWrapper = ({children}:{children:React.ReactNode}) => {
   const [v,setV]=useState(false);
   useEffect(()=>{const t=setTimeout(()=>setV(true),30);return()=>clearTimeout(t);},[]);
@@ -309,7 +308,6 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
-// TAM EKRAN FIX: Artık devasa boşluk yok, position absolute ile ekranın dibine sıfırlandı.
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
@@ -318,7 +316,7 @@ const BottomNav=()=>{
       position: 'absolute', bottom: 0, left: 0, right: 0,
       background:'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0.8) 70%, transparent)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'calc(env(safe-area-inset-bottom, 12px) + 12px)', // Telefonun kenarından tam 1-2 cm yukarda
+      paddingBottom:'calc(env(safe-area-inset-bottom, 12px) + 12px)',
       paddingTop:'32px', zIndex:20
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
@@ -347,12 +345,9 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      {/* KÖK FIX: Layout sarmalayıcısı height 100% ve relative yapıldı */}
       <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
         
-        {/* YENİ GERÇEK METEOR EFEKTİ */}
         <style dangerouslySetInnerHTML={{__html:`
-          /* Işık topunun çerçevenin etrafında tam tur atmasını sağlayan keyframe */
           @keyframes travelPerimeter {
             0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
             40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
@@ -367,19 +362,17 @@ const Layout=()=>{
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
           }
           
-          /* Arka planda gezen gerçek ışık topu (Alev topu) */
           .meteor-light {
             position: absolute;
             width: 70px; height: 70px;
-            background: var(--glow-color); /* Beyaz uç yok, sadece tema rengi */
+            background: var(--glow-color);
             border-radius: 50%;
-            filter: blur(16px); /* Arkasında iz bırakıyormuş gibi yumuşatır */
+            filter: blur(16px);
             animation: travelPerimeter 4s linear infinite;
             z-index: -1;
             opacity: 0.85;
           }
           
-          /* Kartın asıl içeriği, ışık topunun sadece kenarlardan sızmasını sağlar */
           .meteor-inner {
             background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%;
             position: relative; z-index: 1; padding: 13px 14px;
@@ -720,4 +713,3 @@ const router=createBrowserRouter([
 ]);
 
 export default function App(){return <RouterProvider router={router}/>;}
-```</W>
