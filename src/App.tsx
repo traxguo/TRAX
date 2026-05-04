@@ -1,12 +1,18 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { RouterProvider, createBrowserRouter, Outlet, useNavigate, useLocation, useParams, Link } from 'react-router';
-import { Bell, Home, Users, ChevronRight, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { Bell, Home, Users, ChevronRight, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil, Trash2, Activity } from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { Login } from './Login';
-import { mockMembers as initialMembers, revenueData } from './data';
+import { mockMembers as initialMembers } from './data';
 import type { Member } from './data';
 
 const A = '#D97706'; const AL = '#F59E0B'; const AG = 'rgba(217,119,6,0.3)';
+
+// Grafik için anlamlı, günlere bölünmüş mock data
+const revenueData = [
+  { day: 'Pzt', value: 4500 }, { day: 'Sal', value: 3200 }, { day: 'Çar', value: 5000 },
+  { day: 'Per', value: 2800 }, { day: 'Cum', value: 6100 }, { day: 'Cmt', value: 7500 }, { day: 'Paz', value: 3450 }
+];
 
 const DEFAULT_TEMPLATES = {
   expiring: 'Merhaba {isim}, paketinizin süresi {gun} gün içinde dolmaktadır. Üyeliğinizi yenilemek için bizimle iletişime geçebilirsiniz. Görüşmek dileğiyle! 🏋️',
@@ -53,8 +59,9 @@ type StoreCtx = {
   members: Member[];
   addMember: (m: Member) => void;
   updateMember: (m: Member) => void;
+  deleteMember: (id: string) => void;
 };
-const StoreContext = createContext<StoreCtx>({ members: [], addMember: ()=>{}, updateMember: ()=>{} });
+const StoreContext = createContext<StoreCtx>({ members: [], addMember: ()=>{}, updateMember: ()=>{}, deleteMember: ()=>{} });
 const useStore = () => useContext(StoreContext);
 
 const PaymentBadgeFull = ({status}:{status:'paid'|'partial'|'unpaid'}) => {
@@ -86,7 +93,7 @@ const NotificationPanel = ({onClose}:{onClose:()=>void}) => {
 
   return (
     <div style={{position:'absolute',inset:0,zIndex:60,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(6px)',display:'flex',flexDirection:'column',justifyContent:'flex-end'}}>
-      <div style={{background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.06)',padding:'20px 20px 36px',display:'flex',flexDirection:'column',gap:'14px',maxHeight:'82%',overflow:'hidden',animation:'slideUp 0.3s ease'}}>
+      <div style={{background:'#050505',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.06)',padding:'20px 20px 36px',display:'flex',flexDirection:'column',gap:'14px',maxHeight:'82%',overflow:'hidden',animation:'slideUp 0.3s ease'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
             <MessageCircle style={{width:'16px',height:'16px',color:AL}} />
@@ -109,7 +116,6 @@ const NotificationPanel = ({onClose}:{onClose:()=>void}) => {
               {editMode===type
                 ? <textarea value={draft} onChange={e=>setDraft(e.target.value)} rows={3} style={{width:'100%',background:'rgba(255,255,255,0.04)',border:`1px solid ${AG}`,borderRadius:'10px',padding:'8px',color:'white',fontSize:'12px',resize:'none',outline:'none',boxSizing:'border-box',lineHeight:1.5}} />
                 : <p style={{fontSize:'12px',color:'rgba(255,255,255,0.45)',lineHeight:1.5}}>{templates[type]}</p>}
-              <p style={{fontSize:'10px',color:'rgba(255,255,255,0.2)',marginTop:'4px'}}>{'{isim}'} ve {'{gun}'} otomatik dolar</p>
             </div>
           ))}
         </div>
@@ -130,7 +136,7 @@ const NotificationPanel = ({onClose}:{onClose:()=>void}) => {
                     <div key={m.id} style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:'14px',padding:'10px 12px'}}>
                       <div style={{position:'relative',flexShrink:0}}>
                         <img src={m.img} alt={m.name} style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover'}}/>
-                        <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #080808',background:hexColor}}/>
+                        <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #000000',background:hexColor}}/>
                       </div>
                       <div style={{flex:1,minWidth:0}}>
                         <p style={{fontSize:'13px',fontWeight:700,color:'rgba(255,255,255,0.9)',marginBottom:'2px'}}>{m.name}</p>
@@ -196,7 +202,7 @@ const EditMemberModal = ({member,onClose,onSave}:{member:Member;onClose:()=>void
 
   return (
     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',zIndex:50,display:'flex',alignItems:'flex-end'}}>
-      <div style={{width:'100%',background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
+      <div style={{width:'100%',background:'#050505',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
           <span style={{fontSize:'16px',fontWeight:800,color:'white'}}>Üyeyi Düzenle</span>
           <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
@@ -206,7 +212,7 @@ const EditMemberModal = ({member,onClose,onSave}:{member:Member;onClose:()=>void
           <input style={inp} placeholder="Telefon" value={form.phone} type="tel" onChange={e=>setForm(f=>({...f,phone:e.target.value}))} />
           <input style={inp} placeholder="E-posta" value={form.email} type="email" onChange={e=>setForm(f=>({...f,email:e.target.value}))} />
           <select style={{...inp,appearance:'none'} as React.CSSProperties} value={form.package} onChange={e=>setForm(f=>({...f,package:e.target.value}))}>
-            {packages.map(p=><option key={p} value={p} style={{background:'#0F0F0F'}}>{p}</option>)}
+            {packages.map(p=><option key={p} value={p} style={{background:'#050505'}}>{p}</option>)}
           </select>
           <input style={inp} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e=>setForm(f=>({...f,totalAmount:e.target.value}))} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
@@ -214,7 +220,7 @@ const EditMemberModal = ({member,onClose,onSave}:{member:Member;onClose:()=>void
             <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.35)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
           </div>
         </div>
-        <button onClick={handleSave} disabled={saving} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#080808',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving?0.7:1,marginTop:'4px'}}>
+        <button onClick={handleSave} disabled={saving} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#000000',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving?0.7:1,marginTop:'4px'}}>
           {saving?'Kaydediliyor...':<><Check style={{width:'16px',height:'16px'}} />Kaydet</>}
         </button>
       </div>
@@ -242,7 +248,7 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
 
   return (
     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',zIndex:50,display:'flex',alignItems:'flex-end'}}>
-      <div style={{width:'100%',background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
+      <div style={{width:'100%',background:'#050505',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
           <span style={{fontSize:'16px',fontWeight:800,color:'white'}}>Yeni Üye</span>
           <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
@@ -250,10 +256,9 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
         <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'65vh',overflowY:'auto'}}>
           <input style={inp} placeholder="Ad Soyad *" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
           <input style={inp} placeholder="Telefon *" value={form.phone} type="tel" onChange={e=>setForm(f=>({...f,phone:e.target.value}))} />
-          <input style={inp} placeholder="E-posta" value={form.email} type="email" onChange={e=>setForm(f=>({...f,email:e.target.value}))} />
           <select style={{...inp,appearance:'none'} as React.CSSProperties} value={form.package} onChange={e=>setForm(f=>({...f,package:e.target.value}))}>
             <option value="" disabled>Paket Seçin *</option>
-            {packages.map(p=><option key={p} value={p} style={{background:'#0F0F0F'}}>{p}</option>)}
+            {packages.map(p=><option key={p} value={p} style={{background:'#050505'}}>{p}</option>)}
           </select>
           <input style={inp} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e=>setForm(f=>({...f,totalAmount:e.target.value}))} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
@@ -261,7 +266,7 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
             <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.35)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
           </div>
         </div>
-        <button onClick={handleSubmit} disabled={saving||!form.name||!form.phone||!form.package} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#080808',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving||!form.name||!form.phone||!form.package?0.35:1,marginTop:'4px'}}>
+        <button onClick={handleSubmit} disabled={saving||!form.name||!form.phone||!form.package} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#000000',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving||!form.name||!form.phone||!form.package?0.35:1,marginTop:'4px'}}>
           {saving?'Kaydediliyor...':<><UserPlus style={{width:'16px',height:'16px'}} />Üye Ekle</>}
         </button>
       </div>
@@ -269,11 +274,19 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
   );
 };
 
+// HEADER DÜZELTMESİ: Safe Area Padding
 const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=>void;urgentCount:number})=>{
   const location=useLocation(); const navigate=useNavigate();
   const isDetail=location.pathname.includes('/members/');
   const isMembers=location.pathname==='/app/members';
-  const hdr:React.CSSProperties={padding:'52px 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10,background:'rgba(8,8,8,0.95)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.04)',flexShrink:0};
+  const hdr:React.CSSProperties={
+    paddingTop: 'max(env(safe-area-inset-top), 60px)', // iOS Saat Kısmından Koruma
+    paddingBottom: '14px', paddingLeft: '20px', paddingRight: '20px',
+    display:'flex',alignItems:'center',justifyContent:'space-between',
+    position:'sticky',top:0,zIndex:10,background:'rgba(0,0,0,0.85)',
+    backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.04)',flexShrink:0
+  };
+  
   if(isDetail) return(
     <header style={hdr}>
       <button onClick={()=>navigate(-1)} style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.45)',background:'none',border:'none',cursor:'pointer',padding:'8px 0'}}>
@@ -287,10 +300,10 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
     <header style={hdr}>
       <TraxLogo/>
       <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-        {isMembers&&onAddMember&&<button onClick={onAddMember} style={{width:'32px',height:'32px',borderRadius:'50%',border:'none',cursor:'pointer',background:`linear-gradient(135deg,${A},${AL})`,boxShadow:`0 4px 12px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center'}}><Plus style={{width:'16px',height:'16px',color:'#080808'}}/></button>}
+        {isMembers&&onAddMember&&<button onClick={onAddMember} style={{width:'32px',height:'32px',borderRadius:'50%',border:'none',cursor:'pointer',background:`linear-gradient(135deg,${A},${AL})`,boxShadow:`0 4px 12px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center'}}><Plus style={{width:'16px',height:'16px',color:'#000000'}}/></button>}
         <button onClick={onBell} style={{position:'relative',width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
           <Bell style={{width:'15px',height:'15px',color:urgentCount>0?AL:'rgba(255,255,255,0.45)'}} strokeWidth={1.5}/>
-          {urgentCount>0&&<span style={{position:'absolute',top:'6px',right:'6px',width:'8px',height:'8px',borderRadius:'50%',background:AL,boxShadow:`0 0 6px ${AG}`,border:'1.5px solid #080808'}}/>}
+          {urgentCount>0&&<span style={{position:'absolute',top:'6px',right:'6px',width:'8px',height:'8px',borderRadius:'50%',background:AL,boxShadow:`0 0 6px ${AG}`,border:'1.5px solid #000000'}}/>}
         </button>
       </div>
     </header>
@@ -301,8 +314,8 @@ const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
-    <div style={{flexShrink:0,height:'88px',background:'linear-gradient(to top,#080808 50%,transparent)',display:'flex',alignItems:'flex-end',justifyContent:'center',paddingBottom:'20px',zIndex:20}}>
-      <div style={{background:'rgba(18,18,18,0.92)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.6)'}}>
+    <div style={{flexShrink:0,background:'linear-gradient(to top,#000000 50%,transparent)',display:'flex',alignItems:'flex-end',justifyContent:'center',paddingBottom:'calc(env(safe-area-inset-bottom) + 24px)',paddingTop:'30px',zIndex:20}}>
+      <div style={{background:'rgba(15,15,15,0.92)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
           <Link key={path} to={path} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'40px',height:'40px',justifyContent:'center',textDecoration:'none'}}>
             <Icon style={{width:'20px',height:'20px',color:active?AL:'rgba(255,255,255,0.28)',transition:'color 0.2s'}} strokeWidth={active?2.5:1.5}/>
@@ -324,10 +337,38 @@ const Layout=()=>{
 
   const addMember=(m:Member)=>setMembers(prev=>[m,...prev]);
   const updateMember=(updated:Member)=>setMembers(prev=>prev.map(m=>m.id===updated.id?updated:m));
+  const deleteMember=(id:string)=>setMembers(prev=>prev.filter(m=>m.id!==id)); // SİLME EKLENDİ
 
   return(
-    <StoreContext.Provider value={{members,addMember,updateMember}}>
-      <div style={{width:'100%',height:'100%',background:'#080808',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
+      {/* 100dvh ile Siyah Boşluk Fixi */}
+      <div style={{width:'100%',minHeight:'100dvh',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        
+        {/* CSS EFEKTLERİ: Dönen Işık (Glow) ve Animasyonlar */}
+        <style dangerouslySetInnerHTML={{__html:`
+          @keyframes spinGlow { 100% { transform: rotate(360deg); } }
+          .glow-wrap {
+            position: relative; border-radius: 18px; padding: 1.5px; overflow: hidden;
+            background: #0A0A0A; z-index: 1; isolation: isolate; cursor: pointer;
+          }
+          .glow-wrap::before {
+            content: ''; position: absolute; top: -100%; left: -100%; width: 300%; height: 300%;
+            background: conic-gradient(from 0deg, transparent 70%, var(--glow-color) 100%);
+            animation: spinGlow 4s linear infinite; z-index: -1;
+          }
+          .glow-inner {
+            background: #050505; border-radius: 17px; width: 100%; height: 100%;
+            position: relative; z-index: 1; padding: 13px 14px;
+            display: flex; align-items: center; gap: 12px;
+          }
+          .mini-glow-inner {
+            background: #050505; border-radius: 13px; width: 100%; height: 100%;
+            position: relative; z-index: 1; padding: 10px 12px;
+            display: flex; align-items: center; gap: 10px;
+          }
+          .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
+        `}} />
+
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
         <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain'}}>
           <Outlet/>
@@ -348,26 +389,28 @@ const DashboardScreen=()=>{
   const green=members.filter(m=>m.daysRemaining>7&&m.daysRemaining<999).length;
   const pending=members.reduce((s,m)=>s+(m.totalAmount-m.paidAmount),0);
   const urgent=members.filter(m=>m.daysRemaining<0||m.daysRemaining<=7);
-  const card:React.CSSProperties={background:'#0F0F0F',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',padding:'20px',position:'relative',overflow:'hidden'};
+  const card:React.CSSProperties={background:'#050505',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',padding:'20px',position:'relative',overflow:'hidden'};
   
   return(
     <PageWrapper>
       <div style={{display:'flex',flexDirection:'column',gap:'10px',padding:'12px 16px 8px'}}>
-        {/* Gelir */}
+        {/* GRAFİK DÜZELTMESİ: Gerçek ve İşlevsel Grafik */}
         <div style={card}>
           <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at top left,rgba(217,119,6,0.07) 0%,transparent 60%)',pointerEvents:'none'}}/>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'6px'}}><BarChart2 style={{width:'13px',height:'13px',color:'rgba(255,255,255,0.25)'}}/><span style={{fontSize:'11px',fontWeight:600,color:'rgba(255,255,255,0.35)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Son 7 Gün</span></div>
-            <div style={{display:'flex',alignItems:'center',gap:'4px',padding:'3px 8px',borderRadius:'999px',background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.15)'}}><ArrowUpRight style={{width:'11px',height:'11px',color:'#34d399'}}/><span style={{fontSize:'10px',color:'#34d399',fontWeight:700}}>+14%</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+            <div>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'4px'}}><Activity style={{width:'13px',height:'13px',color:AL}}/><span style={{fontSize:'11px',fontWeight:600,color:'rgba(255,255,255,0.4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Haftalık Akış</span></div>
+              <div style={{fontSize:'28px',fontWeight:900,color:'white',letterSpacing:'-0.03em'}}>₺32.450</div>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'4px',padding:'4px 8px',borderRadius:'8px',background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.15)'}}><ArrowUpRight style={{width:'11px',height:'11px',color:'#34d399'}}/><span style={{fontSize:'10px',color:'#34d399',fontWeight:700}}>+14%</span></div>
           </div>
-          <div style={{fontSize:'30px',fontWeight:900,color:'white',letterSpacing:'-0.03em',marginBottom:'12px'}}>₺32.450</div>
-          <div style={{height:'60px',marginLeft:'-4px',marginRight:'-4px',marginBottom:'-4px'}}>
+          
+          <div style={{height:'100px',marginLeft:'-10px',marginRight:'-10px',marginTop:'10px'}}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData} margin={{top:4,right:0,left:0,bottom:0}}>
-                {/* 1. CHART DÜZELTMESİ: Daha yumuşak gradient ve çizgi gölgesi (glow) */}
+              <AreaChart data={revenueData} margin={{top:10,right:10,left:10,bottom:0}}>
                 <defs>
                   <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={A} stopOpacity={0.4}/>
+                    <stop offset="0%" stopColor={A} stopOpacity={0.5}/>
                     <stop offset="100%" stopColor={A} stopOpacity={0}/>
                   </linearGradient>
                   <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -375,11 +418,14 @@ const DashboardScreen=()=>{
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                   </filter>
                 </defs>
-                <Area type="monotone" dataKey="value" stroke={AL} strokeWidth={2.5} fillOpacity={1} fill="url(#ag)" filter="url(#glow)" isAnimationActive={false} dot={false}/>
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'rgba(255,255,255,0.3)', fontWeight:600}} dy={10} />
+                <Tooltip contentStyle={{background:'#050505', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'12px', fontSize:'12px', fontWeight:700, color:'#fff'}} itemStyle={{color:AL}} cursor={false} />
+                <Area type="monotone" dataKey="value" stroke={AL} strokeWidth={3} fillOpacity={1} fill="url(#ag)" filter="url(#glow)" isAnimationActive={true} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
+
         {/* 3 stat */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
           {[{label:'Süresi Doldu',count:red,color:'#f43f5e',border:'rgba(244,63,94,0.12)',bg:'rgba(244,63,94,0.06)'},{label:'Bu Hafta',count:yellow,color:'#fbbf24',border:'rgba(251,191,36,0.12)',bg:'rgba(251,191,36,0.06)'},{label:'Aktif',count:green,color:'#34d399',border:'rgba(52,211,153,0.12)',bg:'rgba(52,211,153,0.06)'}].map(({label,count,color,border,bg})=>(
@@ -390,14 +436,16 @@ const DashboardScreen=()=>{
             </div>
           ))}
         </div>
+
         {/* Bekleyen */}
         {pending>0&&<div style={{borderRadius:'18px',padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px',background:'rgba(217,119,6,0.05)',border:'1px solid rgba(217,119,6,0.1)'}}>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'rgba(217,119,6,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><CreditCard style={{width:'14px',height:'14px',color:AL}}/></div>
           <div style={{flex:1}}><p style={{fontSize:'10px',fontWeight:700,color:'rgba(245,158,11,0.55)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Bekleyen Tahsilat</p><p style={{fontSize:'16px',fontWeight:900,color:AL,lineHeight:1.3}}>₺{pending.toLocaleString('tr-TR')}</p></div>
           <Link to="/app/members" style={{fontSize:'11px',fontWeight:700,padding:'6px 12px',borderRadius:'999px',textDecoration:'none',color:AL,background:'rgba(217,119,6,0.08)',border:'1px solid rgba(217,119,6,0.15)'}}>Görüntüle</Link>
         </div>}
+
         {/* Dikkat */}
-        {urgent.length>0&&<div style={{background:'#0F0F0F',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',overflow:'hidden'}}>
+        {urgent.length>0&&<div style={{background:'#050505',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',overflow:'hidden'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 16px 10px'}}>
             <div style={{display:'flex',alignItems:'center',gap:'6px'}}><Zap style={{width:'13px',height:'13px',color:'#f43f5e'}}/><span style={{fontSize:'13px',fontWeight:700,color:'rgba(255,255,255,0.75)'}}>Dikkat Gerektiriyor</span></div>
             <span style={{fontSize:'10px',fontWeight:700,color:'#f43f5e',background:'rgba(244,63,94,0.1)',padding:'2px 8px',borderRadius:'999px',border:'1px solid rgba(244,63,94,0.15)'}}>{urgent.length}</span>
@@ -405,44 +453,22 @@ const DashboardScreen=()=>{
           <div style={{display:'flex',flexDirection:'column',gap:'6px',padding:'0 12px 12px'}}>
             {urgent.map(m=>{
               const sc=getStatusColor(m.daysRemaining);
-              const glowColor = sc === 'yellow' ? '251,191,36' : '244,63,94';
-              const hexColor = sc === 'yellow' ? '#fbbf24' : '#f43f5e';
+              const glowColor = sc === 'yellow' ? '#fbbf24' : '#f43f5e';
               return (
-              <button key={m.id} onClick={()=>navigate(`/app/members/${m.id}`)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'14px',background:'rgba(255,255,255,0.025)',border:`1px solid rgba(${glowColor}, 0.15)`,boxShadow:`0 4px 15px rgba(${glowColor}, 0.08)`,cursor:'pointer',textAlign:'left',width:'100%'}}>
-                <div style={{position:'relative',flexShrink:0}}>
-                  <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
-                  <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #080808',background:hexColor}}/>
+              <div key={m.id} onClick={()=>navigate(`/app/members/${m.id}`)} className="glow-wrap" style={{'--glow-color': glowColor, borderRadius:'14px'} as any}>
+                <div className="mini-glow-inner">
+                  <div style={{position:'relative',flexShrink:0}}>
+                    <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
+                    <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #050505',background:glowColor}}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}><p style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.88)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</p><p style={{fontSize:'11px',color:'rgba(255,255,255,0.28)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p></div>
+                  <span style={{fontSize:'9px', fontWeight:700, padding:'3px 8px', borderRadius:'6px', background: `rgba(255,255,255, 0.05)`, color: glowColor, border: `1px solid rgba(255,255,255, 0.08)`, flexShrink:0}}>{getStatusLabel(m.daysRemaining)}</span>
                 </div>
-                <div style={{flex:1,minWidth:0}}><p style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.88)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</p><p style={{fontSize:'11px',color:'rgba(255,255,255,0.28)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p></div>
-                <span style={{fontSize:'9px', fontWeight:700, padding:'3px 8px', borderRadius:'6px', background: `rgba(${glowColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${glowColor}, 0.2)`, flexShrink:0}}>{getStatusLabel(m.daysRemaining)}</span>
-              </button>
+              </div>
             )})}
           </div>
         </div>}
-        {/* Tüm üyeler */}
-        <div style={{background:'#0F0F0F',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',overflow:'hidden'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 16px 10px'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'6px'}}><Users style={{width:'13px',height:'13px',color:'rgba(255,255,255,0.25)'}}/><span style={{fontSize:'13px',fontWeight:700,color:'rgba(255,255,255,0.75)'}}>Tüm Üyeler</span></div>
-            <Link to="/app/members" style={{fontSize:'11px',fontWeight:700,color:AL,textDecoration:'none',display:'flex',alignItems:'center',gap:'2px'}}>Tümü<ChevronRight style={{width:'13px',height:'13px'}}/></Link>
-          </div>
-          <div style={{display:'flex',flexDirection:'column',gap:'6px',padding:'0 12px 12px'}}>
-            {members.slice(0,4).map(m=>{
-              const sc=getStatusColor(m.daysRemaining);
-              // 2. MİNİ LİSTE KART DÜZELTMESİ: Glow, avatar ring ve badge eklendi
-              const glowColor = sc === 'green' ? '52,211,153' : sc === 'yellow' ? '251,191,36' : '244,63,94';
-              const hexColor = sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e';
-              return(
-              <button key={m.id} onClick={()=>navigate(`/app/members/${m.id}`)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'14px',background:'#0F0F0F',border:`1px solid rgba(${glowColor}, 0.15)`,boxShadow:`0 4px 15px rgba(${glowColor}, 0.08)`,cursor:'pointer',textAlign:'left',width:'100%'}}>
-                <div style={{position:'relative',flexShrink:0}}>
-                  <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
-                  <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #080808',background:hexColor}}/>
-                </div>
-                <div style={{flex:1,minWidth:0}}><p style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.88)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</p><p style={{fontSize:'11px',color:'rgba(255,255,255,0.28)'}}>{m.package}</p></div>
-                <span style={{fontSize:'9px', fontWeight:700, padding:'3px 8px', borderRadius:'6px', background: `rgba(${glowColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${glowColor}, 0.2)`, flexShrink:0}}>{getStatusLabel(m.daysRemaining)}</span>
-              </button>
-            );})}
-          </div>
-        </div>
+
       </div>
     </PageWrapper>
   );
@@ -470,36 +496,36 @@ const MembersScreen=()=>{
       <div style={{display:'flex',flexDirection:'column',gap:'10px',padding:'12px 16px'}}>
         <div style={{position:'relative'}}>
           <Search style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',width:'14px',height:'14px',color:'rgba(255,255,255,0.22)'}}/>
-          <input type="text" placeholder="İsim veya telefon..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:'100%',paddingLeft:'40px',paddingRight:search?'36px':'16px',paddingTop:'13px',paddingBottom:'13px',borderRadius:'14px',fontSize:'14px',color:'white',outline:'none',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)',boxSizing:'border-box'}}/>
+          <input type="text" placeholder="İsim veya telefon..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:'100%',paddingLeft:'40px',paddingRight:search?'36px':'16px',paddingTop:'13px',paddingBottom:'13px',borderRadius:'14px',fontSize:'14px',color:'white',outline:'none',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',boxSizing:'border-box'}}/>
           {search&&<button onClick={()=>setSearch('')} style={{position:'absolute',right:'12px',top:'50%',transform:'translateY(-50%)',width:'20px',height:'20px',borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'12px',height:'12px',color:'rgba(255,255,255,0.5)'}}/></button>}
         </div>
         <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'2px'}}>
-          {filters.map(({key,label})=>(<button key={key} onClick={()=>setFilter(key)} style={{flexShrink:0,padding:'7px 14px',borderRadius:'999px',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer',background:filter===key?`linear-gradient(135deg,${A},${AL})`:'rgba(255,255,255,0.05)',color:filter===key?'#080808':'rgba(255,255,255,0.35)',boxShadow:filter===key?`0 4px 12px ${AG}`:'none'}}>{label}</button>))}
+          {filters.map(({key,label})=>(<button key={key} onClick={()=>setFilter(key)} style={{flexShrink:0,padding:'7px 14px',borderRadius:'999px',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer',background:filter===key?`linear-gradient(135deg,${A},${AL})`:'rgba(255,255,255,0.05)',color:filter===key?'#000000':'rgba(255,255,255,0.4)',boxShadow:filter===key?`0 4px 12px ${AG}`:'none'}}>{label}</button>))}
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:'6px',paddingLeft:'2px'}}><Filter style={{width:'11px',height:'11px',color:'rgba(255,255,255,0.18)'}}/><span style={{fontSize:'11px',color:'rgba(255,255,255,0.18)',fontWeight:500}}>{filtered.length} üye</span></div>
-        <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+        
+        <div style={{display:'flex',flexDirection:'column',gap:'8px', marginTop:'8px', paddingBottom:'100px'}}>
           {filtered.length===0&&<div style={{textAlign:'center',padding:'48px 0',color:'rgba(255,255,255,0.18)'}}><Users style={{width:'28px',height:'28px',margin:'0 auto 10px'}}/><p style={{fontSize:'13px'}}>Üye bulunamadı</p></div>}
           
           {filtered.map((m,i)=>{
             const sc=getStatusColor(m.daysRemaining);
-            // 3. BÜYÜK LİSTE KART DÜZELTMESİ: Glow, avatar ring ve badge eklendi
-            const glowColor = sc === 'green' ? '52,211,153' : sc === 'yellow' ? '251,191,36' : '244,63,94';
             const hexColor = sc === 'green' ? '#34d399' : sc === 'yellow' ? '#fbbf24' : '#f43f5e';
             
             return(
-            <button key={m.id} onClick={()=>navigate(`/app/members/${m.id}`)} style={{display:'flex',alignItems:'center',gap:'12px',padding:'13px 14px',borderRadius:'18px',background:'#0F0F0F',border:`1px solid rgba(${glowColor}, 0.15)`,boxShadow:`0 4px 20px rgba(${glowColor}, 0.08)`,cursor:'pointer',textAlign:'left',width:'100%',opacity:0,animation:`fadeUp 0.3s ease ${i*0.05}s forwards`}}>
-              <div style={{position:'relative',flexShrink:0}}>
-                <img src={m.img} alt={m.name} style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover'}}/>
-                <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #080808',background:hexColor}}/>
+            <div key={m.id} onClick={()=>navigate(`/app/members/${m.id}`)} className="glow-wrap" style={{'--glow-color': hexColor, opacity:0, animation:`fadeUp 0.3s ease ${i*0.05}s forwards`} as any}>
+              <div className="glow-inner">
+                <div style={{position:'relative',flexShrink:0}}>
+                  <img src={m.img} alt={m.name} style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover'}}/>
+                  <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #050505',background:hexColor}}/>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'2px'}}>{m.name}</p>
+                  <p style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p>
+                </div>
+                <span style={{fontSize:'10px', fontWeight:700, padding:'4px 10px', borderRadius:'8px', background: `rgba(255,255,255, 0.05)`, color: hexColor, border: `1px solid rgba(255,255,255, 0.08)`, flexShrink:0}}>
+                  {getStatusLabel(m.daysRemaining)}
+                </span>
               </div>
-              <div style={{flex:1,minWidth:0}}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'rgba(255,255,255,0.92)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'2px'}}>{m.name}</p>
-                <p style={{fontSize:'11px',color:'rgba(255,255,255,0.32)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p>
-              </div>
-              <span style={{fontSize:'10px', fontWeight:700, padding:'4px 10px', borderRadius:'8px', background: `rgba(${glowColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${glowColor}, 0.2)`, flexShrink:0}}>
-                {getStatusLabel(m.daysRemaining)}
-              </span>
-            </button>
+            </div>
           );})}
         </div>
       </div>
@@ -510,7 +536,8 @@ const MembersScreen=()=>{
 
 const MemberDetailScreen=()=>{
   const {id}=useParams();
-  const {members,updateMember}=useStore();
+  const navigate=useNavigate();
+  const {members,updateMember,deleteMember}=useStore();
   const member=members.find(m=>m.id===id);
   const [showPayModal,setShowPayModal]=useState(false);
   const [showEditModal,setShowEditModal]=useState(false);
@@ -523,7 +550,7 @@ const MemberDetailScreen=()=>{
   const remaining=member.totalAmount-member.paidAmount;
   const payPct=member.totalAmount>0?Math.round((member.paidAmount/member.totalAmount)*100):0;
   const sc=getStatusColor(member.daysRemaining);
-  const card:React.CSSProperties={background:'#0F0F0F',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',padding:'20px'};
+  const card:React.CSSProperties={background:'#050505',borderRadius:'20px',border:'1px solid rgba(255,255,255,0.04)',padding:'20px'};
 
   const handlePayment=()=>{
     if(!payAmount||parseInt(payAmount)<=0) return;
@@ -549,7 +576,7 @@ const MemberDetailScreen=()=>{
           </button>
           <div style={{position:'relative',marginBottom:'12px',marginTop:'8px'}}>
             <img src={member.img} alt={member.name} style={{width:'70px',height:'70px',borderRadius:'50%',objectFit:'cover',border:'1px solid rgba(255,255,255,0.1)'}}/>
-            <span style={{position:'absolute',bottom:'1px',right:'1px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #0F0F0F',background:sc==='green'?'#34d399':sc==='yellow'?'#fbbf24':'#f43f5e'}}/>
+            <span style={{position:'absolute',bottom:'1px',right:'1px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #050505',background:sc==='green'?'#34d399':sc==='yellow'?'#fbbf24':'#f43f5e'}}/>
           </div>
           <h2 style={{fontSize:'18px',fontWeight:900,color:'white',letterSpacing:'-0.02em',marginBottom:'8px'}}>{member.name}</h2>
           <div style={{marginBottom:'14px'}}><PaymentBadgeFull status={member.paymentStatus}/></div>
@@ -590,35 +617,35 @@ const MemberDetailScreen=()=>{
             <div style={{height:'5px',background:'rgba(255,255,255,0.06)',borderRadius:'999px',overflow:'hidden'}}><div style={{height:'100%',borderRadius:'999px',width:`${payPct}%`,background:`linear-gradient(90deg,${A},${AL})`,transition:'width 0.5s ease'}}/></div>
           </div>
           {remaining>0&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:'12px',background:'rgba(217,119,6,0.05)',border:'1px solid rgba(217,119,6,0.1)',marginBottom:'10px'}}><span style={{fontSize:'12px',color:'rgba(245,158,11,0.55)',fontWeight:600}}>Kalan</span><span style={{fontSize:'15px',fontWeight:900,color:AL}}>₺{remaining.toLocaleString('tr-TR')}</span></div>}
-          <button onClick={()=>setShowPayModal(true)} disabled={remaining<=0} style={{width:'100%',padding:'14px',borderRadius:'16px',fontWeight:800,fontSize:'14px',border:'none',cursor:remaining>0?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',background:remaining>0?`linear-gradient(135deg,${A},${AL})`:'rgba(255,255,255,0.05)',color:remaining>0?'#080808':'rgba(255,255,255,0.2)',boxShadow:remaining>0?`0 8px 20px ${AG}`:'none'}}>
+          <button onClick={()=>setShowPayModal(true)} disabled={remaining<=0} style={{width:'100%',padding:'14px',borderRadius:'16px',fontWeight:800,fontSize:'14px',border:'none',cursor:remaining>0?'pointer':'default',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',background:remaining>0?`linear-gradient(135deg,${A},${AL})`:'rgba(255,255,255,0.05)',color:remaining>0?'#000000':'rgba(255,255,255,0.2)',boxShadow:remaining>0?`0 8px 20px ${AG}`:'none'}}>
             <CreditCard style={{width:'15px',height:'15px'}}/>{remaining<=0?'Ödeme Tamamlandı':'Ödeme Al'}
           </button>
         </div>
 
-        {member.pastPayments.length>0&&<div style={card}>
-          <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'12px'}}><Clock style={{width:'13px',height:'13px',color:'rgba(255,255,255,0.22)'}}/><span style={{fontSize:'10px',fontWeight:700,color:'rgba(255,255,255,0.3)',letterSpacing:'0.14em',textTransform:'uppercase'}}>Geçmiş Ödemeler</span></div>
-          <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-            {member.pastPayments.map((p,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:'12px',background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.04)'}}>
-                <span style={{fontSize:'13px',color:'rgba(255,255,255,0.6)'}}>{p.month}</span>
-                {p.status==='paid'?<span style={{fontSize:'11px',fontWeight:700,color:'#34d399'}}>Ödendi ✓</span>:p.status==='partial'?<span style={{fontSize:'11px',fontWeight:700,color:'#fbbf24'}}>Eksik</span>:<span style={{fontSize:'11px',fontWeight:700,color:'#f43f5e'}}>Bekleniyor</span>}
-              </div>
-            ))}
-          </div>
-        </div>}
+        {/* ÜYEYİ SİL BUTONU EKLENDİ */}
+        <button 
+          onClick={()=>{
+            if(window.confirm(`${member.name} isimli üyeyi tamamen silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)){
+              deleteMember(member.id);
+              navigate('/app/members', { replace: true });
+            }
+          }} 
+          style={{width:'100%',padding:'14px',borderRadius:'16px',background:'rgba(244,63,94,0.05)',color:'#f43f5e',border:'1px solid rgba(244,63,94,0.15)',fontWeight:700,fontSize:'13px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'10px'}}
+        >
+          <Trash2 style={{width:'15px',height:'15px'}}/> Üyeyi Sil
+        </button>
 
         {showPayModal&&<div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(6px)',zIndex:50,display:'flex',alignItems:'flex-end'}}>
-          <div style={{width:'100%',background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.06)',padding:'24px 24px 40px',display:'flex',flexDirection:'column',gap:'12px',animation:'slideUp 0.3s ease'}}>
+          <div style={{width:'100%',background:'#050505',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.06)',padding:'24px 24px 40px',display:'flex',flexDirection:'column',gap:'12px',animation:'slideUp 0.3s ease'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{fontSize:'15px',fontWeight:800,color:'white'}}>Ödeme Al</span><button onClick={()=>{setShowPayModal(false);setPaid(false);}} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}}/></button></div>
             <div style={{padding:'14px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:'16px'}}><p style={{fontSize:'11px',color:'rgba(255,255,255,0.28)',marginBottom:'4px'}}>{member.name} — Kalan</p><p style={{fontSize:'22px',fontWeight:900,color:AL}}>₺{remaining.toLocaleString('tr-TR')}</p></div>
             {paid?(<div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',padding:'16px 0'}}><div style={{width:'48px',height:'48px',borderRadius:'50%',background:'rgba(52,211,153,0.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><CheckCircle2 style={{width:'28px',height:'28px',color:'#34d399'}}/></div><p style={{fontSize:'14px',fontWeight:700,color:'#34d399'}}>Kaydedildi!</p></div>):(
               <><div style={{position:'relative'}}><span style={{position:'absolute',left:'16px',top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,0.28)',fontSize:'16px',fontWeight:700}}>₺</span><input type="number" placeholder="Tutar girin" value={payAmount} onChange={e=>setPayAmount(e.target.value)} style={{width:'100%',paddingLeft:'32px',paddingRight:'16px',paddingTop:'15px',paddingBottom:'15px',borderRadius:'16px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'white',fontSize:'16px',fontWeight:700,outline:'none',boxSizing:'border-box'}}/></div>
               <div style={{display:'flex',gap:'8px'}}>{[500,1000,remaining].filter((v,i,arr)=>arr.indexOf(v)===i&&v>0).map(v=>(<button key={v} onClick={()=>setPayAmount(String(v))} style={{flex:1,padding:'8px',fontSize:'11px',fontWeight:700,color:AL,background:`rgba(217,119,6,0.08)`,border:`1px solid rgba(217,119,6,0.15)`,borderRadius:'12px',cursor:'pointer'}}>₺{v.toLocaleString('tr-TR')}</button>))}</div>
-              <button onClick={handlePayment} disabled={saving||!payAmount||parseInt(payAmount)<=0} style={{width:'100%',padding:'16px',borderRadius:'16px',fontWeight:800,fontSize:'15px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,${A},${AL})`,color:'#080808',boxShadow:`0 8px 20px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving||!payAmount||parseInt(payAmount)<=0?0.4:1}}>
+              <button onClick={handlePayment} disabled={saving||!payAmount||parseInt(payAmount)<=0} style={{width:'100%',padding:'16px',borderRadius:'16px',fontWeight:800,fontSize:'15px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,${A},${AL})`,color:'#000000',boxShadow:`0 8px 20px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving||!payAmount||parseInt(payAmount)<=0?0.4:1}}>
                 {saving?'Kaydediliyor...':<><Check style={{width:'18px',height:'18px'}}/>Onayla</>}
               </button></>
             )}
-            <style>{`@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
           </div>
         </div>}
 
@@ -628,7 +655,7 @@ const MemberDetailScreen=()=>{
   );
 };
 
-const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100%',background:'#080808',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
+const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
 
 const router=createBrowserRouter([
   {path:'/',element:<W><Login/></W>},
