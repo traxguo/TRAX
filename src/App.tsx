@@ -72,10 +72,11 @@ const PaymentBadgeFull = ({status}:{status:'paid'|'partial'|'unpaid'}) => {
   return <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{cfg.label}</span>;
 };
 
+// SCROLL FİX: height:'100%' kaldırıldı, artık normal akışında scroll olacak.
 const PageWrapper = ({children}:{children:React.ReactNode}) => {
   const [v,setV]=useState(false);
   useEffect(()=>{const t=setTimeout(()=>setV(true),30);return()=>clearTimeout(t);},[]);
-  return <div style={{opacity:v?1:0,transform:v?'translateY(0)':'translateY(12px)',transition:'opacity 0.35s ease,transform 0.35s ease', height:'100%'}}>{children}</div>;
+  return <div style={{opacity:v?1:0,transform:v?'translateY(0)':'translateY(12px)',transition:'opacity 0.35s ease,transform 0.35s ease'}}>{children}</div>;
 };
 
 const TraxLogo = ({size=22}:{size?:number}) => (
@@ -201,22 +202,22 @@ const EditMemberModal = ({member,onClose,onSave}:{member:Member;onClose:()=>void
 
   return (
     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',zIndex:50,display:'flex',alignItems:'flex-end'}}>
-      <div style={{width:'100%',background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
+      <div style={{width:'100%',background:'#0C0C0C',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.1)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
           <span style={{fontSize:'16px',fontWeight:800,color:'white'}}>Üyeyi Düzenle</span>
-          <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
+          <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.08)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
         </div>
         <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'65vh',overflowY:'auto'}}>
           <input style={inp} placeholder="Ad Soyad" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
           <input style={inp} placeholder="Telefon" value={form.phone} type="tel" onChange={e=>setForm(f=>({...f,phone:e.target.value}))} />
           <input style={inp} placeholder="E-posta" value={form.email} type="email" onChange={e=>setForm(f=>({...f,email:e.target.value}))} />
           <select style={{...inp,appearance:'none'} as React.CSSProperties} value={form.package} onChange={e=>setForm(f=>({...f,package:e.target.value}))}>
-            {packages.map(p=><option key={p} value={p} style={{background:'#0F0F0F'}}>{p}</option>)}
+            {packages.map(p=><option key={p} value={p} style={{background:'#0C0C0C'}}>{p}</option>)}
           </select>
           <input style={inp} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e=>setForm(f=>({...f,totalAmount:e.target.value}))} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
-            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',fontWeight:700,display:'block',marginBottom:'4px'}}>Başlangıç</label><input style={inp} type="date" value={form.startDate} onChange={e=>setForm(f=>({...f,startDate:e.target.value}))} /></div>
-            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.35)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
+            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',fontWeight:700,display:'block',marginBottom:'4px'}}>Başlangıç</label><input style={inp} type="date" value={form.startDate} onChange={e=>setForm(f=>({...f,startDate:e.target.value}))} /></div>
+            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
           </div>
         </div>
         <button onClick={handleSave} disabled={saving} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#000000',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving?0.7:1,marginTop:'4px'}}>
@@ -247,22 +248,22 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
 
   return (
     <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',zIndex:50,display:'flex',alignItems:'flex-end'}}>
-      <div style={{width:'100%',background:'#0F0F0F',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.07)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
+      <div style={{width:'100%',background:'#0C0C0C',borderRadius:'28px 28px 0 0',borderTop:'1px solid rgba(255,255,255,0.1)',padding:'24px 24px 44px',display:'flex',flexDirection:'column',gap:'10px',animation:'slideUp 0.3s ease'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
           <span style={{fontSize:'16px',fontWeight:800,color:'white'}}>Yeni Üye</span>
-          <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
+          <button onClick={onClose} style={{width:'30px',height:'30px',borderRadius:'50%',background:'rgba(255,255,255,0.08)',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><X style={{width:'14px',height:'14px',color:'rgba(255,255,255,0.5)'}} /></button>
         </div>
         <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'65vh',overflowY:'auto'}}>
           <input style={inp} placeholder="Ad Soyad *" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
           <input style={inp} placeholder="Telefon *" value={form.phone} type="tel" onChange={e=>setForm(f=>({...f,phone:e.target.value}))} />
           <select style={{...inp,appearance:'none'} as React.CSSProperties} value={form.package} onChange={e=>setForm(f=>({...f,package:e.target.value}))}>
             <option value="" disabled>Paket Seçin *</option>
-            {packages.map(p=><option key={p} value={p} style={{background:'#0F0F0F'}}>{p}</option>)}
+            {packages.map(p=><option key={p} value={p} style={{background:'#0C0C0C'}}>{p}</option>)}
           </select>
           <input style={inp} placeholder="Toplam Tutar (₺)" value={form.totalAmount} type="number" onChange={e=>setForm(f=>({...f,totalAmount:e.target.value}))} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
-            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.3)',fontWeight:700,display:'block',marginBottom:'4px'}}>Başlangıç</label><input style={inp} type="date" value={form.startDate} onChange={e=>setForm(f=>({...f,startDate:e.target.value}))} /></div>
-            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.35)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
+            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',fontWeight:700,display:'block',marginBottom:'4px'}}>Başlangıç</label><input style={inp} type="date" value={form.startDate} onChange={e=>setForm(f=>({...f,startDate:e.target.value}))} /></div>
+            <div><label style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',fontWeight:700,display:'block',marginBottom:'4px'}}>Bitiş ★</label><input style={inp} type="date" value={form.endDate} onChange={e=>setForm(f=>({...f,endDate:e.target.value}))} /></div>
           </div>
         </div>
         <button onClick={handleSubmit} disabled={saving||!form.name||!form.phone||!form.package} style={{width:'100%',padding:'15px',borderRadius:'15px',fontWeight:800,fontSize:'14px',border:'none',cursor:'pointer',background:`linear-gradient(135deg,#B45309,${A} 50%,${AL})`,color:'#000000',boxShadow:`0 8px 24px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',opacity:saving||!form.name||!form.phone||!form.package?0.35:1,marginTop:'4px'}}>
@@ -278,16 +279,16 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   const isDetail=location.pathname.includes('/members/');
   const isMembers=location.pathname==='/app/members';
   const hdr:React.CSSProperties={
-    paddingTop: 'max(env(safe-area-inset-top), 20px)', // Çentikten güvenli uzaklık
+    paddingTop: 'calc(env(safe-area-inset-top, 20px) + 12px)',
     paddingBottom: '14px', paddingLeft: '20px', paddingRight: '20px',
     display:'flex',alignItems:'center',justifyContent:'space-between',
-    position:'sticky',top:0,zIndex:10,background:'rgba(8,8,8,0.95)',
-    backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.04)',flexShrink:0
+    position:'sticky',top:0,zIndex:10,background:'rgba(12,12,12,0.92)',
+    backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.08)',flexShrink:0
   };
   
   if(isDetail) return(
     <header style={hdr}>
-      <button onClick={()=>navigate(-1)} style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.45)',background:'none',border:'none',cursor:'pointer',padding:'8px 0'}}>
+      <button onClick={()=>navigate(-1)} style={{display:'flex',alignItems:'center',gap:'6px',color:'rgba(255,255,255,0.5)',background:'none',border:'none',cursor:'pointer',padding:'8px 0'}}>
         <ChevronLeft style={{width:'16px',height:'16px'}}/><span style={{fontSize:'13px',fontWeight:600}}>Geri</span>
       </button>
       <span style={{fontSize:'11px',fontWeight:700,color:'rgba(255,255,255,0.3)',letterSpacing:'0.14em',textTransform:'uppercase'}}>Üye Detayı</span>
@@ -299,24 +300,26 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
       <TraxLogo/>
       <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
         {isMembers&&onAddMember&&<button onClick={onAddMember} style={{width:'32px',height:'32px',borderRadius:'50%',border:'none',cursor:'pointer',background:`linear-gradient(135deg,${A},${AL})`,boxShadow:`0 4px 12px ${AG}`,display:'flex',alignItems:'center',justifyContent:'center'}}><Plus style={{width:'16px',height:'16px',color:'#000000'}}/></button>}
-        <button onClick={onBell} style={{position:'relative',width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.06)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <Bell style={{width:'15px',height:'15px',color:urgentCount>0?AL:'rgba(255,255,255,0.45)'}} strokeWidth={1.5}/>
-          {urgentCount>0&&<span style={{position:'absolute',top:'6px',right:'6px',width:'8px',height:'8px',borderRadius:'50%',background:AL,boxShadow:`0 0 6px ${AG}`,border:'1.5px solid #080808'}}/>}
+        <button onClick={onBell} style={{position:'relative',width:'32px',height:'32px',borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Bell style={{width:'15px',height:'15px',color:urgentCount>0?AL:'rgba(255,255,255,0.5)'}} strokeWidth={1.5}/>
+          {urgentCount>0&&<span style={{position:'absolute',top:'6px',right:'6px',width:'8px',height:'8px',borderRadius:'50%',background:AL,boxShadow:`0 0 6px ${AG}`,border:'1.5px solid #0C0C0C'}}/>}
         </button>
       </div>
     </header>
   );
 };
 
+// ALT PANEL FIX: position:'fixed' kaldırıldı, padding ve marginler ayarlandı. 
+// Direkt flex akışında en altta duracak.
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, // Tam alta sabitleme
+      flexShrink:0,
       background:'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0.8) 70%, transparent)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'max(env(safe-area-inset-bottom), 16px)', // Sadece iOS çizgisi kadar boşluk
+      paddingBottom:'max(env(safe-area-inset-bottom), 16px)',
       paddingTop:'24px', zIndex:20
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
@@ -347,41 +350,61 @@ const Layout=()=>{
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
       <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden', position:'relative'}}>
         
-        {/* PARLAMA (PULSE GLOW) EFEKTİ */}
+        {/* ALEV TOPU (METEOR) EFEKTİ */}
         <style dangerouslySetInnerHTML={{__html:`
-          @keyframes pulseGlow {
-            0% { box-shadow: 0 0 10px var(--glow-color-transparent); }
-            50% { box-shadow: 0 0 25px var(--glow-color-solid); }
-            100% { box-shadow: 0 0 10px var(--glow-color-transparent); }
+          @keyframes spinMeteor { 
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); } 
           }
-          .pulse-card {
-            background: #0F0F0F; /* Kart arkaplanı biraz açıldı */
-            border-radius: 16px;
-            padding: 13px 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            border: 1px solid var(--glow-border);
-            animation: pulseGlow 3s ease-in-out infinite;
-            transition: transform 0.2s;
-            position: relative;
+          
+          .meteor-wrap {
+            position: relative; 
+            border-radius: 18px; 
+            padding: 1.5px; /* Çerçeve kalınlığı */
             overflow: hidden;
+            background: #111; 
+            z-index: 1; 
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
           }
-          .pulse-card:active { transform: scale(0.98); }
-          /* İçeriye çok hafif renk vurması */
-          .pulse-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(to right, var(--glow-bg), transparent);
-            pointer-events: none;
-            opacity: 0.5;
+          
+          /* Dönerek iz bırakan alev topu kısmı */
+          .meteor-wrap::before {
+            content: ''; 
+            position: absolute; 
+            top: -100%; left: -100%; 
+            width: 300%; height: 300%;
+            /* Şeffaftan başlayıp kartın rengine doğru giden ve en ucunda parlak beyaz yanan bir ışık izi */
+            background: conic-gradient(from 0deg, transparent 75%, var(--glow-color) 95%, #ffffff 100%);
+            animation: spinMeteor 3s linear infinite; 
+            z-index: -1;
           }
+          
+          .meteor-inner {
+            background: #0C0C0C; /* Kartın içi */
+            border-radius: 16.5px; 
+            width: 100%; height: 100%;
+            position: relative; 
+            z-index: 1; 
+            padding: 13px 14px;
+            display: flex; align-items: center; gap: 12px;
+          }
+          
+          .mini-meteor-inner {
+            background: #0C0C0C; 
+            border-radius: 16.5px; 
+            width: 100%; height: 100%;
+            position: relative; 
+            z-index: 1; 
+            padding: 10px 12px;
+            display: flex; align-items: center; gap: 10px;
+          }
+
           .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        {/* Main paddingBottom ayarı, menü altında içerik kalmaması için */}
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '100px'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
@@ -467,22 +490,17 @@ const DashboardScreen=()=>{
               <div 
                 key={m.id} 
                 onClick={()=>navigate(`/app/members/${m.id}`)} 
-                className="pulse-card" 
-                style={{
-                  '--glow-color-solid': `rgba(${rgbColor}, 0.25)`,
-                  '--glow-color-transparent': `rgba(${rgbColor}, 0.05)`,
-                  '--glow-border': `rgba(${rgbColor}, 0.3)`,
-                  '--glow-bg': `rgba(${rgbColor}, 0.05)`,
-                  padding: '10px 12px',
-                  borderRadius: '14px'
-                } as any}
+                className="meteor-wrap" 
+                style={{ '--glow-color': hexColor } as any}
               >
-                <div style={{position:'relative',flexShrink:0, zIndex:2}}>
-                  <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
-                  <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #0F0F0F',background:hexColor}}/>
+                <div className="mini-meteor-inner">
+                  <div style={{position:'relative',flexShrink:0, zIndex:2}}>
+                    <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
+                    <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'12px',height:'12px',borderRadius:'50%',border:'2.5px solid #0C0C0C',background:hexColor}}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0, zIndex:2}}><p style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.9)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</p><p style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p></div>
+                  <span style={{fontSize:'9px', fontWeight:700, padding:'3px 8px', borderRadius:'6px', background: `rgba(${rgbColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${rgbColor}, 0.2)`, flexShrink:0, zIndex:2}}>{getStatusLabel(m.daysRemaining)}</span>
                 </div>
-                <div style={{flex:1,minWidth:0, zIndex:2}}><p style={{fontSize:'13px',fontWeight:600,color:'rgba(255,255,255,0.9)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</p><p style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p></div>
-                <span style={{fontSize:'9px', fontWeight:700, padding:'3px 8px', borderRadius:'6px', background: `rgba(${rgbColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${rgbColor}, 0.2)`, flexShrink:0, zIndex:2}}>{getStatusLabel(m.daysRemaining)}</span>
               </div>
             )})}
           </div>
@@ -533,26 +551,25 @@ const MembersScreen=()=>{
             <div 
               key={m.id} 
               onClick={()=>navigate(`/app/members/${m.id}`)} 
-              className="pulse-card" 
+              className="meteor-wrap" 
               style={{
-                '--glow-color-solid': `rgba(${rgbColor}, 0.25)`,
-                '--glow-color-transparent': `rgba(${rgbColor}, 0.05)`,
-                '--glow-border': `rgba(${rgbColor}, 0.3)`,
-                '--glow-bg': `rgba(${rgbColor}, 0.05)`,
-                opacity:0, animation:`fadeUp 0.3s ease ${i*0.05}s forwards, pulseGlow 3s ease-in-out infinite`
+                '--glow-color': hexColor,
+                opacity:0, animation:`fadeUp 0.3s ease ${i*0.05}s forwards`
               } as any}
             >
-              <div style={{position:'relative',flexShrink:0, zIndex:2}}>
-                <img src={m.img} alt={m.name} style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover'}}/>
-                <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #0F0F0F',background:hexColor}}/>
+              <div className="meteor-inner">
+                <div style={{position:'relative',flexShrink:0, zIndex:2}}>
+                  <img src={m.img} alt={m.name} style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover'}}/>
+                  <span style={{position:'absolute',bottom:'-2px',right:'-2px',width:'14px',height:'14px',borderRadius:'50%',border:'3px solid #0C0C0C',background:hexColor}}/>
+                </div>
+                <div style={{flex:1,minWidth:0, zIndex:2}}>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'2px'}}>{m.name}</p>
+                  <p style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p>
+                </div>
+                <span style={{fontSize:'10px', fontWeight:700, padding:'5px 10px', borderRadius:'8px', background: `rgba(${rgbColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${rgbColor}, 0.2)`, flexShrink:0, zIndex:2}}>
+                  {getStatusLabel(m.daysRemaining)}
+                </span>
               </div>
-              <div style={{flex:1,minWidth:0, zIndex:2}}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:'2px'}}>{m.name}</p>
-                <p style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.package}</p>
-              </div>
-              <span style={{fontSize:'10px', fontWeight:700, padding:'5px 10px', borderRadius:'8px', background: `rgba(${rgbColor}, 0.1)`, color: hexColor, border: `1px solid rgba(${rgbColor}, 0.2)`, flexShrink:0, zIndex:2}}>
-                {getStatusLabel(m.daysRemaining)}
-              </span>
             </div>
           );})}
         </div>
