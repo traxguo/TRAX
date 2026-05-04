@@ -72,7 +72,7 @@ const PaymentBadgeFull = ({status}:{status:'paid'|'partial'|'unpaid'}) => {
   return <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{cfg.label}</span>;
 };
 
-// SCROLL FİX: height:'100%' kaldırıldı, artık normal akışında scroll olacak.
+// SCROLL FIX: height zorlaması kalktı, içeriğin doğal akışı sağlandı.
 const PageWrapper = ({children}:{children:React.ReactNode}) => {
   const [v,setV]=useState(false);
   useEffect(()=>{const t=setTimeout(()=>setV(true),30);return()=>clearTimeout(t);},[]);
@@ -309,18 +309,17 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
-// ALT PANEL FIX: position:'fixed' kaldırıldı, padding ve marginler ayarlandı. 
-// Direkt flex akışında en altta duracak.
+// TAM EKRAN FIX: Artık devasa boşluk yok, position absolute ile ekranın dibine sıfırlandı.
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      flexShrink:0,
+      position: 'absolute', bottom: 0, left: 0, right: 0,
       background:'linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0.8) 70%, transparent)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'max(env(safe-area-inset-bottom), 16px)',
-      paddingTop:'24px', zIndex:20
+      paddingBottom:'calc(env(safe-area-inset-bottom, 12px) + 12px)', // Telefonun kenarından tam 1-2 cm yukarda
+      paddingTop:'32px', zIndex:20
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
@@ -348,63 +347,58 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden', position:'relative'}}>
+      {/* KÖK FIX: Layout sarmalayıcısı height 100% ve relative yapıldı */}
+      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
         
-        {/* ALEV TOPU (METEOR) EFEKTİ */}
+        {/* YENİ GERÇEK METEOR EFEKTİ */}
         <style dangerouslySetInnerHTML={{__html:`
-          @keyframes spinMeteor { 
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); } 
+          /* Işık topunun çerçevenin etrafında tam tur atmasını sağlayan keyframe */
+          @keyframes travelPerimeter {
+            0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
+            40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
+            50%  { top: 100%; left: 100%; transform: translate(-50%, -50%); }
+            90%  { top: 100%; left: 0%; transform: translate(-50%, -50%); }
+            100% { top: 0%; left: 0%; transform: translate(-50%, -50%); }
           }
           
           .meteor-wrap {
-            position: relative; 
-            border-radius: 18px; 
-            padding: 1.5px; /* Çerçeve kalınlığı */
-            overflow: hidden;
-            background: #111; 
-            z-index: 1; 
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            position: relative; border-radius: 18px; padding: 1.5px; overflow: hidden;
+            background: rgba(255,255,255,0.03); z-index: 1; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
           }
           
-          /* Dönerek iz bırakan alev topu kısmı */
-          .meteor-wrap::before {
-            content: ''; 
-            position: absolute; 
-            top: -100%; left: -100%; 
-            width: 300%; height: 300%;
-            /* Şeffaftan başlayıp kartın rengine doğru giden ve en ucunda parlak beyaz yanan bir ışık izi */
-            background: conic-gradient(from 0deg, transparent 75%, var(--glow-color) 95%, #ffffff 100%);
-            animation: spinMeteor 3s linear infinite; 
+          /* Arka planda gezen gerçek ışık topu (Alev topu) */
+          .meteor-light {
+            position: absolute;
+            width: 70px; height: 70px;
+            background: var(--glow-color); /* Beyaz uç yok, sadece tema rengi */
+            border-radius: 50%;
+            filter: blur(16px); /* Arkasında iz bırakıyormuş gibi yumuşatır */
+            animation: travelPerimeter 4s linear infinite;
             z-index: -1;
+            opacity: 0.85;
           }
           
+          /* Kartın asıl içeriği, ışık topunun sadece kenarlardan sızmasını sağlar */
           .meteor-inner {
-            background: #0C0C0C; /* Kartın içi */
-            border-radius: 16.5px; 
-            width: 100%; height: 100%;
-            position: relative; 
-            z-index: 1; 
-            padding: 13px 14px;
+            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%;
+            position: relative; z-index: 1; padding: 13px 14px;
             display: flex; align-items: center; gap: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
           }
           
           .mini-meteor-inner {
-            background: #0C0C0C; 
-            border-radius: 16.5px; 
-            width: 100%; height: 100%;
-            position: relative; 
-            z-index: 1; 
-            padding: 10px 12px;
+            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%;
+            position: relative; z-index: 1; padding: 10px 12px;
             display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(255,255,255,0.04);
           }
 
           .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '100px'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
@@ -493,6 +487,7 @@ const DashboardScreen=()=>{
                 className="meteor-wrap" 
                 style={{ '--glow-color': hexColor } as any}
               >
+                <div className="meteor-light"></div>
                 <div className="mini-meteor-inner">
                   <div style={{position:'relative',flexShrink:0, zIndex:2}}>
                     <img src={m.img} alt={m.name} style={{width:'34px',height:'34px',borderRadius:'50%',objectFit:'cover'}}/>
@@ -557,6 +552,7 @@ const MembersScreen=()=>{
                 opacity:0, animation:`fadeUp 0.3s ease ${i*0.05}s forwards`
               } as any}
             >
+              <div className="meteor-light"></div>
               <div className="meteor-inner">
                 <div style={{position:'relative',flexShrink:0, zIndex:2}}>
                   <img src={m.img} alt={m.name} style={{width:'42px',height:'42px',borderRadius:'50%',objectFit:'cover'}}/>
@@ -724,3 +720,4 @@ const router=createBrowserRouter([
 ]);
 
 export default function App(){return <RouterProvider router={router}/>;}
+```</W>
