@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { RouterProvider, createBrowserRouter, Outlet, useNavigate, useLocation, useParams, Link } from 'react-router';
-import { Bell, Home, Users, ChevronRight, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, BarChart2, Filter, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil, Trash2, Activity } from 'lucide-react';
+import { Bell, Home, Users, ChevronLeft, Phone, Mail, Search, Plus, X, Check, Clock, ArrowUpRight, CreditCard, Calendar, UserPlus, Dumbbell, CheckCircle2, Zap, MessageCircle, Edit3, Send, Save, Pencil, Trash2, Activity } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { Login } from './Login';
 import { mockMembers as initialMembers } from './data';
