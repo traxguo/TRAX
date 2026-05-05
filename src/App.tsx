@@ -308,7 +308,6 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
-// SIFIR BOŞLUKLU ALT MENÜ (Gölgeler kaldırıldı, tam dibe oturtuldu)
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
@@ -316,15 +315,19 @@ const BottomNav=()=>{
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-      zIndex:40, pointerEvents: 'none'
+      // ▼ FIX: env() ile safe area, yoksa 12px fallback
+      paddingBottom:'max(env(safe-area-inset-bottom, 0px), 12px)',
+      zIndex:40, pointerEvents: 'none',
+      // ▼ FIX: Arka planı safe area'yı da kapatacak şekilde uzat
+      background:'linear-gradient(to top, #000000 0%, transparent 100%)',
     }}>
       <div style={{
         pointerEvents: 'auto',
         background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',
         border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',
         height:'56px',display:'flex',alignItems:'center',justifyContent:'center',
-        gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'
+        gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)',
+        marginBottom:'8px',
       }}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
           <Link key={path} to={path} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'40px',height:'40px',justifyContent:'center',textDecoration:'none'}}>
@@ -351,20 +354,25 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      {/* KÖK FIX: position fixed ve inset 0 ile tam ekran garantilendi */}
-      <div style={{position:'fixed', top:0, bottom:0, left:0, right:0, background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {/* ▼ FIX: 100dvh kullan — iPhone'da dinamik toolbar'ı hesaba katar */}
+      <div style={{
+        position:'fixed', top:0, left:0, right:0, bottom:0,
+        width:'100%', height:'100dvh',
+        background:'#000000', display:'flex', flexDirection:'column', overflow:'hidden'
+      }}>
         
         <style dangerouslySetInnerHTML={{__html:`
-          /* SİSTEM KÖKÜNÜ TAM EKRANA ZORLAMA */
+          /* ▼ FIX: position fixed kaldırıldı, dvh eklendi, overflow hidden yeterli */
           html, body, #root {
             background: #000000 !important;
-            position: fixed !important;
-            top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-            width: 100% !important; height: 100% !important;
-            margin: 0 !important; padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
           }
 
-          /* ALEV TOPU EFEKTİ */
           @keyframes travelPerimeter {
             0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
             40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
@@ -405,10 +413,23 @@ const Layout=()=>{
           }
 
           .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
+
+          @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain', paddingBottom: hideNav ? '20px' : '90px'}}>
+        {/* ▼ FIX: paddingBottom safe-area + nav yüksekliğini hesaba katıyor */}
+        <main style={{
+          flex:1, overflowY:'auto', overflowX:'hidden',
+          WebkitOverflowScrolling:'touch' as any,
+          overscrollBehavior:'contain',
+          paddingBottom: hideNav
+            ? 'calc(env(safe-area-inset-bottom, 0px) + 20px)'
+            : 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+        }}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
