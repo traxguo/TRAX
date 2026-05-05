@@ -4,17 +4,22 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-  width: 100%; height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Mobil tarayıcılar için dinamik tam ekran */
   overflow: hidden;
   /* Zoom engelle */
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
+  background: #000000;
 }
 
 body {
-  width: 100%; height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  background: #080808;
+  background: #000000;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
   /* Bounce/pull-to-refresh engelle */
@@ -23,10 +28,12 @@ body {
 }
 
 #root {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: #000000;
 }
 
 /* Scroll sadece main içinde */
