@@ -273,13 +273,13 @@ const AddMemberModal = ({onClose,onAdd}:{onClose:()=>void;onAdd:(m:Member)=>void
   );
 };
 
+// ORİJİNAL HEADER YAPISI: Saatin altına inecek, sorunsuz.
 const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=>void;urgentCount:number})=>{
   const location=useLocation(); const navigate=useNavigate();
   const isDetail=location.pathname.includes('/members/');
   const isMembers=location.pathname==='/app/members';
   const hdr:React.CSSProperties={
-    paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-    paddingBottom: '14px', paddingLeft: '20px', paddingRight: '20px',
+    padding: '52px 20px 14px', // Orijinal padding
     display:'flex',alignItems:'center',justifyContent:'space-between',
     position:'sticky',top:0,zIndex:10,background:'rgba(12,12,12,0.92)',
     backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.08)',flexShrink:0
@@ -308,27 +308,18 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   );
 };
 
+// ORİJİNAL ALT PANEL YAPISI: Flex akışında en alta yerleşir, siyah boşluk bırakmaz.
 const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0,
+      flexShrink:0,height:'88px',
+      background:'linear-gradient(to top, #000000 50%, transparent)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      // ▼ FIX: env() ile safe area, yoksa 12px fallback
-      paddingBottom:'max(env(safe-area-inset-bottom, 0px), 12px)',
-      zIndex:40, pointerEvents: 'none',
-      // ▼ FIX: Arka planı safe area'yı da kapatacak şekilde uzat
-      background:'linear-gradient(to top, #000000 0%, transparent 100%)',
+      paddingBottom:'20px',zIndex:20
     }}>
-      <div style={{
-        pointerEvents: 'auto',
-        background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',
-        border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',
-        height:'56px',display:'flex',alignItems:'center',justifyContent:'center',
-        gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)',
-        marginBottom:'8px',
-      }}>
+      <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
           <Link key={path} to={path} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'40px',height:'40px',justifyContent:'center',textDecoration:'none'}}>
             <Icon style={{width:'20px',height:'20px',color:active?AL:'rgba(255,255,255,0.3)',transition:'color 0.2s'}} strokeWidth={active?2.5:1.5}/>
@@ -340,6 +331,7 @@ const BottomNav=()=>{
   );
 };
 
+// KUSURSUZ FLEXBOX İSKELETİ: Orijinal `100%` değerleriyle.
 const Layout=()=>{
   const location=useLocation();
   const [members,setMembers]=useState<Member[]>(initStore);
@@ -354,25 +346,10 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      {/* ▼ FIX: 100dvh kullan — iPhone'da dinamik toolbar'ı hesaba katar */}
-      <div style={{
-        position:'fixed', top:0, left:0, right:0, bottom:0,
-        width:'100%', height:'100dvh',
-        background:'#000000', display:'flex', flexDirection:'column', overflow:'hidden'
-      }}>
+      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         
         <style dangerouslySetInnerHTML={{__html:`
-          /* ▼ FIX: position fixed kaldırıldı, dvh eklendi, overflow hidden yeterli */
-          html, body, #root {
-            background: #000000 !important;
-            width: 100% !important;
-            height: 100% !important;
-            min-height: 100dvh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-          }
-
+          /* METEOR EFEKTİ */
           @keyframes travelPerimeter {
             0%   { top: 0%; left: 0%; transform: translate(-50%, -50%); }
             40%  { top: 0%; left: 100%; transform: translate(-50%, -50%); }
@@ -388,48 +365,25 @@ const Layout=()=>{
           }
           
           .meteor-light {
-            position: absolute;
-            width: 70px; height: 70px;
-            background: var(--glow-color);
-            border-radius: 50%;
-            filter: blur(16px);
-            animation: travelPerimeter 4s linear infinite;
-            z-index: -1;
-            opacity: 0.85;
+            position: absolute; width: 70px; height: 70px; background: var(--glow-color); border-radius: 50%;
+            filter: blur(16px); animation: travelPerimeter 4s linear infinite; z-index: -1; opacity: 0.85;
           }
           
           .meteor-inner {
-            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%;
-            position: relative; z-index: 1; padding: 13px 14px;
-            display: flex; align-items: center; gap: 12px;
-            border: 1px solid rgba(255,255,255,0.04);
+            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%; position: relative; z-index: 1; 
+            padding: 13px 14px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.04);
           }
           
           .mini-meteor-inner {
-            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%;
-            position: relative; z-index: 1; padding: 10px 12px;
-            display: flex; align-items: center; gap: 10px;
-            border: 1px solid rgba(255,255,255,0.04);
+            background: #0C0C0C; border-radius: 16.5px; width: 100%; height: 100%; position: relative; z-index: 1; 
+            padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.04);
           }
 
           .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
-
-          @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-          }
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        {/* ▼ FIX: paddingBottom safe-area + nav yüksekliğini hesaba katıyor */}
-        <main style={{
-          flex:1, overflowY:'auto', overflowX:'hidden',
-          WebkitOverflowScrolling:'touch' as any,
-          overscrollBehavior:'contain',
-          paddingBottom: hideNav
-            ? 'calc(env(safe-area-inset-bottom, 0px) + 20px)'
-            : 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
-        }}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
