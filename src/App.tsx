@@ -346,7 +346,7 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{width:'100%',height:'100vh',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         
         <style dangerouslySetInnerHTML={{__html:`
           /* METEOR EFEKTİ */
@@ -692,7 +692,7 @@ const MemberDetailScreen=()=>{
   );
 };
 
-const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
+const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100vh',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
 
 const router=createBrowserRouter([
   {path:'/',element:<W><Login/></W>},
@@ -704,4 +704,13 @@ const router=createBrowserRouter([
   ]},
 ]);
 
-export default function App(){return <RouterProvider router={router}/>;}
+export default function App(){
+  useEffect(()=>{
+    document.body.style.margin='0';
+    document.body.style.padding='0';
+    document.body.style.height='100vh';
+    document.body.style.overflow='hidden';
+  },[]);
+
+  return <RouterProvider router={router}/>;
+}
