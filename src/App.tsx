@@ -315,18 +315,13 @@ const BottomNav=()=>{
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      position:'fixed', 
-      bottom:0, 
-      left:0, 
-      right:0,
-      width:'100%',
-      height:'110px',
       background:'#000000',
       display:'flex', 
       flexDirection:'column', 
       alignItems:'center',
-      justifyContent:'flex-end',
-      paddingBottom:'24px',
+      justifyContent:'center',
+      paddingTop:'8px',
+      paddingBottom:'8px',
       zIndex:40,
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
@@ -408,12 +403,10 @@ const Layout=()=>{
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain',paddingBottom:hideNav?'24px':'134px'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain',paddingBottom:hideNav?'0':'90px'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
-        {/* Siyah overlay — iPhone home indicator alanını kapat */}
-        <div style={{position:'fixed',bottom:0,left:0,right:0,height:'max(env(safe-area-inset-bottom, 0px), 20px)',background:'#000000',zIndex:5}}/>
         {showAdd&&<AddMemberModal onClose={()=>setShowAdd(false)} onAdd={m=>{addMember(m);setShowAdd(false);}}/>}
         {showBell&&<NotificationPanel onClose={()=>setShowBell(false)}/>}
       </div>
