@@ -314,13 +314,15 @@ const BottomNav=()=>{
   const location=useLocation();
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
-    <div style={{
+<div style={{
       position:'fixed', bottom:0, left:0, right:0,
       background:'#000000',
       display:'flex', flexDirection:'column', alignItems:'center',
       paddingTop:'8px',
-      paddingBottom:'env(safe-area-inset-bottom, 20px)',
+      paddingBottom:'34px',
       zIndex:40,
+      height:'90px',
+      justifyContent:'flex-end'
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
