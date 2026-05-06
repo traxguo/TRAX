@@ -279,7 +279,8 @@ const Header=({onAddMember,onBell,urgentCount}:{onAddMember?:()=>void;onBell:()=
   const isDetail=location.pathname.includes('/members/');
   const isMembers=location.pathname==='/app/members';
   const hdr:React.CSSProperties={
-    padding: '52px 20px 14px', // Orijinal padding
+    paddingTop: 'calc(env(safe-area-inset-top, 44px) + 12px)',
+    paddingBottom: '14px', paddingLeft: '20px', paddingRight: '20px',
     display:'flex',alignItems:'center',justifyContent:'space-between',
     position:'sticky',top:0,zIndex:10,background:'rgba(12,12,12,0.92)',
     backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.08)',flexShrink:0
@@ -314,10 +315,12 @@ const BottomNav=()=>{
   const tabs=[{path:'/app/home',icon:Home,label:'Anasayfa'},{path:'/app/members',icon:Users,label:'Üyeler'}];
   return(
     <div style={{
-      flexShrink:0,height:'88px',
-      background:'linear-gradient(to top, #000000 50%, transparent)',
+      flexShrink:0,
+      background:'#000000',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      paddingBottom:'20px',zIndex:20
+      paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+      paddingTop:'8px',
+      zIndex:20
     }}>
       <div style={{background:'rgba(20,20,20,0.95)',backdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'999px',height:'56px',display:'flex',alignItems:'center',justifyContent:'center',gap:'48px',padding:'0 40px',boxShadow:'0 16px 40px rgba(0,0,0,0.8)'}}>
         {tabs.map(({path,icon:Icon,label})=>{const active=location.pathname===path;return(
@@ -346,7 +349,7 @@ const Layout=()=>{
 
   return(
     <StoreContext.Provider value={{members,addMember,updateMember,deleteMember}}>
-      <div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,width:'100%',height:'100dvh',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         
         <style dangerouslySetInnerHTML={{__html:`
           /* METEOR EFEKTİ */
@@ -380,6 +383,21 @@ const Layout=()=>{
           }
 
           .recharts-tooltip-cursor { fill: rgba(255,255,255,0.02) !important; }
+
+          @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
+
+          html, body, #root {
+            background: #000000 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+          }
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
@@ -692,7 +710,7 @@ const MemberDetailScreen=()=>{
   );
 };
 
-const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100%',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
+const W=({children}:{children:React.ReactNode})=><div style={{width:'100%',height:'100dvh',background:'#000000',display:'flex',flexDirection:'column',overflow:'hidden'}}>{children}</div>;
 
 const router=createBrowserRouter([
   {path:'/',element:<W><Login/></W>},
