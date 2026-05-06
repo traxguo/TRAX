@@ -18,7 +18,6 @@ body {
   overflow: hidden;
   background: #000000;
   overscroll-behavior: none;
-  /* position:fixed KALDIRILDI — body fixed olunca #root height:100% bozuluyor */
 }
 
 #root {
