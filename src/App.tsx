@@ -412,6 +412,8 @@ const Layout=()=>{
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
+        {/* Siyah overlay — iPhone home indicator alanını kapat */}
+        <div style={{position:'fixed',bottom:0,left:0,right:0,height:'max(env(safe-area-inset-bottom, 0px), 20px)',background:'#000000',zIndex:5}}/>
         {showAdd&&<AddMemberModal onClose={()=>setShowAdd(false)} onAdd={m=>{addMember(m);setShowAdd(false);}}/>}
         {showBell&&<NotificationPanel onClose={()=>setShowBell(false)}/>}
       </div>
