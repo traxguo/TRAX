@@ -403,7 +403,7 @@ const Layout=()=>{
         `}} />
 
         <Header onAddMember={()=>setShowAdd(true)} onBell={()=>setShowBell(true)} urgentCount={urgentCount}/>
-        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain',paddingBottom:hideNav?'0px':'76px'}}>
+        <main style={{flex:1,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch' as any,overscrollBehavior:'contain'}}>
           <Outlet/>
         </main>
         {!hideNav&&<BottomNav/>}
