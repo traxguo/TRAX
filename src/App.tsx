@@ -713,7 +713,7 @@ const MembersScreen = () => {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              style={{ flexShrink: 0, padding: '7px 14px', borderRadius: R.full, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: filter === key ? `linear-gradient(135deg, ${C.brand}, ${C.brandLight})` : C.surface, color: filter === key ? '#000' : C.textTertiary, boxShadow: filter === key ? `0 4px 12px ${C.brandGlow}` : 'none', border: filter === key ? 'none' : `1px solid ${C.surfaceBorder}` } as React.CSSProperties}
+              style={{ flexShrink: 0, padding: '7px 14px', borderRadius: R.full, fontSize: 11, fontWeight: 700, border: filter === key ? 'none' : `1px solid ${C.surfaceBorder}`, cursor: 'pointer', background: filter === key ? `linear-gradient(135deg, ${C.brand}, ${C.brandLight})` : C.surface, color: filter === key ? '#000' : C.textTertiary, boxShadow: filter === key ? `0 4px 12px ${C.brandGlow}` : 'none' } as React.CSSProperties}
             >
               {label}
             </button>
