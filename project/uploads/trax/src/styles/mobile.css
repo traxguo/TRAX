@@ -24,16 +24,14 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  height: 100%;
   margin: 0; padding: 0;
   background: #0b0809;
-  overflow: hidden;
+  overscroll-behavior: none;
 }
 body {
   font-family: var(--font);
   color: var(--tx);
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior: none;
   touch-action: none;
 }
 * { scrollbar-width: none; }
@@ -46,7 +44,7 @@ body {
 .phone {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--screen-gap, 0px));
   display: flex;
   flex-direction: column;
   background:
@@ -88,7 +86,7 @@ body {
 .m-iconbtn.danger:active { border-color: var(--bad); }
 
 /* ---- screen scroll ---- */
-.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px 90px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px max(calc(env(safe-area-inset-bottom, 0px) + 90px), calc(var(--screen-gap, 0px) + 90px)); touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .m-screen.flush { padding-left: 0; padding-right: 0; }
 .m-screen.flush > * { padding-left: 22px; padding-right: 22px; }
 .fade { animation: mfade .34s cubic-bezier(.2,.7,.2,1); }
@@ -96,13 +94,13 @@ body {
 
 /* ============ floating pill nav ============ */
 .m-scrim {
-  position: absolute; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom, 0px) + 110px); z-index: 35; pointer-events: none;
+  position: absolute; left: 0; right: 0; bottom: 0; height: max(calc(env(safe-area-inset-bottom, 0px) + 110px), calc(var(--screen-gap, 0px) + 110px)); z-index: 35; pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--bg) 58%);
 }
 .m-nav-tray { display: none; }
 .m-nav {
   position: absolute;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  bottom: max(calc(env(safe-area-inset-bottom, 0px) + 12px), calc(var(--screen-gap, 0px) + 12px));
   left: 50%; transform: translateX(-50%);
   width: 300px; height: 64px; z-index: 40;
   display: flex; align-items: stretch;
