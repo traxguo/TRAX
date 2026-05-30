@@ -23,13 +23,13 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html {
+html, body {
   height: 100%;
+  margin: 0; padding: 0;
+  background: #0b0809;
   overflow: hidden;
 }
 body {
-  height: 100%;
-  background: var(--bg);
   font-family: var(--font);
   color: var(--tx);
   -webkit-font-smoothing: antialiased;
@@ -46,6 +46,7 @@ body {
 .phone {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   flex-direction: column;
   background:
@@ -87,7 +88,7 @@ body {
 .m-iconbtn.danger:active { border-color: var(--bad); }
 
 /* ---- screen scroll ---- */
-.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px calc(env(safe-area-inset-bottom, 0px) + 90px); touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px 90px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .m-screen.flush { padding-left: 0; padding-right: 0; }
 .m-screen.flush > * { padding-left: 22px; padding-right: 22px; }
 .fade { animation: mfade .34s cubic-bezier(.2,.7,.2,1); }
