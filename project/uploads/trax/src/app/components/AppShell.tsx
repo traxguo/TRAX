@@ -1,0 +1,131 @@
+import { useState } from 'react';
+import { useStore } from '../store';
+import { derivePlan } from '../utils';
+import { initials } from '../data';
+import type { TabKey, SheetKey, Member, MemberFormData } from '../types';
+import Icon from './Icon';
+import Home from './Home';
+import Members from './Members';
+import CheckIn from './CheckIn';
+import WhatsApp from './WhatsApp';
+import MemberDetail from './MemberDetail';
+import SearchSheet from './SearchSheet';
+import NotifSheet from './NotifSheet';
+import ProfileSheet from './ProfileSheet';
+import MemberFormSheet from './MemberFormSheet';
+import ConfirmSheet from './ConfirmSheet';
+
+const TABS: { k: TabKey; ico: string; badge?: string }[] = [
+  { k: 'home',     ico: 'grid' },
+  { k: 'members',  ico: 'users' },
+  { k: 'checkin',  ico: 'scan' },
+  { k: 'whatsapp', ico: 'chat', badge: '37' },
+];
+
+const HEAD: Record<TabKey, { eyebrow: string; title: string; hasCount?: boolean }> = {
+  home:     { eyebrow: '',          title: 'TRAX' },
+  members:  { eyebrow: 'Üye yönetimi', title: 'Üyeler', hasCount: true },
+  checkin:  { eyebrow: 'Hızlı giriş',  title: 'Check-In' },
+  whatsapp: { eyebrow: 'Toplu mesaj',   title: 'WhatsApp' },
+};
+
+export default function AppShell() {
+  const store = useStore();
+  const { members, profile, addMember, updateMember, deleteMember, notifRead } = store;
+
+  const [tab, setTab] = useState<TabKey>('home');
+  const [detail, setDetail] = useState<number | null>(null);
+  const [sheet, setSheet] = useState<SheetKey>(null);
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [deleting, setDeleting] = useState<Member | null>(null);
+
+  const owner = (profile?.ownerName) || 'Mert';
+  const h = HEAD[tab];
+  const tabIndex = TABS.findIndex(t => t.k === tab);
+
+  const openMember = (id: number) => setDetail(id);
+
+  return (
+    <div className="phone">
+      {detail !== null ? (
+        <MemberDetail
+          id={detail}
+          back={() => setDetail(null)}
+          onEdit={m => setEditing(m)}
+          onDelete={m => setDeleting(m)}
+        />
+      ) : (
+        <>
+          <div className="m-head">
+            <div style={{ minWidth: 0 }}>
+              {tab === 'home'
+                ? <div className="eyebrow">Hoş geldin, {owner}</div>
+                : <div className="eyebrow">{h.eyebrow}</div>}
+              <div className="title-row">
+                <h1>{tab === 'home' ? <>TRA<b>X</b></> : h.title}</h1>
+                {h.hasCount && <span className="count-chip tnum">{members.length} üye</span>}
+              </div>
+            </div>
+            <div className="actions">
+              <button className="m-iconbtn" onClick={() => setSheet('search')} aria-label="Ara">
+                <Icon name="search" size={18} />
+              </button>
+              <button className="m-iconbtn" onClick={() => setSheet('notif')} aria-label="Bildirimler">
+                <Icon name="bell" size={18} />
+                {!notifRead && <span className="dot" />}
+              </button>
+              <button className="m-iconbtn av-btn" onClick={() => setSheet('profile')} aria-label="Profil">
+                {initials((profile?.salonName) || 'TRAX')}
+              </button>
+            </div>
+          </div>
+
+          <div className={'m-screen' + (tab === 'members' ? ' flush' : '')}>
+            {tab === 'home'     && <Home go={setTab} open={openMember} owner={owner} />}
+            {tab === 'members'  && <Members open={openMember} />}
+            {tab === 'checkin'  && <CheckIn />}
+            {tab === 'whatsapp' && <WhatsApp />}
+          </div>
+
+          {tab === 'members' && (
+            <button className="fab" onClick={() => setSheet('add')} aria-label="Üye ekle">
+              <Icon name="plus" size={24} stroke={2.4} />
+            </button>
+          )}
+
+          <div className="m-scrim" />
+          <div className="m-nav-tray" />
+          <nav className="m-nav">
+            <span className="nav-ind" style={{ '--i': tabIndex } as React.CSSProperties} />
+            {TABS.map(t => (
+              <button key={t.k} className={'m-tab' + (tab === t.k ? ' on' : '')} onClick={() => setTab(t.k)}>
+                <Icon name={t.ico} size={22} stroke={tab === t.k ? 2.2 : 1.8} />
+                {t.badge && <span className="badge">{t.badge}</span>}
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
+
+      <SearchSheet open={sheet === 'search'} onClose={() => setSheet(null)} onOpenMember={openMember} />
+      <NotifSheet  open={sheet === 'notif'}  onClose={() => setSheet(null)} onOpenMember={openMember} />
+      <ProfileSheet open={sheet === 'profile'} onClose={() => setSheet(null)} />
+      <MemberFormSheet
+        open={sheet === 'add'} onClose={() => setSheet(null)} mode="add"
+        onSubmit={(f: MemberFormData) => addMember(f)} />
+      <MemberFormSheet
+        open={!!editing} onClose={() => setEditing(null)} mode="edit" initial={editing}
+        onSubmit={(f: MemberFormData) => {
+          if (editing) updateMember(editing.id, { name: f.name, phone: f.phone, email: f.email, trainer: f.trainer || '—', ...derivePlan(f) });
+        }} />
+      <ConfirmSheet
+        open={!!deleting} onClose={() => setDeleting(null)} name={deleting?.name}
+        onConfirm={() => {
+          if (deleting) {
+            deleteMember(deleting.id);
+            if (detail === deleting.id) setDetail(null);
+          }
+        }} />
+    </div>
+  );
+}
