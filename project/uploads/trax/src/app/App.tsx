@@ -16,17 +16,6 @@ function MobileApp() {
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
 
-    const setVvh = () => {
-      const h = (window.visualViewport?.height ?? window.innerHeight) + 'px';
-      r.style.setProperty('--vvh', h);
-    };
-    setVvh();
-    window.visualViewport?.addEventListener('resize', setVvh);
-    window.addEventListener('resize', setVvh);
-    return () => {
-      window.visualViewport?.removeEventListener('resize', setVvh);
-      window.removeEventListener('resize', setVvh);
-    };
   }, []);
 
   const loggedIn  = !!session;
