@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd project/uploads/trax && npm install && npm run build",
+  "outputDirectory": "project/uploads/trax/dist",
+  "installCommand": "echo skip"
+}
