@@ -16,9 +16,12 @@ function MobileApp() {
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
 
-    // iOS viewport-fit=cover workaround: compute bottom gap manually
+    // iOS: extend phone to full screen height (viewport-fit=cover workaround)
     const gap = Math.max(0, window.screen.height - window.innerHeight);
     r.style.setProperty('--screen-gap', gap + 'px');
+    r.style.setProperty('--phone-h', window.screen.height + 'px');
+    document.documentElement.style.minHeight = window.screen.height + 'px';
+    document.body.style.minHeight = window.screen.height + 'px';
   }, []);
 
   const loggedIn  = !!session;
