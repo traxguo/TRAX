@@ -12,6 +12,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    (function(){
+      var h=window.screen.height+60;
+      var r=document.documentElement;
+      r.style.setProperty('--phone-h',h+'px');
+      r.style.setProperty('--phone-ext',(h-window.innerHeight)+'px');
+      r.style.minHeight=h+'px';
+    })();
+  </script>
 </head>
 <body>
   <div id="root"></div>
