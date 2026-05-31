@@ -327,7 +327,7 @@ body {
 .seg-opt.on { border-color: var(--acc); background: var(--acc-dim); color: #fff; box-shadow: 0 0 0 3px var(--acc-dim); }
 
 /* ============ AUTH ============ */
-.auth { position: absolute; inset: 0; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+.auth { position: fixed; top: 0; left: 0; right: 0; height: var(--phone-h, 100svh); overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
 .auth-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .auth-bg .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; }
 .auth-bg .o1 { width: 320px; height: 320px; top: -90px; right: -80px; background: radial-gradient(circle, rgba(var(--acc-rgb),0.55), transparent 70%); animation: orbF1 9s ease-in-out infinite; }
