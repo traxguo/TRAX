@@ -19,9 +19,11 @@ function MobileApp() {
     // iOS: extend phone to full screen height (viewport-fit=cover workaround)
     const gap = Math.max(0, window.screen.height - window.innerHeight);
     r.style.setProperty('--screen-gap', gap + 'px');
-    r.style.setProperty('--phone-h', (window.screen.height + 60) + 'px');
-    document.documentElement.style.minHeight = (window.screen.height + 60) + 'px';
-    document.body.style.minHeight = (window.screen.height + 60) + 'px';
+    const phoneH = window.screen.height + 60;
+    r.style.setProperty('--phone-h', phoneH + 'px');
+    r.style.setProperty('--phone-ext', (phoneH - window.innerHeight) + 'px');
+    document.documentElement.style.minHeight = phoneH + 'px';
+    document.body.style.minHeight = phoneH + 'px';
   }, []);
 
   const loggedIn  = !!session;
