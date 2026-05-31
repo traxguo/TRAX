@@ -101,7 +101,7 @@ body {
 .m-nav-tray { display: none; }
 .m-nav {
   position: absolute;
-  bottom: calc(var(--phone-ext, 60px) + 8px);
+  bottom: calc(var(--phone-ext, 60px) + env(safe-area-inset-bottom, 20px) + 6px);
   left: 50%; transform: translateX(-50%);
   width: 300px; height: 64px; z-index: 40;
   display: flex; align-items: stretch;
