@@ -106,16 +106,16 @@ function useStoreValue(): StoreValue {
   }, [attendanceLog]);
 
   const addDayToMember = useCallback((memberId: number, day: number) => {
-    setMembers(ms => ms.map(m =>
-      m.id === memberId && !m.days.includes(day)
-        ? { ...m, days: [...m.days, day].sort() }
-        : m
-    ));
+    setMembers(ms => ms.map(m => {
+      if (m.id !== memberId) return m;
+      const days = m.days || [];
+      return days.includes(day) ? m : { ...m, days: [...days, day].sort() };
+    }));
   }, []);
 
   const removeDayFromMember = useCallback((memberId: number, day: number) => {
     setMembers(ms => ms.map(m =>
-      m.id === memberId ? { ...m, days: m.days.filter(d => d !== day) } : m
+      m.id === memberId ? { ...m, days: (m.days || []).filter(d => d !== day) } : m
     ));
   }, []);
 

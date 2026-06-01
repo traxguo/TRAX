@@ -46,8 +46,8 @@ export default function CheckIn() {
   const isFuture = !isAll && selKey > todayKey;
 
   const nonFrozen = members.filter(m => m.status !== 'frozen');
-  const visible   = isAll ? nonFrozen : nonFrozen.filter(m => m.days.includes(selDow));
-  const addable   = isAll ? [] : nonFrozen.filter(m => !m.days.includes(selDow));
+  const visible   = isAll ? nonFrozen : nonFrozen.filter(m => (m.days || []).includes(selDow));
+  const addable   = isAll ? [] : nonFrozen.filter(m => !(m.days || []).includes(selDow));
 
   const dayIdx  = isAll ? -1 : week.findIndex(d => toKey(d) === selKey);
   const dayName = isAll ? 'Tüm Hafta' : (DAYS[dayIdx] ?? '');
