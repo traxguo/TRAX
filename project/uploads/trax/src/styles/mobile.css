@@ -456,9 +456,13 @@ body {
 /* ============ CHECK-IN ============ */
 .week-strip {
   display: flex; gap: 5px; margin-bottom: 18px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px; scrollbar-width: none;
 }
+.week-strip::-webkit-scrollbar { display: none; }
+
 .wday {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  flex: none; width: 42px; display: flex; flex-direction: column; align-items: center; gap: 5px;
   padding: 10px 2px 12px; border-radius: 14px;
   border: 1px solid var(--line); background: var(--panel);
   cursor: pointer; transition: all .15s; position: relative;
@@ -473,6 +477,10 @@ body {
 .wday.fut { opacity: .38; }
 .wday.today.on .wday-dot { background: #fff; }
 
+.wday-all { width: 52px; }
+.wday-all-sub { font-size: 10px; font-weight: 600; color: var(--tx-3); }
+.wday.wday-all.on .wday-all-sub { color: var(--acc); }
+
 .ci-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 14px; padding: 0 2px;
@@ -481,7 +489,7 @@ body {
 .ci-date    { font-size: 20px; font-weight: 760; letter-spacing: -0.4px; }
 
 .ci-row {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 11px;
   padding: 10px 0; border-bottom: 1px solid var(--line);
 }
 .ci-row:last-child { border-bottom: none; }
@@ -499,8 +507,36 @@ body {
 .ci-toggle.on {
   border-color: rgba(var(--ok-rgb), 0.4); background: rgba(var(--ok-rgb), 0.12); color: var(--ok);
 }
-.ci-x { font-size: 10px; opacity: .7; }
-.ci-fut-badge { font-size: 14px; color: var(--tx-3); padding-right: 4px; flex: none; }
+.ci-fut { font-size: 14px; color: var(--tx-3); flex: none; padding-right: 4px; }
+
+.ci-remove-btn {
+  width: 26px; height: 26px; border-radius: 8px; flex: none;
+  border: 1px solid rgba(var(--bad-rgb), 0.35); background: rgba(var(--bad-rgb), 0.1);
+  color: var(--bad); display: grid; place-items: center; cursor: pointer;
+  transition: all .12s;
+}
+.ci-remove-btn:active { transform: scale(.9); }
+
+.ci-add-toggle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; border-top: 1px solid var(--line);
+  font-size: 13px; font-weight: 600; color: var(--acc);
+  background: none; border-left: none; border-right: none; border-bottom: none;
+  cursor: pointer; width: 100%; font-family: var(--font); text-align: left;
+}
+.ci-add-ic {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: var(--acc-dim); color: var(--acc); display: grid; place-items: center;
+  border: 1px solid rgba(var(--acc-rgb), 0.3);
+}
+.ci-addable-row { opacity: 1; }
+.ci-add-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 650; padding: 5px 10px; border-radius: 9px;
+  border: 1px solid rgba(var(--acc-rgb), 0.35); background: var(--acc-dim); color: var(--acc);
+  cursor: pointer; flex: none; font-family: var(--font); transition: all .12s;
+}
+.ci-add-chip:active { transform: scale(.93); }
 
 /* whatsapp */
 .wa-rec { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line); }

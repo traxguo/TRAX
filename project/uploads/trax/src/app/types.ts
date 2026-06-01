@@ -20,6 +20,7 @@ export interface Member {
   visits: number;
   attendance: number;
   trainer: string;
+  days: number[]; // 0=Pzt 1=Sal 2=Çar 3=Per 4=Cum 5=Cmt 6=Paz
 }
 
 export interface Profile {

@@ -19,6 +19,8 @@ export interface StoreValue {
   markNotifsRead: () => void;
   attendanceLog: Record<string, number[]>;
   toggleAttendance: (date: string, memberId: number) => void;
+  addDayToMember: (memberId: number, day: number) => void;
+  removeDayFromMember: (memberId: number, day: number) => void;
 }
 
 const StoreCtx = createContext<StoreValue | null>(null);
@@ -54,7 +56,7 @@ function useStoreValue(): StoreValue {
       id: Date.now(), name: f.name.trim(), phone: f.phone.trim(),
       email: (f.email || '').trim(), joined: fmtDate(now), lastVisit: '—',
       visits: 0, attendance: 0, trainer: (f.trainer || '').trim() || '—',
-      plan: 'Aylık', kind: 'aylik', status: 'active', daysLeft: 30, expires: '—',
+      plan: 'Aylık', kind: 'aylik', status: 'active', daysLeft: 30, expires: '—', days: [],
     };
     const mem: Member = { ...base, ...derivePlan(f) };
     setMembers(ms => [mem, ...ms]);
@@ -88,19 +90,40 @@ function useStoreValue(): StoreValue {
   const completeOnboarding = useCallback((p: Profile) => setProfile(p), []);
   const markNotifsRead = useCallback(() => setNotifRead(true), []);
   const toggleAttendance = useCallback((date: string, memberId: number) => {
-    setAttendanceLog(prev => {
-      const curr = prev[date] || [];
-      return {
-        ...prev,
-        [date]: curr.includes(memberId) ? curr.filter(id => id !== memberId) : [...curr, memberId],
-      };
-    });
+    const curr = attendanceLog[date] || [];
+    const wasAttended = curr.includes(memberId);
+    setAttendanceLog(prev => ({
+      ...prev,
+      [date]: wasAttended ? curr.filter(id => id !== memberId) : [...curr, memberId],
+    }));
+    setMembers(ms => ms.map(m => {
+      if (m.id !== memberId || m.kind !== 'paket') return m;
+      const adet = m.adet || 0;
+      if (!wasAttended && adet > 0) return { ...m, adet: adet - 1 };
+      if (wasAttended) return { ...m, adet: adet + 1 };
+      return m;
+    }));
+  }, [attendanceLog]);
+
+  const addDayToMember = useCallback((memberId: number, day: number) => {
+    setMembers(ms => ms.map(m =>
+      m.id === memberId && !m.days.includes(day)
+        ? { ...m, days: [...m.days, day].sort() }
+        : m
+    ));
+  }, []);
+
+  const removeDayFromMember = useCallback((memberId: number, day: number) => {
+    setMembers(ms => ms.map(m =>
+      m.id === memberId ? { ...m, days: m.days.filter(d => d !== day) } : m
+    ));
   }, []);
 
   return {
     members, addMember, updateMember, deleteMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, logout,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
+    addDayToMember, removeDayFromMember,
   };
 }
 

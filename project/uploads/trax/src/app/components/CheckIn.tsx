@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
 
-const DAYS  = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+const DAYS   = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function toKey(d: Date) {
@@ -23,38 +23,63 @@ function getWeek(today: Date): Date[] {
   });
 }
 
+// JS: 0=Sun,1=Mon... → our: 0=Mon...6=Sun
+function toDow(d: Date) {
+  const js = d.getDay();
+  return js === 0 ? 6 : js - 1;
+}
+
 export default function CheckIn() {
-  const { members, attendanceLog, toggleAttendance } = useStore();
-  const today = new Date();
+  const { members, attendanceLog, toggleAttendance, addDayToMember, removeDayFromMember } = useStore();
+  const today    = new Date();
   const todayKey = toKey(today);
-  const [selKey, setSelKey] = useState(todayKey);
+  const [selKey,   setSelKey]   = useState<string>(todayKey);
+  const [editMode, setEditMode] = useState(false);
+  const [showAdd,  setShowAdd]  = useState(false);
   const week = getWeek(today);
 
-  const selDate = week.find(d => toKey(d) === selKey) || today;
-  const attended = attendanceLog[selKey] || [];
-  const isFuture = selKey > todayKey;
+  const isAll    = selKey === 'all';
+  const selDate  = isAll ? today : (week.find(d => toKey(d) === selKey) || today);
+  const selDow   = toDow(selDate);
+  const ciDate   = isAll ? todayKey : selKey;
+  const attended = attendanceLog[ciDate] || [];
+  const isFuture = !isAll && selKey > todayKey;
 
-  const visible = members.filter(m => m.status !== 'frozen');
+  const nonFrozen = members.filter(m => m.status !== 'frozen');
+  const visible   = isAll ? nonFrozen : nonFrozen.filter(m => m.days.includes(selDow));
+  const addable   = isAll ? [] : nonFrozen.filter(m => !m.days.includes(selDow));
 
-  const dayLabel = `${selDate.getDate()} ${MONTHS[selDate.getMonth()]}`;
-  const dayName  = DAYS[week.findIndex(d => toKey(d) === selKey)];
+  const dayIdx  = isAll ? -1 : week.findIndex(d => toKey(d) === selKey);
+  const dayName = isAll ? 'Tüm Hafta' : (DAYS[dayIdx] ?? '');
+  const dateStr = isAll ? '' : `${selDate.getDate()} ${MONTHS[selDate.getMonth()]}`;
+
+  function selectDay(k: string) {
+    setSelKey(k);
+    setEditMode(false);
+    setShowAdd(false);
+  }
 
   return (
     <div className="fade">
 
-      {/* Weekly strip */}
+      {/* ── Weekly strip ── */}
       <div className="week-strip">
+        <button
+          className={'wday wday-all' + (isAll ? ' on' : '')}
+          onClick={() => selectDay('all')}
+        >
+          <span className="wday-lbl">TÜM</span>
+          <span className="wday-all-sub">hafta</span>
+        </button>
+
         {week.map((d, i) => {
-          const k = toKey(d);
-          const isSel   = k === selKey;
+          const k      = toKey(d);
+          const isSel  = k === selKey;
           const isToday = k === todayKey;
-          const isFut   = k > todayKey;
+          const isFut  = k > todayKey;
+          const cls = ['wday', isSel ? 'on' : '', isFut ? 'fut' : '', isToday ? 'today' : ''].filter(Boolean).join(' ');
           return (
-            <button
-              key={k}
-              className={['wday', isSel ? 'on' : '', isFut ? 'fut' : '', isToday ? 'today' : ''].filter(Boolean).join(' ')}
-              onClick={() => setSelKey(k)}
-            >
+            <button key={k} className={cls} onClick={() => selectDay(k)}>
               <span className="wday-lbl">{DAYS[i]}</span>
               <span className="wday-num">{d.getDate()}</span>
               {isToday && <span className="wday-dot" />}
@@ -63,26 +88,54 @@ export default function CheckIn() {
         })}
       </div>
 
-      {/* Day header */}
+      {/* ── Day header ── */}
       <div className="ci-head">
         <div>
-          <div className="ci-dayname">{dayName}</div>
-          <div className="ci-date">{dayLabel}</div>
+          {dateStr && <div className="ci-dayname">{dayName}</div>}
+          <div className="ci-date">{dateStr || dayName}</div>
         </div>
-        <span className="count-chip tnum" style={{ transform: 'none' }}>
-          {attended.length} giriş
-        </span>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span className="count-chip tnum" style={{ transform:'none' }}>
+            {attended.length} giriş
+          </span>
+          {!isAll && !isFuture && (
+            <button
+              className={'m-iconbtn' + (editMode ? ' danger' : '')}
+              style={{ width:36, height:36, borderRadius:11 }}
+              onClick={() => { setEditMode(e => !e); setShowAdd(false); }}
+              aria-label="Program düzenle"
+            >
+              <Icon name={editMode ? 'x' : 'edit'} size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Member list */}
-      <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
+      {/* ── Member list ── */}
+      <div className="card" style={{ paddingTop:4, paddingBottom:4 }}>
+
+        {visible.length === 0 && !editMode && (
+          <div style={{ padding:'22px 0', textAlign:'center', color:'var(--tx-3)', fontSize:13 }}>
+            Bu gün için kimse programda değil
+          </div>
+        )}
+
         {visible.map(m => {
           const came = attended.includes(m.id);
           return (
             <div key={m.id} className="ci-row">
+              {editMode && (
+                <button
+                  className="ci-remove-btn"
+                  onClick={() => removeDayFromMember(m.id, selDow)}
+                  aria-label="Günden çıkar"
+                >
+                  <Icon name="x" size={12} stroke={2.6} />
+                </button>
+              )}
               <div
                 className="av"
-                style={{ width: 40, height: 40, borderRadius: 12, background: colorFor(m.name), fontSize: 14 }}
+                style={{ width:40, height:40, borderRadius:12, background:colorFor(m.name), fontSize:14, flexShrink:0 }}
               >
                 {initials(m.name)}
               </div>
@@ -90,23 +143,54 @@ export default function CheckIn() {
                 <div className="ci-name">{m.name}</div>
                 {m.trainer !== '—' && <div className="ci-sub">{m.trainer}</div>}
               </div>
-              {isFuture ? (
-                <span className="ci-fut-badge">—</span>
-              ) : (
-                <button
-                  className={'ci-toggle' + (came ? ' on' : '')}
-                  onClick={() => toggleAttendance(selKey, m.id)}
-                >
-                  {came
-                    ? <><Icon name="check" size={13} stroke={2.8} />Geldi</>
-                    : <span className="ci-x">✕</span>
-                  }
-                  {!came && <span>Gelmedi</span>}
-                </button>
+              {!editMode && (
+                isFuture
+                  ? <span className="ci-fut">—</span>
+                  : (
+                    <button
+                      className={'ci-toggle' + (came ? ' on' : '')}
+                      onClick={() => toggleAttendance(ciDate, m.id)}
+                    >
+                      {came
+                        ? <><Icon name="check" size={13} stroke={2.8} />Geldi</>
+                        : <>✕ Gelmedi</>
+                      }
+                    </button>
+                  )
               )}
             </div>
           );
         })}
+
+        {/* ── Add member section (edit mode only) ── */}
+        {editMode && addable.length > 0 && (
+          <>
+            <button className="ci-add-toggle" onClick={() => setShowAdd(s => !s)}>
+              <span className="ci-add-ic"><Icon name="plus" size={14} stroke={2.4} /></span>
+              <span>Programa üye ekle</span>
+              <span style={{ marginLeft:'auto', fontSize:18, color:'var(--tx-3)', lineHeight:1 }}>
+                {showAdd ? '−' : '+'}
+              </span>
+            </button>
+
+            {showAdd && addable.map(m => (
+              <div key={m.id} className="ci-row ci-addable-row">
+                <div
+                  className="av"
+                  style={{ width:38, height:38, borderRadius:11, background:colorFor(m.name), fontSize:13, opacity:.65, flexShrink:0 }}
+                >
+                  {initials(m.name)}
+                </div>
+                <div className="ci-info" style={{ opacity:.7 }}>
+                  <div className="ci-name">{m.name}</div>
+                </div>
+                <button className="ci-add-chip" onClick={() => addDayToMember(m.id, selDow)}>
+                  <Icon name="plus" size={12} stroke={2.4} />Ekle
+                </button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
