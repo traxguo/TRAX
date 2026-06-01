@@ -17,6 +17,8 @@ export interface StoreValue {
   logout: () => void;
   notifRead: boolean;
   markNotifsRead: () => void;
+  attendanceLog: Record<string, number[]>;
+  toggleAttendance: (date: string, memberId: number) => void;
 }
 
 const StoreCtx = createContext<StoreValue | null>(null);
@@ -32,11 +34,19 @@ function useStoreValue(): StoreValue {
   const [profile, setProfile] = useState<Profile | null>(() => load('trax_profile', null));
   const [session, setSession] = useState<Session | null>(() => load('trax_session', null));
   const [notifRead, setNotifRead] = useState<boolean>(() => load('trax_notifread', false));
+  const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>(() => {
+    const saved = load('trax_attendance', null);
+    if (saved) return saved;
+    const d = new Date();
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return { [key]: [9, 3, 1, 5, 7, 11] };
+  });
 
   useEffect(() => save('trax_members', members), [members]);
   useEffect(() => save('trax_profile', profile), [profile]);
   useEffect(() => save('trax_session', session), [session]);
   useEffect(() => save('trax_notifread', notifRead), [notifRead]);
+  useEffect(() => save('trax_attendance', attendanceLog), [attendanceLog]);
 
   const addMember = useCallback((f: MemberFormData): number => {
     const now = new Date();
@@ -77,11 +87,20 @@ function useStoreValue(): StoreValue {
   const logout = useCallback(() => setSession(null), []);
   const completeOnboarding = useCallback((p: Profile) => setProfile(p), []);
   const markNotifsRead = useCallback(() => setNotifRead(true), []);
+  const toggleAttendance = useCallback((date: string, memberId: number) => {
+    setAttendanceLog(prev => {
+      const curr = prev[date] || [];
+      return {
+        ...prev,
+        [date]: curr.includes(memberId) ? curr.filter(id => id !== memberId) : [...curr, memberId],
+      };
+    });
+  }, []);
 
   return {
     members, addMember, updateMember, deleteMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, logout,
-    notifRead, markNotifsRead,
+    notifRead, markNotifsRead, attendanceLog, toggleAttendance,
   };
 }
 
