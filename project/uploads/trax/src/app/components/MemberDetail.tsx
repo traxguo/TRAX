@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { useStore } from '../store';
 import { glowOf, kalanText, PLAN_LEN } from '../utils';
 import { colorFor, initials } from '../data';
@@ -26,6 +27,16 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
   const { members, renewMember } = useStore();
   const m = members.find(x => x.id === id);
   const [renewed, setRenewed] = useState(false);
+  const [showQR,  setShowQR]  = useState(false);
+  const [qrUrl,   setQrUrl]   = useState('');
+
+  useEffect(() => {
+    if (!showQR || !m) return;
+    QRCode.toDataURL(`TRAX-${m.id}`, {
+      width: 260, margin: 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    }).then(setQrUrl);
+  }, [showQR, m?.id]);
 
   if (!m) { back(); return null; }
 
@@ -49,10 +60,26 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
 
   return (
     <div className="fade detail">
+      {/* QR modal */}
+      {showQR && (
+        <div className="qr-modal-overlay" onClick={() => setShowQR(false)}>
+          <div className="qr-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="qr-modal-name">{m.name}</div>
+            <div className="qr-modal-sub">Üye QR Kodu</div>
+            {qrUrl
+              ? <img src={qrUrl} alt="QR" className="qr-modal-img" />
+              : <div className="qr-modal-loading"><div className="spin" style={{ borderColor: 'rgba(0,0,0,.2)', borderTopColor: '#000' }} /></div>
+            }
+            <div className="qr-modal-hint">Ekran görüntüsü alıp WhatsApp ile gönderin</div>
+            <button className="btn" style={{ marginTop:14 }} onClick={() => setShowQR(false)}>Kapat</button>
+          </div>
+        </div>
+      )}
       <div className="m-head detail-head">
         <button className="m-iconbtn" onClick={back} aria-label="Geri"><Icon name="arrowL" size={18} /></button>
         <div className="dh-eyebrow">Üye profili</div>
         <div className="actions">
+          <button className="m-iconbtn" onClick={() => setShowQR(true)} aria-label="QR Kodu"><Icon name="scan" size={16} /></button>
           <button className="m-iconbtn" onClick={() => onEdit(m)} aria-label="Düzenle"><Icon name="edit" size={16} /></button>
           <button className="m-iconbtn danger" onClick={() => onDelete(m)} aria-label="Sil"><Icon name="trash" size={17} /></button>
         </div>

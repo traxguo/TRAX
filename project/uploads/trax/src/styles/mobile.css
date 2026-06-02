@@ -538,6 +538,85 @@ body {
 }
 .ci-add-chip:active { transform: scale(.93); }
 
+/* ── Check-in tab bar ── */
+.ci-tab-bar {
+  display: flex; gap: 6px; margin-bottom: 18px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 5px;
+}
+.ci-tab-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 10px; border-radius: 10px; border: none; background: none;
+  font-family: var(--font); font-size: 13px; font-weight: 650; color: var(--tx-3);
+  cursor: pointer; transition: all .15s;
+}
+.ci-tab-btn.on { background: var(--acc); color: #fff; box-shadow: 0 4px 14px var(--acc-glow); }
+
+/* ── QR Scanner ── */
+.qr-wrap {
+  position: relative; border-radius: 20px; overflow: hidden;
+  background: #000; aspect-ratio: 1; width: 100%; max-width: 340px; margin: 0 auto;
+}
+.qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.qr-overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+}
+.qr-frame {
+  width: 180px; height: 180px; position: relative;
+}
+.qr-frame span {
+  position: absolute; width: 28px; height: 28px; border-color: #fff; border-style: solid;
+}
+.qr-frame span:nth-child(1) { top:0; left:0; border-width: 3px 0 0 3px; border-radius: 6px 0 0 0; }
+.qr-frame span:nth-child(2) { top:0; right:0; border-width: 3px 3px 0 0; border-radius: 0 6px 0 0; }
+.qr-frame span:nth-child(3) { bottom:0; left:0; border-width: 0 0 3px 3px; border-radius: 0 0 0 6px; }
+.qr-frame span:nth-child(4) { bottom:0; right:0; border-width: 0 3px 3px 0; border-radius: 0 0 6px 0; }
+.qr-hint {
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.5); padding: 6px 14px; border-radius: 99px;
+}
+.qr-confirm {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+  animation: pop .3s cubic-bezier(.2,.9,.3,1.2);
+}
+.qr-confirm-av {
+  width: 72px; height: 72px; border-radius: 22px; display: grid; place-items: center;
+  font-size: 26px; font-weight: 800; color: #0a0a0a;
+  box-shadow: 0 0 28px rgba(255,255,255,0.2);
+}
+.qr-confirm-name { font-size: 20px; font-weight: 760; color: #fff; letter-spacing: -0.4px; }
+.qr-confirm-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 650; color: var(--ok);
+  background: rgba(70,224,138,0.15); border: 1px solid rgba(70,224,138,0.3);
+  padding: 6px 14px; border-radius: 99px;
+}
+.qr-err-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 48px 22px; text-align: center; color: var(--bad);
+}
+.qr-err-ic { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: rgba(var(--bad-rgb),0.1); }
+.qr-err-txt { font-size: 13.5px; color: var(--tx-2); line-height: 1.5; }
+
+/* ── QR Modal (member detail) ── */
+.qr-modal-overlay {
+  position: absolute; inset: 0; z-index: 80;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 32px;
+}
+.qr-modal-card {
+  background: #fff; border-radius: 24px; padding: 28px 24px 22px;
+  text-align: center; width: 100%; max-width: 300px;
+  animation: pop .3s cubic-bezier(.2,.9,.3,1.2);
+}
+.qr-modal-name { font-size: 18px; font-weight: 760; color: #111; letter-spacing: -0.3px; }
+.qr-modal-sub  { font-size: 12px; color: #888; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 3px; margin-bottom: 16px; }
+.qr-modal-img  { width: 200px; height: 200px; border-radius: 12px; display: block; margin: 0 auto; }
+.qr-modal-loading { width: 200px; height: 200px; display: grid; place-items: center; margin: 0 auto; }
+.qr-modal-hint { font-size: 11.5px; color: #999; margin-top: 14px; line-height: 1.4; }
+
 /* whatsapp */
 .wa-rec { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .wa-rec:last-child { border-bottom: none; }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
+import QRScanner from './QRScanner';
 
 const DAYS   = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
@@ -30,6 +31,7 @@ function toDow(d: Date) {
 }
 
 export default function CheckIn() {
+  const [tab, setTab] = useState<'calendar' | 'qr'>('calendar');
   const { members, attendanceLog, toggleAttendance, addDayToMember, removeDayFromMember } = useStore();
   const today    = new Date();
   const todayKey = toKey(today);
@@ -61,6 +63,19 @@ export default function CheckIn() {
 
   return (
     <div className="fade">
+
+      {/* ── Tab switcher ── */}
+      <div className="ci-tab-bar">
+        <button className={'ci-tab-btn' + (tab === 'calendar' ? ' on' : '')} onClick={() => setTab('calendar')}>
+          <Icon name="calendar" size={14} />Takvim
+        </button>
+        <button className={'ci-tab-btn' + (tab === 'qr' ? ' on' : '')} onClick={() => setTab('qr')}>
+          <Icon name="scan" size={14} />QR Tara
+        </button>
+      </div>
+
+      {tab === 'qr' && <QRScanner />}
+      {tab === 'calendar' && <>
 
       {/* ── Weekly strip ── */}
       <div className="week-strip">
@@ -192,6 +207,7 @@ export default function CheckIn() {
           </>
         )}
       </div>
+      </>}
     </div>
   );
 }
