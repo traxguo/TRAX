@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { glowOf } from '../utils';
 import { activity } from '../data';
 import Sheet from './Sheet';
@@ -22,11 +23,12 @@ interface NotifItem {
 
 export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetProps) {
   const { members, notifRead, markNotifsRead } = useStore();
+  const t = useT();
 
   useEffect(() => {
     if (open) {
-      const t = setTimeout(markNotifsRead, 900);
-      return () => clearTimeout(t);
+      const timer = setTimeout(markNotifsRead, 900);
+      return () => clearTimeout(timer);
     }
   }, [open, markNotifsRead]);
 
@@ -34,19 +36,19 @@ export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetPr
     const out: NotifItem[] = [];
     members.forEach(m => {
       const g = glowOf(m);
-      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: `${m.name} üyeliği doldu`, s: `${Math.abs(m.daysLeft)} gün geçti · ${m.plan}` });
-      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: `${m.name} yenilemeli`, s: `${m.daysLeft} gün kaldı · ${m.plan}` });
+      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: t.notifExpired(m.name), s: `${t.daysAgo(m.daysLeft)} · ${m.plan}` });
+      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: t.notifExpiring(m.name), s: `${t.daysLeftN(m.daysLeft)} · ${m.plan}` });
     });
     activity.filter(a => a.type === 'join').forEach((a, i) => {
-      out.push({ id: 'j' + i, ico: 'userplus', tone: 'acc', t: `${a.who} kaydoldu`, s: `${a.text} · ${a.time}` });
+      out.push({ id: 'j' + i, ico: 'userplus', tone: 'acc', t: t.notifJoined(a.who), s: `${a.text} · ${a.time}` });
     });
     return out.sort((a, b) => (a.tone === 'bad' ? -1 : 1));
-  }, [members]);
+  }, [members, t]);
 
   return (
-    <Sheet open={open} onClose={onClose} eyebrow="Bugün" title="Bildirimler"
+    <Sheet open={open} onClose={onClose} eyebrow={t.todayEyebrow} title={t.notifTitle}
       footer={!notifRead && items.length > 0
-        ? <button className="btn" onClick={markNotifsRead}>Tümünü okundu işaretle</button>
+        ? <button className="btn" onClick={markNotifsRead}>{t.markAllRead}</button>
         : null}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.map(n => (
@@ -62,7 +64,7 @@ export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetPr
           </div>
         ))}
         {items.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>Yeni bildirim yok 🎉</div>
+          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>{t.noNotifs}</div>
         )}
       </div>
     </Sheet>

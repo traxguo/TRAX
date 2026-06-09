@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
 import QRScanner from './QRScanner';
-
-const DAYS   = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function toKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -33,6 +31,9 @@ function toDow(d: Date) {
 export default function CheckIn() {
   const [tab, setTab] = useState<'calendar' | 'qr'>('calendar');
   const { members, attendanceLog, toggleAttendance, addDayToMember, removeDayFromMember } = useStore();
+  const t = useT();
+  const DAYS   = t.days7;
+  const MONTHS = t.months12;
   const today    = new Date();
   const todayKey = toKey(today);
   const [selKey,   setSelKey]   = useState<string>(todayKey);
@@ -67,10 +68,10 @@ export default function CheckIn() {
       {/* ── Tab switcher ── */}
       <div className="ci-tab-bar">
         <button className={'ci-tab-btn' + (tab === 'calendar' ? ' on' : '')} onClick={() => setTab('calendar')}>
-          <Icon name="calendar" size={14} />Takvim
+          <Icon name="calendar" size={14} />{t.calTab}
         </button>
         <button className={'ci-tab-btn' + (tab === 'qr' ? ' on' : '')} onClick={() => setTab('qr')}>
-          <Icon name="scan" size={14} />QR Tara
+          <Icon name="scan" size={14} />{t.qrTab}
         </button>
       </div>
 
@@ -83,8 +84,8 @@ export default function CheckIn() {
           className={'wday wday-all' + (isAll ? ' on' : '')}
           onClick={() => selectDay('all')}
         >
-          <span className="wday-lbl">TÜM</span>
-          <span className="wday-all-sub">hafta</span>
+          <span className="wday-lbl">{t.allWeekLbl}</span>
+          <span className="wday-all-sub">{t.weekLbl}</span>
         </button>
 
         {week.map((d, i) => {
@@ -111,14 +112,14 @@ export default function CheckIn() {
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <span className="count-chip tnum" style={{ transform:'none' }}>
-            {attended.length} giriş
+            {t.entryCount(attended.length)}
           </span>
           {!isAll && !isFuture && (
             <button
               className={'m-iconbtn' + (editMode ? ' danger' : '')}
               style={{ width:36, height:36, borderRadius:11 }}
               onClick={() => { setEditMode(e => !e); setShowAdd(false); }}
-              aria-label="Program düzenle"
+              aria-label={t.editSchedule}
             >
               <Icon name={editMode ? 'x' : 'edit'} size={15} />
             </button>
@@ -131,7 +132,7 @@ export default function CheckIn() {
 
         {visible.length === 0 && !editMode && (
           <div style={{ padding:'22px 0', textAlign:'center', color:'var(--tx-3)', fontSize:13 }}>
-            Bu gün için kimse programda değil
+            {t.noSchedule}
           </div>
         )}
 
@@ -167,8 +168,8 @@ export default function CheckIn() {
                       onClick={() => toggleAttendance(ciDate, m.id)}
                     >
                       {came
-                        ? <><Icon name="check" size={13} stroke={2.8} />Geldi</>
-                        : <>✕ Gelmedi</>
+                        ? <><Icon name="check" size={13} stroke={2.8} />{t.attended}</>
+                        : <>✕ {t.absent}</>
                       }
                     </button>
                   )
@@ -182,7 +183,7 @@ export default function CheckIn() {
           <>
             <button className="ci-add-toggle" onClick={() => setShowAdd(s => !s)}>
               <span className="ci-add-ic"><Icon name="plus" size={14} stroke={2.4} /></span>
-              <span>Programa üye ekle</span>
+              <span>{t.addToSchedule}</span>
               <span style={{ marginLeft:'auto', fontSize:18, color:'var(--tx-3)', lineHeight:1 }}>
                 {showAdd ? '−' : '+'}
               </span>
@@ -200,7 +201,7 @@ export default function CheckIn() {
                   <div className="ci-name">{m.name}</div>
                 </div>
                 <button className="ci-add-chip" onClick={() => addDayToMember(m.id, selDow)}>
-                  <Icon name="plus" size={12} stroke={2.4} />Ekle
+                  <Icon name="plus" size={12} stroke={2.4} />{t.addBtn}
                 </button>
               </div>
             ))}

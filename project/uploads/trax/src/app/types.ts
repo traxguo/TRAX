@@ -1,3 +1,4 @@
+export type Lang = 'en' | 'tr';
 export type MemberKind = 'aylik' | 'paket';
 export type MemberStatus = 'active' | 'expiring' | 'expired' | 'frozen';
 export type MemberGlow = 's-green' | 's-yellow' | 's-red' | 's-frozen';

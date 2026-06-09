@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { glowOf, kalanText } from '../utils';
+import { useT } from '../i18n';
+import { glowOf } from '../utils';
 import { colorFor, initials } from '../data';
 import Sheet from './Sheet';
 import Icon from './Icon';
@@ -13,6 +14,7 @@ interface SearchSheetProps {
 
 export default function SearchSheet({ open, onClose, onOpenMember }: SearchSheetProps) {
   const { members } = useStore();
+  const t = useT();
   const [q, setQ] = useState('');
 
   useEffect(() => { if (open) setQ(''); }, [open]);
@@ -26,13 +28,13 @@ export default function SearchSheet({ open, onClose, onOpenMember }: SearchSheet
     : members.slice().sort((a, b) => a.daysLeft - b.daysLeft).slice(0, 6);
 
   return (
-    <Sheet open={open} onClose={onClose} eyebrow="Hızlı arama" title="Üye ara">
+    <Sheet open={open} onClose={onClose} eyebrow={t.searchEyebrow} title={t.searchTitle}>
       <div className="m-search big" style={{ marginBottom: 14 }}>
         <Icon name="search" size={20} style={{ color: 'var(--tx-3)' }} />
-        <input autoFocus placeholder="İsim, telefon veya e-posta…" value={q} onChange={e => setQ(e.target.value)} />
+        <input autoFocus placeholder={t.searchPH} value={q} onChange={e => setQ(e.target.value)} />
         {q && <button className="fld-eye" onClick={() => setQ('')}><Icon name="x" size={16} /></button>}
       </div>
-      {!q && <div className="sheet-label">Yenilemesi yakın</div>}
+      {!q && <div className="sheet-label">{t.renewingSoon}</div>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {res.map(m => {
           const g = glowOf(m);
@@ -44,12 +46,12 @@ export default function SearchSheet({ open, onClose, onOpenMember }: SearchSheet
                 <div style={{ fontSize: 15, fontWeight: 650 }}>{m.name}</div>
                 <div className="muted" style={{ fontSize: 12.5 }}>{m.plan}</div>
               </div>
-              <span className="tnum" style={{ color: c, fontSize: 12.5, fontWeight: 650 }}>{kalanText(m)}</span>
+              <span className="tnum" style={{ color: c, fontSize: 12.5, fontWeight: 650 }}>{t.kalan(m)}</span>
             </div>
           );
         })}
         {q && res.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>"{q}" için sonuç yok.</div>
+          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>{t.noResults(q)}</div>
         )}
       </div>
     </Sheet>

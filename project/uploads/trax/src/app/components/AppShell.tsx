@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { derivePlan } from '../utils';
 import { initials } from '../data';
 import type { TabKey, SheetKey, Member, MemberFormData } from '../types';
@@ -22,16 +23,16 @@ const TABS: { k: TabKey; ico: string; badge?: string }[] = [
   { k: 'whatsapp', ico: 'chat', badge: '37' },
 ];
 
-const HEAD: Record<TabKey, { eyebrow: string; title: string; hasCount?: boolean }> = {
-  home:     { eyebrow: '',          title: 'TRAX' },
-  members:  { eyebrow: 'Üye yönetimi', title: 'Üyeler', hasCount: true },
-  checkin:  { eyebrow: 'Hızlı giriş',  title: 'Check-In' },
-  whatsapp: { eyebrow: 'Toplu mesaj',   title: 'WhatsApp' },
-};
-
 export default function AppShell() {
   const store = useStore();
   const { members, profile, addMember, updateMember, deleteMember, notifRead } = store;
+  const t = useT();
+  const HEAD: Record<TabKey, { eyebrow: string; title: string; hasCount?: boolean }> = {
+    home:     { eyebrow: '',               title: 'TRAX' },
+    members:  { eyebrow: t.eyebrowMembers, title: t.eyebrowMembers, hasCount: true },
+    checkin:  { eyebrow: t.eyebrowCheckin, title: 'Check-In' },
+    whatsapp: { eyebrow: t.eyebrowWhatsapp, title: 'WhatsApp' },
+  };
 
   const [tab, setTab] = useState<TabKey>('home');
   const [detail, setDetail] = useState<number | null>(null);
@@ -59,11 +60,11 @@ export default function AppShell() {
           <div className="m-head">
             <div style={{ minWidth: 0 }}>
               {tab === 'home'
-                ? <div className="eyebrow">Hoş geldin, {owner}</div>
+                ? <div className="eyebrow">{t.hello(owner)}</div>
                 : <div className="eyebrow">{h.eyebrow}</div>}
               <div className="title-row">
                 <h1>{tab === 'home' ? <>TRA<b>X</b></> : h.title}</h1>
-                {h.hasCount && <span className="count-chip tnum">{members.length} üye</span>}
+                {h.hasCount && <span className="count-chip tnum">{t.memberCount(members.length)}</span>}
               </div>
             </div>
             <div className="actions">

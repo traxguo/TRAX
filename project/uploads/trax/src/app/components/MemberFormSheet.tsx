@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useT } from '../i18n';
 import type { Member, MemberFormData } from '../types';
 import Sheet from './Sheet';
 import Fld from './Fld';
@@ -17,6 +18,7 @@ const defDate = () => new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 1
 const BLANK: MemberFormData = { name: '', phone: '', email: '', plan: 'Aylık', trainer: '', date: defDate(), adet: '10' };
 
 export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode }: MemberFormSheetProps) {
+  const t = useT();
   const [f, setF] = useState<MemberFormData>(BLANK);
 
   useEffect(() => {
@@ -41,33 +43,33 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
 
   return (
     <Sheet open={open} onClose={onClose}
-      eyebrow={mode === 'edit' ? 'Düzenle' : 'Yeni üye'}
-      title={mode === 'edit' ? (f.name || 'Üye') : 'Üye ekle'}>
-      <Fld label="Ad Soyad" icon="user" value={f.name} onChange={v => upd('name', v)} placeholder="Ad Soyad" autoFocus />
-      <Fld label="Telefon" icon="phone" type="tel" value={f.phone} onChange={v => upd('phone', v)} placeholder="05__ ___ __ __" />
-      <Fld label="E-posta" icon="mail" type="email" value={f.email} onChange={v => upd('email', v)} placeholder="ornek@mail.com" opt />
+      eyebrow={mode === 'edit' ? t.editEyebrow : t.newMemberEyebrow}
+      title={mode === 'edit' ? (f.name || t.addMemberTitle) : t.addMemberTitle}>
+      <Fld label={t.fullNameLbl} icon="user" value={f.name} onChange={v => upd('name', v)} placeholder={t.fullNameLbl} autoFocus />
+      <Fld label={t.phoneLbl} icon="phone" type="tel" value={f.phone} onChange={v => upd('phone', v)} placeholder="05__ ___ __ __" />
+      <Fld label={t.emailLbl} icon="mail" type="email" value={f.email} onChange={v => upd('email', v)} placeholder="ornek@mail.com" opt />
 
       <div className="fld">
-        <span className="fld-l">Üyelik Planı</span>
+        <span className="fld-l">{t.planLbl}</span>
         <div className="seg">
-          {([['Aylık', 'calendar'], ['Paket', 'card']] as const).map(([p, ic]) => (
+          {([['Aylık', 'calendar', t.monthlyPlan], ['Paket', 'card', t.packagePlan]] as const).map(([p, ic, lbl]) => (
             <button key={p} type="button" className={'seg-opt' + (f.plan === p ? ' on' : '')} onClick={() => upd('plan', p)}>
-              <Icon name={ic} size={15} />{p}
+              <Icon name={ic} size={15} />{lbl}
             </button>
           ))}
         </div>
       </div>
 
       {f.plan === 'Aylık'
-        ? <Fld label="Üyelik bitiş tarihi" icon="calendar" type="date" value={f.date} onChange={v => upd('date', v)} />
-        : <Fld label="Paket adedi (seans)" icon="dumbbell" type="number" value={f.adet} onChange={v => upd('adet', v)} placeholder="10" />}
+        ? <Fld label={t.expiryLbl} icon="calendar" type="date" value={f.date} onChange={v => upd('date', v)} />
+        : <Fld label={t.sessionsLbl} icon="dumbbell" type="number" value={f.adet} onChange={v => upd('adet', v)} placeholder="10" />}
 
-      <Fld label="Antrenör" icon="award" value={f.trainer} onChange={v => upd('trainer', v)} placeholder="—" opt />
+      <Fld label={t.trainerOptLbl} icon="award" value={f.trainer} onChange={v => upd('trainer', v)} placeholder="—" opt />
 
       <button className="btn primary" style={{ marginTop: 18 }} disabled={!valid}
         onClick={() => { onSubmit(f); onClose(); }}>
         <Icon name={mode === 'edit' ? 'check' : 'userplus'} size={17} stroke={2.2} />
-        {mode === 'edit' ? 'Değişiklikleri kaydet' : 'Üyeyi kaydet'}
+        {mode === 'edit' ? t.saveChangesBtn : t.saveMemberBtn}
       </button>
     </Sheet>
   );

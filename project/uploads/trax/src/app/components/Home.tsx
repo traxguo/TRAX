@@ -1,5 +1,6 @@
 import { useStore } from '../store';
-import { glowOf, kalanText } from '../utils';
+import { useT } from '../i18n';
+import { glowOf } from '../utils';
 import { weekVisits, activity, colorFor, initials } from '../data';
 import type { TabKey } from '../types';
 import Icon from './Icon';
@@ -16,6 +17,7 @@ interface HomeProps {
 
 export default function Home({ go, open }: HomeProps) {
   const { members } = useStore();
+  const t = useT();
   const maxV = Math.max(...weekVisits.map(w => w.v));
   const soon = members
     .filter(m => glowOf(m) === 's-yellow' || glowOf(m) === 's-red')
@@ -27,14 +29,14 @@ export default function Home({ go, open }: HomeProps) {
       {/* hero */}
       <div className="hero">
         <div className="h-row">
-          <span className="h-live"><i />CANLI · BUGÜN</span>
+          <span className="h-live"><i />{t.liveToday}</span>
           <span className="h-date">Cumartesi, 30 Mayıs</span>
         </div>
         <div className="h-main">
           <div>
             <div className="h-val tnum">46</div>
             <div className="h-label">
-              giriş <span className="h-delta">↑ +12</span> · 28 içeride
+              {t.entries} <span className="h-delta">↑ +12</span> · 28 {t.inside}
             </div>
           </div>
           <div className="h-spark">
@@ -44,32 +46,32 @@ export default function Home({ go, open }: HomeProps) {
           </div>
         </div>
         <div className="h-foot">
-          <div className="hf"><div className="v tnum">1.142</div><div className="l">Aktif üye</div></div>
+          <div className="hf"><div className="v tnum">1.142</div><div className="l">{t.activeMembers}</div></div>
           <div className="sep" />
-          <div className="hf"><div className="v tnum">₺184K</div><div className="l">Aylık gelir</div></div>
+          <div className="hf"><div className="v tnum">₺184K</div><div className="l">{t.monthlyRev}</div></div>
           <div className="sep" />
-          <div className="hf"><div className="v tnum">72%</div><div className="l">Doluluk</div></div>
+          <div className="hf"><div className="v tnum">72%</div><div className="l">{t.occupancy}</div></div>
         </div>
       </div>
 
       {/* secondary stats */}
       <div className="stat-row">
         <div className="statc">
-          <div className="row1"><Icon name="trend" size={15} /><span className="l">Bu hafta</span></div>
+          <div className="row1"><Icon name="trend" size={15} /><span className="l">{t.thisWeek}</span></div>
           <div className="v tnum">583</div>
-          <div className="dl up">+6.4% giriş</div>
+          <div className="dl up">+6.4% {t.entries}</div>
         </div>
         <div className="statc">
-          <div className="row1" style={{ color: 'var(--warn)' }}><Icon name="clock" size={15} /><span className="l muted">Yenileme</span></div>
+          <div className="row1" style={{ color: 'var(--warn)' }}><Icon name="clock" size={15} /><span className="l muted">{t.renewal}</span></div>
           <div className="v tnum">37</div>
-          <div className="dl warn">7 gün içinde</div>
+          <div className="dl warn">7 {t.daysLeftN(7).replace('7 ', '')}</div>
         </div>
       </div>
 
       {/* week chart */}
       <div className="section-h">
-        <h2>Haftalık giriş</h2>
-        <span className="link tnum">Cmt en yoğun</span>
+        <h2>{t.weeklyChart}</h2>
+        <span className="link tnum">{t.busiestDay}</span>
       </div>
       <div className="card">
         <div className="mchart">
@@ -84,8 +86,8 @@ export default function Home({ go, open }: HomeProps) {
 
       {/* renewals due */}
       <div className="section-h">
-        <h2>Yenileme bekleyen</h2>
-        <span className="link" onClick={() => go('members')}>Tümü</span>
+        <h2>{t.renewalDue}</h2>
+        <span className="link" onClick={() => go('members')}>{t.seeAll}</span>
       </div>
       <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
         {soon.map(m => {
@@ -100,19 +102,19 @@ export default function Home({ go, open }: HomeProps) {
                 <div className="nm">{m.name}</div>
                 <div className="muted" style={{ fontSize: 12 }}>{m.plan}</div>
               </div>
-              <span className="kln tnum" style={{ color: c }}>{kalanText(m)}</span>
+              <span className="kln tnum" style={{ color: c }}>{t.kalan(m)}</span>
             </div>
           );
         })}
         {soon.length === 0 && (
           <div className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
-            Yenileme bekleyen üye yok 🎉
+            {t.noRenewals}
           </div>
         )}
       </div>
 
       {/* activity */}
-      <div className="section-h"><h2>Son hareketler</h2></div>
+      <div className="section-h"><h2>{t.recentAct}</h2></div>
       <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
         {activity.slice(0, 4).map((a, i) => (
           <div key={i} className="feed">

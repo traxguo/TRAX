@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import jsQR from 'jsqr';
 import { useStore } from '../store';
+import { useT } from '../i18n';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
 
@@ -12,6 +13,7 @@ interface Confirmed { name: string; color: string; ini: string; }
 
 export default function QRScanner() {
   const { members, attendanceLog, toggleAttendance } = useStore();
+  const t = useT();
   const videoRef  = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
@@ -53,7 +55,7 @@ export default function QRScanner() {
       video.srcObject = s;
       video.play();
       rafRef.current = requestAnimationFrame(tick);
-    }).catch(() => setCamErr('Kamera erişimi reddedildi. Ayarlardan izin verin.'));
+    }).catch(() => setCamErr(t.camError));
 
     function tick() {
       if (stopped) return;
@@ -101,7 +103,7 @@ export default function QRScanner() {
           <div className="qr-frame">
             <span /><span /><span /><span />
           </div>
-          <div className="qr-hint">Üyenin QR kodunu kareye getirin</div>
+          <div className="qr-hint">{t.qrInstruction}</div>
         </div>
       )}
 
@@ -114,8 +116,8 @@ export default function QRScanner() {
           <div className="qr-confirm-name">{confirmed.name}</div>
           <div className="qr-confirm-label">
             {alreadyIn
-              ? <><Icon name="check" size={14} stroke={2.6} />Zaten giriş yapmış</>
-              : <><Icon name="check" size={14} stroke={2.6} />Derse girdi</>
+              ? <><Icon name="check" size={14} stroke={2.6} />{t.alreadyIn}</>
+              : <><Icon name="check" size={14} stroke={2.6} />{t.checkedIn}</>
             }
           </div>
         </div>

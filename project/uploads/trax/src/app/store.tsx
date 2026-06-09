@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { Member, Profile, Session, MemberFormData } from './types';
+import type { Member, Profile, Session, MemberFormData, Lang } from './types';
 import { members as initialMembers } from './data';
 import { derivePlan, fmtDate, load, save, PLAN_LEN } from './utils';
 
@@ -21,6 +21,8 @@ export interface StoreValue {
   toggleAttendance: (date: string, memberId: number) => void;
   addDayToMember: (memberId: number, day: number) => void;
   removeDayFromMember: (memberId: number, day: number) => void;
+  lang: Lang;
+  setLang: (l: Lang) => void;
 }
 
 const StoreCtx = createContext<StoreValue | null>(null);
@@ -36,6 +38,9 @@ function useStoreValue(): StoreValue {
   const [profile, setProfile] = useState<Profile | null>(() => load('trax_profile', null));
   const [session, setSession] = useState<Session | null>(() => load('trax_session', null));
   const [notifRead, setNotifRead] = useState<boolean>(() => load('trax_notifread', false));
+  const [lang, setLangState] = useState<Lang>(() => load('trax_lang', 'en' as Lang));
+  const setLang = useCallback((l: Lang) => { setLangState(l); save('trax_lang', l); }, []);
+
   const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>(() => {
     const saved = load('trax_attendance', null);
     if (saved) return saved;
@@ -123,7 +128,7 @@ function useStoreValue(): StoreValue {
     members, addMember, updateMember, deleteMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, logout,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
-    addDayToMember, removeDayFromMember,
+    addDayToMember, removeDayFromMember, lang, setLang,
   };
 }
 

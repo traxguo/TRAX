@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../store';
-import { glowOf, kalanText } from '../utils';
+import { useT } from '../i18n';
+import { glowOf } from '../utils';
 import { initials } from '../data';
 import type { MemberGlow } from '../types';
 import Icon from './Icon';
@@ -9,19 +10,27 @@ interface MembersProps {
   open: (id: number) => void;
 }
 
-const FILTERS = [
-  { k: 'all',    l: 'Tümü',         c: 'var(--acc)',  b: 'var(--acc-dim)',         dot: false },
-  { k: 'red',    l: 'Doldu',        c: 'var(--bad)',  b: 'rgba(255,77,82,0.16)',   dot: true },
-  { k: 'yellow', l: 'Bitmek üzere', c: 'var(--warn)', b: 'rgba(255,194,61,0.16)', dot: true },
-  { k: 'green',  l: 'Aktif',        c: 'var(--ok)',   b: 'rgba(70,224,138,0.16)', dot: true },
-  { k: 'frozen', l: 'Donduruldu',   c: 'var(--tx-2)', b: 'rgba(255,255,255,0.07)',dot: true },
-] as const;
-
-type FilterKey = typeof FILTERS[number]['k'];
+const FILTER_KEYS = ['all', 'red', 'yellow', 'green', 'frozen'] as const;
+type FilterKey = typeof FILTER_KEYS[number];
+const FILTER_COLORS = {
+  all:    { c: 'var(--acc)',  b: 'var(--acc-dim)',          dot: false },
+  red:    { c: 'var(--bad)',  b: 'rgba(255,77,82,0.16)',    dot: true },
+  yellow: { c: 'var(--warn)', b: 'rgba(255,194,61,0.16)',   dot: true },
+  green:  { c: 'var(--ok)',   b: 'rgba(70,224,138,0.16)',   dot: true },
+  frozen: { c: 'var(--tx-2)', b: 'rgba(255,255,255,0.07)',  dot: true },
+};
 
 export default function Members({ open }: MembersProps) {
   const { members } = useStore();
+  const t = useT();
   const [f, setF] = useState<FilterKey>('all');
+  const FILTERS = [
+    { k: 'all'    as FilterKey, l: t.filterAll },
+    { k: 'red'    as FilterKey, l: t.filterExpired },
+    { k: 'yellow' as FilterKey, l: t.filterExpiring },
+    { k: 'green'  as FilterKey, l: t.filterActive },
+    { k: 'frozen' as FilterKey, l: t.filterFrozen },
+  ];
 
   const list = useMemo(() => members.filter(m => {
     if (f === 'all') return true;
@@ -39,14 +48,15 @@ export default function Members({ open }: MembersProps) {
       <div className="filter-rail">
         {FILTERS.map(x => {
           const on = f === x.k;
+          const col = FILTER_COLORS[x.k];
           return (
             <button
               key={x.k}
               className={'fchip' + (on ? ' on' : '')}
               onClick={() => setF(x.k)}
-              style={on ? ({ '--fc': x.c, '--fcb': x.b } as React.CSSProperties) : undefined}
+              style={on ? ({ '--fc': col.c, '--fcb': col.b } as React.CSSProperties) : undefined}
             >
-              {x.dot && <span className="fd" style={{ background: x.c }} />}
+              {col.dot && <span className="fd" style={{ background: col.c }} />}
               {x.l}
               <span className="cnt tnum">{x.k === 'all' ? members.length : (counts[x.k] || 0)}</span>
             </button>
@@ -62,7 +72,7 @@ export default function Members({ open }: MembersProps) {
               <div className="av-m">{initials(m.name)}</div>
               <div className="info">
                 <div className="nm">{m.name}</div>
-                <div className="kalan tnum">{kalanText(m)}</div>
+                <div className="kalan tnum">{t.kalan(m)}</div>
               </div>
               <Icon name="chev" size={17} className="chev" />
             </div>
@@ -70,7 +80,7 @@ export default function Members({ open }: MembersProps) {
         })}
         {list.length === 0 && (
           <div className="muted" style={{ textAlign: 'center', padding: '40px 0' }}>
-            Bu kategoride üye yok.
+            {t.noMembers}
           </div>
         )}
       </div>
