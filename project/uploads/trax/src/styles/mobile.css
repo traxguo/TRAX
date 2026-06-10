@@ -65,13 +65,13 @@ body {
   flex: none;
 }
 .m-head .eyebrow { font-size: 10.5px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--acc); font-weight: 700; margin-bottom: 7px; }
-.m-head .title-row { display: flex; align-items: center; gap: 11px; }
-.m-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.9px; line-height: 1; }
+.m-head .title-row { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.m-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.9px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .m-head h1 b { color: var(--acc); }
 .count-chip {
   font-size: 12.5px; font-weight: 650; padding: 5px 11px; border-radius: 99px;
   border: 1px solid var(--line-2); color: var(--tx-2); background: rgba(255,255,255,0.03);
-  letter-spacing: 0.2px; transform: translateY(2px);
+  letter-spacing: 0.2px; transform: translateY(2px); white-space: nowrap; flex: none;
 }
 .m-head .actions { margin-left: auto; display: flex; gap: 9px; }
 .m-iconbtn {

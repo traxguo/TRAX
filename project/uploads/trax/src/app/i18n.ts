@@ -7,6 +7,7 @@ const en = {
   // AppShell
   hello:            (name: string) => `Welcome, ${name}`,
   eyebrowMembers:   'Member management',
+  membersTitle:     'Members',
   eyebrowCheckin:   'Quick entry',
   eyebrowWhatsapp:  'Bulk message',
   memberCount:      (n: number) => `${n} members`,
@@ -204,6 +205,7 @@ const tr: typeof en = {
   // AppShell
   hello:            (name: string) => `Hoş geldin, ${name}`,
   eyebrowMembers:   'Üye yönetimi',
+  membersTitle:     'Üyeler',
   eyebrowCheckin:   'Hızlı giriş',
   eyebrowWhatsapp:  'Toplu mesaj',
   memberCount:      (n: number) => `${n} üye`,

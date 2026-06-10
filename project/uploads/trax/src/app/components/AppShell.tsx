@@ -29,7 +29,7 @@ export default function AppShell() {
   const t = useT();
   const HEAD: Record<TabKey, { eyebrow: string; title: string; hasCount?: boolean }> = {
     home:     { eyebrow: '',               title: 'TRAX' },
-    members:  { eyebrow: t.eyebrowMembers, title: t.eyebrowMembers, hasCount: true },
+    members:  { eyebrow: t.eyebrowMembers, title: t.membersTitle, hasCount: true },
     checkin:  { eyebrow: t.eyebrowCheckin, title: 'Check-In' },
     whatsapp: { eyebrow: t.eyebrowWhatsapp, title: 'WhatsApp' },
   };
