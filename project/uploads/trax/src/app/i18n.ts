@@ -87,6 +87,7 @@ const en = {
   checkedIn:      'Checked in',
   alreadyIn:      'Already checked in',
   camError:       'Camera access denied. Please enable in settings.',
+  qrPackageEnded: '⚠️ Package ended — update the package',
 
   // Member QR
   memberQR:       'Member QR Code',
@@ -319,6 +320,7 @@ const tr: typeof en = {
   checkedIn:      'Derse girdi',
   alreadyIn:      'Zaten giriş yapmış',
   camError:       'Kamera erişimi reddedildi. Ayarlardan izin verin.',
+  qrPackageEnded: '⚠️ Paket bitti — paketi güncelle',
 
   // Member QR
   memberQR:       'Üye QR Kodu',

@@ -87,7 +87,7 @@ body {
 .m-iconbtn.danger:active { border-color: var(--bad); }
 
 /* ---- screen scroll ---- */
-.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px calc(var(--phone-ext, 60px) + 90px); touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.m-screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 22px calc(64px + env(safe-area-inset-bottom, 0px) + 30px); touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .m-screen.flush { padding-left: 0; padding-right: 0; }
 .m-screen.flush > * { padding-left: 22px; padding-right: 22px; }
 .fade { animation: mfade .34s cubic-bezier(.2,.7,.2,1); }
@@ -95,13 +95,13 @@ body {
 
 /* ============ floating pill nav ============ */
 .m-scrim {
-  position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--phone-ext, 60px) + 110px); z-index: 35; pointer-events: none;
+  position: fixed; left: 0; right: 0; bottom: 0; height: calc(64px + env(safe-area-inset-bottom, 0px) + 50px); z-index: 35; pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--bg) 58%);
 }
 .m-nav-tray { display: none; }
 .m-nav {
-  position: absolute;
-  bottom: calc(var(--phone-ext, 60px) + env(safe-area-inset-bottom, 20px) + 6px);
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   left: 50%; transform: translateX(-50%);
   width: 300px; height: 64px; z-index: 40;
   display: flex; align-items: stretch;
@@ -637,6 +637,11 @@ body {
   background: rgba(70,224,138,0.15); border: 1px solid rgba(70,224,138,0.3);
   padding: 6px 14px; border-radius: 99px;
 }
+.qr-warn {
+  margin-top: 10px; font-size: 12.5px; font-weight: 650; color: var(--warn);
+  background: rgba(255,194,61,0.12); border: 1px solid rgba(255,194,61,0.3);
+  padding: 7px 16px; border-radius: 99px;
+}
 .qr-err-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 48px 22px; text-align: center; color: var(--bad);
@@ -675,7 +680,7 @@ body {
 
 /* install banner */
 .install-banner {
-  position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
+  position: fixed; bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 18px); left: 12px; right: 12px;
   background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 18px;
   padding: 13px 14px; display: flex; align-items: center; gap: 11px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 900;

@@ -9,7 +9,7 @@ function toKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-interface Confirmed { name: string; color: string; ini: string; }
+interface Confirmed { name: string; color: string; ini: string; paketWarn: boolean; }
 
 export default function QRScanner() {
   const { members, attendanceLog, toggleAttendance } = useStore();
@@ -34,7 +34,8 @@ export default function QRScanner() {
     const was = (attendanceLog[today] || []).includes(memberId);
     if (!was) toggleAttendance(today, memberId);
     setAlreadyIn(was);
-    setConfirmed({ name: member.name, color: colorFor(member.name), ini: initials(member.name) });
+    const paketWarn = !was && member.kind === 'paket' && (member.adet || 0) <= 0;
+    setConfirmed({ name: member.name, color: colorFor(member.name), ini: initials(member.name), paketWarn });
     setTimeout(() => {
       setConfirmed(null);
       pauseRef.current = false;
@@ -120,6 +121,9 @@ export default function QRScanner() {
               : <><Icon name="check" size={14} stroke={2.6} />{t.checkedIn}</>
             }
           </div>
+          {confirmed.paketWarn && (
+            <div className="qr-warn">{t.qrPackageEnded}</div>
+          )}
         </div>
       )}
     </div>

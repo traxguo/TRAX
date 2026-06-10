@@ -110,7 +110,7 @@ function useStoreValue(): StoreValue {
       setDoc(doc(db, 'users', firebaseUser.uid), {
         members, profile, attendanceLog, notifRead, lang,
       }).catch(e => console.error('Firestore sync failed:', e));
-    }, 800);
+    }, 300);
     return () => { if (syncTimerRef.current) clearTimeout(syncTimerRef.current); };
   }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
 
@@ -130,9 +130,20 @@ function useStoreValue(): StoreValue {
   }, []);
 
   const logout = useCallback(() => {
+    // Flush any pending write immediately before sign-out
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
+    const user = auth.currentUser;
+    if (user && dataReadyRef.current) {
+      setDoc(doc(db, 'users', user.uid), {
+        members, profile, attendanceLog, notifRead, lang,
+      }).catch(console.error);
+    }
     dataReadyRef.current = false;
     fbSignOut(auth).catch(console.error);
-  }, []);
+  }, [members, profile, attendanceLog, notifRead, lang]);
 
   const deleteAccount = useCallback(async () => {
     const user = auth.currentUser;
@@ -193,8 +204,8 @@ function useStoreValue(): StoreValue {
     setMembers(ms => ms.map(m => {
       if (m.id !== memberId || m.kind !== 'paket') return m;
       const adet = m.adet || 0;
-      if (!wasAttended && adet > 0) return { ...m, adet: adet - 1 };
-      if (wasAttended) return { ...m, adet: adet + 1 };
+      if (!wasAttended) return { ...m, adet: adet - 1 };
+      if (wasAttended)  return { ...m, adet: adet + 1 };
       return m;
     }));
   }, [attendanceLog]);

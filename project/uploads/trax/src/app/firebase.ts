@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLDskc9duTxG7z8hQjn48-_s1p4IQ_g4U",
@@ -13,4 +13,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Offline persistence: writes are queued locally and synced when online
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache(),
+});
