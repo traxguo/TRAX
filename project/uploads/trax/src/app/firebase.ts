@@ -16,4 +16,5 @@ export const auth = getAuth(app);
 // Offline persistence: writes are queued locally and synced when online
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache(),
+  ignoreUndefinedProperties: true,
 });

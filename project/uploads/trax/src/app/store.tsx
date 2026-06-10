@@ -85,12 +85,11 @@ function useStoreValue(): StoreValue {
             setAttendanceLog({});
             setNotifRead(false);
           }
-        } catch {
-          setMembers([]);
-          setProfile(null);
-          setAttendanceLog({});
+          dataReadyRef.current = true;
+        } catch (e) {
+          // Load failed: keep sync disabled so we never overwrite server data with empty state
+          console.error('Firestore load failed:', e);
         }
-        dataReadyRef.current = true;
       } else {
         setMembers([]);
         setProfile(null);
