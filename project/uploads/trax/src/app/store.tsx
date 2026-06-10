@@ -6,6 +6,7 @@ import {
   deleteUser,
   onAuthStateChanged,
   browserLocalPersistence,
+  browserSessionPersistence,
   setPersistence,
   type User,
 } from 'firebase/auth';
@@ -25,7 +26,7 @@ export interface StoreValue {
   updateProfile: (p: Partial<Profile>) => void;
   completeOnboarding: (p: Profile) => void;
   session: Session | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, remember?: boolean) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => void;
   deleteAccount: () => Promise<void>;
@@ -118,8 +119,8 @@ function useStoreValue(): StoreValue {
     save('trax_lang', l);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    await setPersistence(auth, browserLocalPersistence);
+  const login = useCallback(async (email: string, password: string, remember = true) => {
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
     await signInWithEmailAndPassword(auth, email, password);
   }, []);
 

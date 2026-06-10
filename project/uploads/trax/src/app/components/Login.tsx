@@ -6,7 +6,7 @@ import type { T } from '../i18n';
 import Icon from './Icon';
 
 interface LoginProps {
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string, remember?: boolean) => Promise<void>;
   onSignup: (email: string, password: string) => Promise<void>;
 }
 
@@ -37,6 +37,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
   const [show, setShow] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
@@ -80,7 +81,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
     setErr(''); setBusy(true);
     try {
       if (mode === 'login') {
-        await onLogin(email, pw);
+        await onLogin(email, pw, remember);
       } else {
         await onSignup(email, pw);
       }
@@ -190,7 +191,12 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
 
           {isLogin && (
             <div className="auth-row" style={{ animationDelay: '.16s' }}>
-              <span />
+              <label className="remember-row" onClick={() => setRemember(r => !r)}>
+                <span className={'remember-box' + (remember ? ' on' : '')}>
+                  {remember && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </span>
+                <span className="remember-lbl">{t.rememberMe}</span>
+              </label>
               <span className="link sm" onClick={() => switchMode('reset')}>{t.forgotPw}</span>
             </div>
           )}
