@@ -33,6 +33,8 @@ const PATHS: Record<string, string> = {
   userplus: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6',
   award:    'M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM8.2 13.6L7 22l5-3 5 3-1.2-8.4',
   dumbbell: 'M6.5 6.5l11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M6.5 17.5l-4 4M17.5 6.5l4-4',
+  share:    'M8 12H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-4M12 3v10M8 7l4-4 4 4',
+  download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
 };
 
 interface IconProps {

@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import AppShell from './components/AppShell';
 import Icon from './components/Icon';
+import InstallBanner from './components/InstallBanner';
 
 function MobileApp() {
   const { session, profile, login, signup, completeOnboarding, loading } = useStore();
@@ -43,7 +44,12 @@ function MobileApp() {
 
   if (!session) return <Login onLogin={login} onSignup={signup} />;
   if (!profile)  return <Onboarding email={session.email} onComplete={completeOnboarding} />;
-  return <AppShell />;
+  return (
+    <>
+      <AppShell />
+      <InstallBanner />
+    </>
+  );
 }
 
 export default function App() {
