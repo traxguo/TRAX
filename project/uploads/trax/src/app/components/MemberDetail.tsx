@@ -22,7 +22,7 @@ interface DetailProps {
 }
 
 export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps) {
-  const { members, renewMember } = useStore();
+  const { members, renewMember, attendanceLog } = useStore();
   const t = useT();
   const m = members.find(x => x.id === id);
   const [renewed, setRenewed] = useState(false);
@@ -45,12 +45,16 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
   const len = PLAN_LEN[m.plan] || 30;
   const pct = m.daysLeft < 0 ? 100 : Math.max(5, Math.min(100, Math.round((1 - m.daysLeft / len) * 100)));
 
+  // real check-in history from attendance log (latest first)
+  const myDates = Object.keys(attendanceLog)
+    .filter(k => (attendanceLog[k] || []).includes(m.id))
+    .sort().reverse().slice(0, 5);
   const history = [
-    { ico: 'scan',  acc: true,  t: 'Salona giriş yaptı',         s: m.lastVisit },
-    { ico: 'money', acc: false, t: 'Ödeme alındı · ₺1.450',      s: '12 May 2026 · Nakit' },
-    { ico: 'trend', acc: true,  t: 'Üyelik yenilendi',            s: '12 May 2026' },
-    { ico: 'user',  acc: false, t: 'PT seansı',                   s: '08 May 2026 · 07:00' },
-    { ico: 'plus',  acc: true,  t: 'Üye kaydı oluşturuldu',       s: m.joined },
+    ...myDates.map(k => {
+      const [y, mo, da] = k.split('-').map(Number);
+      return { ico: 'scan', acc: true, t: t.checkedIn, s: `${da} ${t.months12s[mo - 1]} ${y}` };
+    }),
+    { ico: 'plus', acc: false, t: t.memberCreated, s: m.joined },
   ];
 
   const phone = '90' + (m.phone || '').replace(/\D/g, '').replace(/^0/, '');

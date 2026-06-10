@@ -47,6 +47,29 @@ export const PLAN_LEN: Record<string, number> = {
   'Aylık Standart': 30, '3 Aylık': 90,
 };
 
+export function toKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// JS: 0=Sun,1=Mon... → our: 0=Mon...6=Sun
+export function toDow(d: Date): number {
+  const js = d.getDay();
+  return js === 0 ? 6 : js - 1;
+}
+
+export function getWeek(today: Date): Date[] {
+  const dow = today.getDay();
+  const offset = dow === 0 ? -6 : 1 - dow;
+  const mon = new Date(today);
+  mon.setDate(today.getDate() + offset);
+  mon.setHours(0, 0, 0, 0);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    return d;
+  });
+}
+
 export function load<T>(k: string, fb: T): T {
   try { const v = localStorage.getItem(k); return v ? (JSON.parse(v) as T) : fb; }
   catch { return fb; }

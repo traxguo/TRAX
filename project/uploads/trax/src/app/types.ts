@@ -66,4 +66,5 @@ export interface MemberFormData {
   trainer: string;
   date: string;
   adet: string;
+  days: number[];
 }

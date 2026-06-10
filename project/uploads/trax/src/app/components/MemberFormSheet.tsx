@@ -15,7 +15,7 @@ interface MemberFormSheetProps {
 
 const defDate = () => new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
 
-const BLANK: MemberFormData = { name: '', phone: '', email: '', plan: 'Aylık', trainer: '', date: defDate(), adet: '10' };
+const BLANK: MemberFormData = { name: '', phone: '', email: '', plan: 'Aylık', trainer: '', date: defDate(), adet: '10', days: [] };
 
 export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode }: MemberFormSheetProps) {
   const t = useT();
@@ -32,6 +32,7 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
         plan: isPaket ? 'Paket' : 'Aylık',
         date: new Date(Date.now() + dl * 864e5).toISOString().slice(0, 10),
         adet: isPaket ? String(initial.adet || 10) : '10',
+        days: initial.days || [],
       });
     } else {
       setF({ ...BLANK, date: defDate() });
@@ -65,6 +66,19 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
         : <Fld label={t.sessionsLbl} icon="dumbbell" type="number" value={f.adet} onChange={v => upd('adet', v)} placeholder="10" />}
 
       <Fld label={t.trainerOptLbl} icon="award" value={f.trainer} onChange={v => upd('trainer', v)} placeholder="—" opt />
+
+      <div className="fld">
+        <span className="fld-l">{t.scheduleDaysLbl} <span className="opt">{t.optional}</span></span>
+        <div className="dayspick">
+          {t.days7.map((d, i) => (
+            <button key={i} type="button"
+              className={'daychip' + (f.days.includes(i) ? ' on' : '')}
+              onClick={() => upd('days', f.days.includes(i) ? f.days.filter(x => x !== i) : [...f.days, i].sort())}>
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <button className="btn primary" style={{ marginTop: 18 }} disabled={!valid}
         onClick={() => { onSubmit(f); onClose(); }}>

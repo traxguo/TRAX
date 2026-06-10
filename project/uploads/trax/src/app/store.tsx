@@ -61,7 +61,7 @@ function useStoreValue(): StoreValue {
       id: Date.now(), name: f.name.trim(), phone: f.phone.trim(),
       email: (f.email || '').trim(), joined: fmtDate(now), lastVisit: '—',
       visits: 0, attendance: 0, trainer: (f.trainer || '').trim() || '—',
-      plan: 'Aylık', kind: 'aylik', status: 'active', daysLeft: 30, expires: '—', days: [],
+      plan: 'Aylık', kind: 'aylik', status: 'active', daysLeft: 30, expires: '—', days: f.days || [],
     };
     const mem: Member = { ...base, ...derivePlan(f) };
     setMembers(ms => [mem, ...ms]);

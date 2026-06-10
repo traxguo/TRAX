@@ -1,13 +1,9 @@
 import { useStore } from '../store';
 import { useT } from '../i18n';
-import { glowOf } from '../utils';
-import { weekVisits, activity, colorFor, initials } from '../data';
+import { glowOf, toKey, toDow, getWeek } from '../utils';
+import { colorFor, initials } from '../data';
 import type { TabKey } from '../types';
 import Icon from './Icon';
-
-const ACT_ICON: Record<string, string> = {
-  checkin: 'scan', payment: 'money', join: 'plus', renew: 'trend',
-};
 
 interface HomeProps {
   go: (tab: TabKey) => void;
@@ -16,9 +12,48 @@ interface HomeProps {
 }
 
 export default function Home({ go, open }: HomeProps) {
-  const { members } = useStore();
+  const { members, attendanceLog } = useStore();
   const t = useT();
-  const maxV = Math.max(...weekVisits.map(w => w.v));
+
+  const today    = new Date();
+  const todayKey = toKey(today);
+  const week     = getWeek(today);
+
+  // real weekly counts from attendance log
+  const counts   = week.map(d => (attendanceLog[toKey(d)] || []).length);
+  const todayIdx = week.findIndex(d => toKey(d) === todayKey);
+  const todayCount = counts[todayIdx] ?? 0;
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yCount = (attendanceLog[toKey(yesterday)] || []).length;
+  const delta  = todayCount - yCount;
+
+  const scheduled = members.filter(m => m.status !== 'frozen' && (m.days || []).includes(toDow(today))).length;
+  const weekTotal = counts.reduce((a, b) => a + b, 0);
+  const activeCount = members.filter(m => { const g = glowOf(m); return g === 's-green' || g === 's-yellow'; }).length;
+  const renewCount  = members.filter(m => { const g = glowOf(m); return g === 's-red' || g === 's-yellow'; }).length;
+
+  const maxV = Math.max(...counts, 1);
+  const busiestIdx = counts.indexOf(Math.max(...counts));
+  const busiestLbl = weekTotal > 0 ? t.busiest(t.days7[busiestIdx]) : '';
+
+  // recent check-ins derived from attendance log (latest first)
+  const recent: { name: string; when: string }[] = [];
+  for (let off = 0; off < 7 && recent.length < 4; off++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - off);
+    const ids = [...(attendanceLog[toKey(d)] || [])].reverse();
+    for (const id of ids) {
+      if (recent.length >= 4) break;
+      const m = members.find(x => x.id === id);
+      if (m) recent.push({
+        name: m.name,
+        when: off === 0 ? t.todayLbl : off === 1 ? t.yesterdayLbl : `${d.getDate()} ${t.months12s[d.getMonth()]}`,
+      });
+    }
+  }
+
   const soon = members
     .filter(m => glowOf(m) === 's-yellow' || glowOf(m) === 's-red')
     .sort((a, b) => a.daysLeft - b.daysLeft)
@@ -30,55 +65,43 @@ export default function Home({ go, open }: HomeProps) {
       <div className="hero">
         <div className="h-row">
           <span className="h-live"><i />{t.liveToday}</span>
-          <span className="h-date">Cumartesi, 30 Mayıs</span>
+          <span className="h-date">{t.dateLong(t.daysFull[toDow(today)], today.getDate(), t.months12[today.getMonth()])}</span>
         </div>
         <div className="h-main">
           <div>
-            <div className="h-val tnum">46</div>
+            <div className="h-val tnum">{todayCount}</div>
             <div className="h-label">
-              {t.entries} <span className="h-delta">↑ +12</span> · 28 {t.inside}
+              {t.entries}
+              {delta !== 0 && <span className="h-delta">{delta > 0 ? `↑ +${delta}` : `↓ ${delta}`}</span>}
+              {' '}· {t.scheduledToday(scheduled)}
             </div>
           </div>
           <div className="h-spark">
-            {weekVisits.map((w, i) => (
-              <i key={i} className={w.today ? 'dim' : ''} style={{ height: (w.v / maxV * 100) + '%' }} />
+            {counts.map((v, i) => (
+              <i key={i} className={i === todayIdx ? 'dim' : ''} style={{ height: (v / maxV * 100) + '%' }} />
             ))}
           </div>
         </div>
         <div className="h-foot">
-          <div className="hf"><div className="v tnum">1.142</div><div className="l">{t.activeMembers}</div></div>
+          <div className="hf"><div className="v tnum">{activeCount}</div><div className="l">{t.activeMembers}</div></div>
           <div className="sep" />
-          <div className="hf"><div className="v tnum">₺184K</div><div className="l">{t.monthlyRev}</div></div>
+          <div className="hf"><div className="v tnum">{weekTotal}</div><div className="l">{t.thisWeek}</div></div>
           <div className="sep" />
-          <div className="hf"><div className="v tnum">72%</div><div className="l">{t.occupancy}</div></div>
-        </div>
-      </div>
-
-      {/* secondary stats */}
-      <div className="stat-row">
-        <div className="statc">
-          <div className="row1"><Icon name="trend" size={15} /><span className="l">{t.thisWeek}</span></div>
-          <div className="v tnum">583</div>
-          <div className="dl up">+6.4% {t.entries}</div>
-        </div>
-        <div className="statc">
-          <div className="row1" style={{ color: 'var(--warn)' }}><Icon name="clock" size={15} /><span className="l muted">{t.renewal}</span></div>
-          <div className="v tnum">37</div>
-          <div className="dl warn">7 {t.daysLeftN(7).replace('7 ', '')}</div>
+          <div className="hf"><div className="v tnum">{renewCount}</div><div className="l">{t.renewal}</div></div>
         </div>
       </div>
 
       {/* week chart */}
       <div className="section-h">
         <h2>{t.weeklyChart}</h2>
-        <span className="link tnum">{t.busiestDay}</span>
+        {busiestLbl && <span className="link tnum">{busiestLbl}</span>}
       </div>
       <div className="card">
         <div className="mchart">
-          {weekVisits.map((w, i) => (
-            <div key={i} className={'col' + (w.today ? ' today' : '')}>
-              <div className="stack" style={{ height: (w.v / maxV * 100) + '%' }} />
-              <div className="lbl">{w.d}</div>
+          {counts.map((v, i) => (
+            <div key={i} className={'col' + (i === todayIdx ? ' today' : '')}>
+              <div className="stack" style={{ height: (v / maxV * 100) + '%' }} />
+              <div className="lbl">{t.days7[i]}</div>
             </div>
           ))}
         </div>
@@ -116,20 +139,25 @@ export default function Home({ go, open }: HomeProps) {
       {/* activity */}
       <div className="section-h"><h2>{t.recentAct}</h2></div>
       <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
-        {activity.slice(0, 4).map((a, i) => (
+        {recent.map((a, i) => (
           <div key={i} className="feed">
-            <div className={'ic' + (a.acc ? ' acc' : '')}>
-              <Icon name={ACT_ICON[a.type] ?? 'scan'} size={15} />
+            <div className="ic acc">
+              <Icon name="scan" size={15} />
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13.5 }}>
-                <b style={{ fontWeight: 650 }}>{a.who}</b>{' '}
-                <span className="muted">{a.text}</span>
+                <b style={{ fontWeight: 650 }}>{a.name}</b>{' '}
+                <span className="muted">{t.checkedIn.toLowerCase()}</span>
               </div>
             </div>
-            <div className="t tnum">{a.time}</div>
+            <div className="t tnum">{a.when}</div>
           </div>
         ))}
+        {recent.length === 0 && (
+          <div className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
+            {t.noActivity}
+          </div>
+        )}
       </div>
     </div>
   );

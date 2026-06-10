@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
-import { derivePlan } from '../utils';
+import { derivePlan, glowOf } from '../utils';
 import { initials } from '../data';
 import type { TabKey, SheetKey, Member, MemberFormData } from '../types';
 import Icon from './Icon';
@@ -16,11 +16,11 @@ import ProfileSheet from './ProfileSheet';
 import MemberFormSheet from './MemberFormSheet';
 import ConfirmSheet from './ConfirmSheet';
 
-const TABS: { k: TabKey; ico: string; badge?: string }[] = [
+const TABS: { k: TabKey; ico: string }[] = [
   { k: 'home',     ico: 'grid' },
   { k: 'members',  ico: 'users' },
   { k: 'checkin',  ico: 'scan' },
-  { k: 'whatsapp', ico: 'chat', badge: '37' },
+  { k: 'whatsapp', ico: 'chat' },
 ];
 
 export default function AppShell() {
@@ -43,6 +43,7 @@ export default function AppShell() {
   const owner = (profile?.ownerName) || 'Mert';
   const h = HEAD[tab];
   const tabIndex = TABS.findIndex(t => t.k === tab);
+  const waCount = members.filter(m => { const g = glowOf(m); return g === 's-red' || g === 's-yellow'; }).length;
 
   const openMember = (id: number) => setDetail(id);
 
@@ -98,10 +99,10 @@ export default function AppShell() {
           <div className="m-nav-tray" />
           <nav className="m-nav">
             <span className="nav-ind" style={{ '--i': tabIndex } as React.CSSProperties} />
-            {TABS.map(t => (
-              <button key={t.k} className={'m-tab' + (tab === t.k ? ' on' : '')} onClick={() => setTab(t.k)}>
-                <Icon name={t.ico} size={22} stroke={tab === t.k ? 2.2 : 1.8} />
-                {t.badge && <span className="badge">{t.badge}</span>}
+            {TABS.map(tb => (
+              <button key={tb.k} className={'m-tab' + (tab === tb.k ? ' on' : '')} onClick={() => setTab(tb.k)}>
+                <Icon name={tb.ico} size={22} stroke={tab === tb.k ? 2.2 : 1.8} />
+                {tb.k === 'whatsapp' && waCount > 0 && <span className="badge">{waCount}</span>}
               </button>
             ))}
           </nav>
@@ -117,7 +118,7 @@ export default function AppShell() {
       <MemberFormSheet
         open={!!editing} onClose={() => setEditing(null)} mode="edit" initial={editing}
         onSubmit={(f: MemberFormData) => {
-          if (editing) updateMember(editing.id, { name: f.name, phone: f.phone, email: f.email, trainer: f.trainer || '—', ...derivePlan(f) });
+          if (editing) updateMember(editing.id, { name: f.name, phone: f.phone, email: f.email, trainer: f.trainer || '—', days: f.days, ...derivePlan(f) });
         }} />
       <ConfirmSheet
         open={!!deleting} onClose={() => setDeleting(null)} name={deleting?.name}
