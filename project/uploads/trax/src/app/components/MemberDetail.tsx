@@ -39,6 +39,19 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
 
   if (!m) { back(); return null; }
 
+  async function shareQR() {
+    if (!qrUrl || !m) return;
+    try {
+      const blob = await (await fetch(qrUrl)).blob();
+      const file = new File([blob], `trax-qr-${m.id}.png`, { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'TRAX QR', text: m.name });
+      } else if (navigator.share) {
+        await navigator.share({ title: 'TRAX QR', text: m.name });
+      }
+    } catch { /* user cancelled */ }
+  }
+
   const g = glowOf(m);
   const c = statusColor(g);
   const rgb = statusRGB(g);
@@ -74,7 +87,12 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
               : <div className="qr-modal-loading"><div className="spin" style={{ borderColor: 'rgba(0,0,0,.2)', borderTopColor: '#000' }} /></div>
             }
             <div className="qr-modal-hint">{t.qrHint}</div>
-            <button className="btn" style={{ marginTop:14 }} onClick={() => setShowQR(false)}>{t.closeBtn}</button>
+            <div className="row" style={{ gap: 10, marginTop: 14 }}>
+              <button className="btn" onClick={() => setShowQR(false)}>{t.closeBtn}</button>
+              <button className="btn primary" onClick={shareQR} disabled={!qrUrl}>
+                <Icon name="send" size={15} />{t.shareBtn}
+              </button>
+            </div>
           </div>
         </div>
       )}

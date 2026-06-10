@@ -8,6 +8,7 @@ export interface StoreValue {
   addMember: (f: MemberFormData) => number;
   updateMember: (id: number, patch: Partial<Member>) => void;
   deleteMember: (id: number) => void;
+  restoreMember: (m: Member) => void;
   renewMember: (id: number) => void;
   profile: Profile | null;
   updateProfile: (p: Partial<Profile>) => void;
@@ -76,6 +77,10 @@ function useStoreValue(): StoreValue {
     setMembers(ms => ms.filter(m => m.id !== id));
   }, []);
 
+  const restoreMember = useCallback((m: Member) => {
+    setMembers(ms => ms.some(x => x.id === m.id) ? ms : [m, ...ms]);
+  }, []);
+
   const renewMember = useCallback((id: number) => {
     setMembers(ms => ms.map(m => {
       if (m.id !== id) return m;
@@ -125,7 +130,7 @@ function useStoreValue(): StoreValue {
   }, []);
 
   return {
-    members, addMember, updateMember, deleteMember, renewMember,
+    members, addMember, updateMember, deleteMember, restoreMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, logout,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,

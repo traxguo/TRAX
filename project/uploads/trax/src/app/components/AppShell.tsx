@@ -25,8 +25,16 @@ const TABS: { k: TabKey; ico: string }[] = [
 
 export default function AppShell() {
   const store = useStore();
-  const { members, profile, addMember, updateMember, deleteMember, notifRead } = store;
+  const { members, profile, addMember, updateMember, deleteMember, restoreMember, notifRead } = store;
   const t = useT();
+  const [undoM, setUndoM] = useState<Member | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showUndo = (m: Member) => {
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    setUndoM(m);
+    undoTimer.current = setTimeout(() => setUndoM(null), 5000);
+  };
   const HEAD: Record<TabKey, { eyebrow: string; title: string; hasCount?: boolean }> = {
     home:     { eyebrow: '',               title: 'TRAX' },
     members:  { eyebrow: t.eyebrowMembers, title: t.membersTitle, hasCount: true },
@@ -126,8 +134,20 @@ export default function AppShell() {
           if (deleting) {
             deleteMember(deleting.id);
             if (detail === deleting.id) setDetail(null);
+            showUndo(deleting);
           }
         }} />
+
+      {undoM && (
+        <div className="undo-toast">
+          <span className="undo-txt">{t.deletedToast(undoM.name)}</span>
+          <button className="undo-btn" onClick={() => {
+            restoreMember(undoM);
+            setUndoM(null);
+            if (undoTimer.current) clearTimeout(undoTimer.current);
+          }}>{t.undoBtn}</button>
+        </div>
+      )}
     </div>
   );
 }

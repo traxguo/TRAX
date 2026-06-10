@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import Icon from './Icon';
 
 interface SheetProps {
@@ -12,6 +12,8 @@ interface SheetProps {
 
 export default function Sheet({ open, onClose, title, eyebrow, children, footer }: SheetProps) {
   const [vis, setVis] = useState(false);
+  const [kb, setKb] = useState(0);
+  const baseRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -19,6 +21,27 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
       return () => clearTimeout(t);
     }
     setVis(false);
+  }, [open]);
+
+  // keyboard: shift sheet above the on-screen keyboard
+  useEffect(() => {
+    if (!open) { baseRef.current = null; setKb(0); return; }
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const ext = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phone-ext')) || 0;
+    const calc = () => {
+      const hidden = window.innerHeight - vv.height - vv.offsetTop;
+      if (baseRef.current === null) baseRef.current = hidden;
+      const raised = Math.max(0, hidden - (baseRef.current || 0));
+      setKb(raised > 40 ? raised + ext : 0);
+    };
+    calc();
+    vv.addEventListener('resize', calc);
+    vv.addEventListener('scroll', calc);
+    return () => {
+      vv.removeEventListener('resize', calc);
+      vv.removeEventListener('scroll', calc);
+    };
   }, [open]);
 
   if (!open) return null;
@@ -31,7 +54,11 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
   return (
     <div className={'sheet-wrap' + (vis ? ' in' : '')}>
       <div className="sheet-backdrop" onClick={close} />
-      <div className="sheet" onClick={e => e.stopPropagation()}>
+      <div
+        className="sheet"
+        onClick={e => e.stopPropagation()}
+        style={kb > 0 ? { marginBottom: kb, maxHeight: `calc(86% - ${kb}px)` } : undefined}
+      >
         <div className="sheet-grip" />
         <div className="sheet-head">
           <div>

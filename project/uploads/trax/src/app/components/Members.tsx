@@ -24,6 +24,7 @@ export default function Members({ open }: MembersProps) {
   const { members } = useStore();
   const t = useT();
   const [f, setF] = useState<FilterKey>('all');
+  const [q, setQ] = useState('');
   const FILTERS = [
     { k: 'all'    as FilterKey, l: t.filterAll },
     { k: 'red'    as FilterKey, l: t.filterExpired },
@@ -33,9 +34,14 @@ export default function Members({ open }: MembersProps) {
   ];
 
   const list = useMemo(() => members.filter(m => {
+    if (q.trim() && !(
+      m.name.toLowerCase().includes(q.toLowerCase()) ||
+      m.phone.includes(q) ||
+      m.email.toLowerCase().includes(q.toLowerCase())
+    )) return false;
     if (f === 'all') return true;
     return (glowOf(m) as MemberGlow).replace('s-', '') === f;
-  }).sort((a, b) => a.daysLeft - b.daysLeft), [f, members]);
+  }).sort((a, b) => a.daysLeft - b.daysLeft), [f, q, members]);
 
   const counts = useMemo(() => members.reduce<Record<string, number>>((acc, m) => {
     const g = (glowOf(m) as MemberGlow).replace('s-', '');
@@ -45,6 +51,11 @@ export default function Members({ open }: MembersProps) {
 
   return (
     <div className="fade">
+      <div className="m-search" style={{ margin: '2px 0 12px' }}>
+        <Icon name="search" size={17} style={{ color: 'var(--tx-3)', flexShrink: 0 }} />
+        <input placeholder={t.searchPH} value={q} onChange={e => setQ(e.target.value)} />
+        {q && <button className="fld-eye" onClick={() => setQ('')}><Icon name="x" size={15} /></button>}
+      </div>
       <div className="filter-rail">
         {FILTERS.map(x => {
           const on = f === x.k;
