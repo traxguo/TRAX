@@ -169,6 +169,10 @@ const en = {
   errWeakPassword:    'Password must be at least 6 characters.',
   errTooManyAttempts: 'Too many attempts. Please try again later.',
   errNetworkFailed:   'Connection error. Check your internet.',
+  resetSub:           'Enter your email to receive a reset link.',
+  resetBtn:           'Send reset link',
+  resetSent:          (email: string) => `A reset link has been sent to ${email}. Check your inbox.`,
+  backToLogin:        '← Back to sign in',
 
   // Onboarding
   step1Title:     "Let's set up your studio",
@@ -390,6 +394,10 @@ const tr: typeof en = {
   errWeakPassword:    'Şifre en az 6 karakter olmalı.',
   errTooManyAttempts: 'Çok fazla deneme. Lütfen sonra tekrar deneyin.',
   errNetworkFailed:   'Bağlantı hatası. İnternetinizi kontrol edin.',
+  resetSub:           'Şifre sıfırlama bağlantısı göndermek için e-postanı gir.',
+  resetBtn:           'Bağlantı gönder',
+  resetSent:          (email: string) => `${email} adresine sıfırlama bağlantısı gönderildi. Gelen kutunu kontrol et.`,
+  backToLogin:        '← Girişe dön',
 
   // Onboarding
   step1Title:     'Stüdyonu tanıyalım',

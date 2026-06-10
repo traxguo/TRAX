@@ -1,4 +1,6 @@
 import { useState, FormEvent } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../firebase';
 import { useT } from '../i18n';
 import type { T } from '../i18n';
 import Icon from './Icon';
@@ -30,13 +32,14 @@ function mapFirebaseError(code: string, t: T): string {
 
 export default function Login({ onLogin, onSignup }: LoginProps) {
   const t = useT();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
   const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const emailOk = /\S+@\S+\.\S+/.test(email);
   const pwOk = pw.length >= 6;
@@ -48,10 +51,25 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
     setErr(''); setPw(''); setConfirm(''); setShow(false);
   }
 
-  function switchMode(next: 'login' | 'signup') {
+  function switchMode(next: 'login' | 'signup' | 'reset') {
     setMode(next);
     reset();
+    setResetSent(false);
   }
+
+  const submitReset = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email) { setErr(t.loginError); return; }
+    setErr(''); setBusy(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetSent(true);
+    } catch (ex: unknown) {
+      const code = (ex as { code?: string }).code ?? '';
+      setErr(mapFirebaseError(code, t));
+    }
+    setBusy(false);
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -74,6 +92,47 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
   };
 
   const isLogin = mode === 'login';
+
+  if (mode === 'reset') return (
+    <div className="auth">
+      <div className="auth-bg">
+        <span className="orb o1" /><span className="orb o2" /><span className="auth-grid" />
+      </div>
+      <div className="auth-inner">
+        <div className="auth-brand">
+          <div className="auth-mark"><Icon name="bolt" size={26} stroke={2.2} /></div>
+          <div className="auth-word">TRA<b>X</b></div>
+          <div className="auth-tag">{t.loginTagline}</div>
+        </div>
+        <form className="auth-card" onSubmit={submitReset}>
+          <div className="auth-h">{t.forgotPw}</div>
+          <div className="auth-sub">{t.resetSub}</div>
+          {resetSent ? (
+            <div className="auth-ok">{t.resetSent(email)}</div>
+          ) : (
+            <>
+              <label className="fld" style={{ animationDelay: '.06s' }}>
+                <span className="fld-l">{t.emailInputLbl}</span>
+                <div className="fld-in">
+                  <Icon name="mail" size={17} />
+                  <input type="email" inputMode="email" autoComplete="username"
+                    placeholder="ornek@trax.app" value={email}
+                    onChange={e => { setEmail(e.target.value); setErr(''); }} />
+                </div>
+              </label>
+              {err && <div className="auth-err">{err}</div>}
+              <button type="submit" className={'btn primary auth-go' + (busy ? ' busy' : '')} disabled={busy} style={{ animationDelay: '.12s' }}>
+                {busy ? <span className="spin" /> : <>{t.resetBtn}</>}
+              </button>
+            </>
+          )}
+          <div className="auth-foot" style={{ animationDelay: '.18s' }}>
+            <span className="link" onClick={() => switchMode('login')}>{t.backToLogin}</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 
   return (
     <div className="auth">
@@ -132,7 +191,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
           {isLogin && (
             <div className="auth-row" style={{ animationDelay: '.16s' }}>
               <span />
-              <span className="link sm">{t.forgotPw}</span>
+              <span className="link sm" onClick={() => switchMode('reset')}>{t.forgotPw}</span>
             </div>
           )}
 
