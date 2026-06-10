@@ -59,7 +59,6 @@ function useStoreValue(): StoreValue {
   // undefined = Firebase still initializing, null = signed out, User = signed in
   const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(undefined);
   const dataReadyRef = useRef(false);
-  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const session: Session | null = firebaseUser
     ? { email: firebaseUser.email || '', at: Date.now() }
@@ -102,16 +101,12 @@ function useStoreValue(): StoreValue {
     });
   }, []);
 
-  // Debounced Firestore sync — skips while data is still loading
+  // Immediate Firestore sync on every state change — offline cache handles network gaps
   useEffect(() => {
     if (!firebaseUser || !dataReadyRef.current) return;
-    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    syncTimerRef.current = setTimeout(() => {
-      setDoc(doc(db, 'users', firebaseUser.uid), {
-        members, profile, attendanceLog, notifRead, lang,
-      }).catch(e => console.error('Firestore sync failed:', e));
-    }, 300);
-    return () => { if (syncTimerRef.current) clearTimeout(syncTimerRef.current); };
+    setDoc(doc(db, 'users', firebaseUser.uid), {
+      members, profile, attendanceLog, notifRead, lang,
+    }).catch(e => console.error('Firestore sync failed:', e));
   }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
 
   const setLang = useCallback((l: Lang) => {
@@ -130,20 +125,9 @@ function useStoreValue(): StoreValue {
   }, []);
 
   const logout = useCallback(() => {
-    // Flush any pending write immediately before sign-out
-    if (syncTimerRef.current) {
-      clearTimeout(syncTimerRef.current);
-      syncTimerRef.current = null;
-    }
-    const user = auth.currentUser;
-    if (user && dataReadyRef.current) {
-      setDoc(doc(db, 'users', user.uid), {
-        members, profile, attendanceLog, notifRead, lang,
-      }).catch(console.error);
-    }
     dataReadyRef.current = false;
     fbSignOut(auth).catch(console.error);
-  }, [members, profile, attendanceLog, notifRead, lang]);
+  }, []);
 
   const deleteAccount = useCallback(async () => {
     const user = auth.currentUser;
