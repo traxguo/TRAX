@@ -23,12 +23,26 @@ function KV({ ico, k, v }: { ico: string; k: string; v: string }) {
 }
 
 export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
-  const { profile, updateProfile, logout, members, lang, setLang } = useStore();
+  const { profile, updateProfile, logout, deleteAccount, members, lang, setLang } = useStore();
   const t = useT();
   const [edit, setEdit] = useState(false);
   const [f, setF] = useState<Profile | null>(profile);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [delErr, setDelErr] = useState('');
 
-  useEffect(() => { if (open) { setEdit(false); setF(profile); } }, [open, profile]);
+  useEffect(() => { if (open) { setEdit(false); setF(profile); setConfirmDelete(false); setDelErr(''); } }, [open, profile]);
+
+  const doDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? '';
+      setDelErr(code === 'auth/requires-recent-login' ? t.deleteAccountRelogin : t.deleteAccountErr);
+      setDeleting(false);
+    }
+  };
 
   const save = () => { if (f) { updateProfile(f); } setEdit(false); };
 
@@ -79,6 +93,27 @@ export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
           <button className="btn danger" style={{ marginTop: 10 }} onClick={logout}>
             <Icon name="logout" size={16} />{t.logoutBtn}
           </button>
+
+          {!confirmDelete ? (
+            <button className="btn" style={{ marginTop: 10, color: 'var(--bad)', borderColor: 'transparent', fontSize: 13 }}
+              onClick={() => setConfirmDelete(true)}>
+              {t.deleteAccountBtn}
+            </button>
+          ) : (
+            <div style={{ marginTop: 12, background: 'rgba(255,77,82,0.08)', border: '1px solid rgba(255,77,82,0.25)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--bad)', marginBottom: 6 }}>{t.deleteAccountTitle}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--tx-2)', marginBottom: 12, lineHeight: 1.5 }}>{t.deleteAccountConfirm}</div>
+              {delErr && <div style={{ fontSize: 12, color: 'var(--bad)', marginBottom: 10 }}>{delErr}</div>}
+              <div className="row" style={{ gap: 8 }}>
+                <button className="btn" style={{ flex: 1, fontSize: 13 }} onClick={() => { setConfirmDelete(false); setDelErr(''); }}>
+                  {t.cancelBtn}
+                </button>
+                <button className="btn danger" style={{ flex: 1, fontSize: 13 }} disabled={deleting} onClick={doDeleteAccount}>
+                  {deleting ? <span className="spin" /> : t.deleteAccountFinal}
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </Sheet>

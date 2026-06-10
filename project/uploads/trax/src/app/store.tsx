@@ -3,10 +3,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as fbSignOut,
+  deleteUser,
   onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import type { Member, Profile, Session, MemberFormData, Lang } from './types';
 import { derivePlan, fmtDate, load, save, PLAN_LEN } from './utils';
 import { auth, db } from './firebase';
@@ -25,6 +28,7 @@ export interface StoreValue {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
   loading: boolean;
   notifRead: boolean;
   markNotifsRead: () => void;
@@ -115,16 +119,25 @@ function useStoreValue(): StoreValue {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    await setPersistence(auth, browserLocalPersistence);
     await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
   const signup = useCallback(async (email: string, password: string) => {
+    await setPersistence(auth, browserLocalPersistence);
     await createUserWithEmailAndPassword(auth, email, password);
   }, []);
 
   const logout = useCallback(() => {
     dataReadyRef.current = false;
     fbSignOut(auth).catch(console.error);
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await deleteDoc(doc(db, 'users', user.uid));
+    await deleteUser(user);
   }, []);
 
   const addMember = useCallback((f: MemberFormData): number => {
@@ -201,7 +214,7 @@ function useStoreValue(): StoreValue {
 
   return {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
-    profile, updateProfile, completeOnboarding, session, login, signup, logout, loading,
+    profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,
   };
