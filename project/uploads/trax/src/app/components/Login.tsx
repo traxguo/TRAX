@@ -1,28 +1,79 @@
 import { useState, FormEvent } from 'react';
 import { useT } from '../i18n';
+import type { T } from '../i18n';
 import Icon from './Icon';
 
 interface LoginProps {
-  onLogin: (email: string) => void;
-  onSignup: () => void;
+  onLogin: (email: string, password: string) => Promise<void>;
+  onSignup: (email: string, password: string) => Promise<void>;
+}
+
+function mapFirebaseError(code: string, t: T): string {
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+    case 'auth/invalid-email':
+      return t.errWrongPassword;
+    case 'auth/email-already-in-use':
+      return t.errEmailInUse;
+    case 'auth/weak-password':
+      return t.errWeakPassword;
+    case 'auth/too-many-requests':
+      return t.errTooManyAttempts;
+    case 'auth/network-request-failed':
+      return t.errNetworkFailed;
+    default:
+      return t.loginError;
+  }
 }
 
 export default function Login({ onLogin, onSignup }: LoginProps) {
   const t = useT();
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const valid = /\S+@\S+\.\S+/.test(email) && pw.length >= 4;
+  const emailOk = /\S+@\S+\.\S+/.test(email);
+  const pwOk = pw.length >= 6;
+  const valid = mode === 'login'
+    ? emailOk && pwOk
+    : emailOk && pwOk && pw === confirm;
 
-  const submit = (e: FormEvent) => {
+  function reset() {
+    setErr(''); setPw(''); setConfirm(''); setShow(false);
+  }
+
+  function switchMode(next: 'login' | 'signup') {
+    setMode(next);
+    reset();
+  }
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!valid) { setErr(t.loginError); return; }
+    if (!valid) {
+      setErr(mode === 'signup' && pw !== confirm ? t.pwMismatch : t.loginError);
+      return;
+    }
     setErr(''); setBusy(true);
-    setTimeout(() => { setBusy(false); onLogin(email); }, 750);
+    try {
+      if (mode === 'login') {
+        await onLogin(email, pw);
+      } else {
+        await onSignup(email, pw);
+      }
+    } catch (ex: unknown) {
+      const code = (ex as { code?: string }).code ?? '';
+      setErr(mapFirebaseError(code, t));
+      setBusy(false);
+    }
   };
+
+  const isLogin = mode === 'login';
 
   return (
     <div className="auth">
@@ -39,16 +90,17 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
           <div className="auth-tag">{t.loginTagline}</div>
         </div>
 
-        <form className="auth-card" onSubmit={submit}>
-          <div className="auth-h">{t.welcomeBack}</div>
-          <div className="auth-sub">{t.loginSub}</div>
+        <form className="auth-card" key={mode} onSubmit={submit}>
+          <div className="auth-h">{isLogin ? t.welcomeBack : t.signUpTitle}</div>
+          <div className="auth-sub">{isLogin ? t.loginSub : t.signUpSub}</div>
 
           <label className="fld" style={{ animationDelay: '.06s' }}>
             <span className="fld-l">{t.emailInputLbl}</span>
             <div className="fld-in">
               <Icon name="mail" size={17} />
-              <input type="email" inputMode="email" autoComplete="username" placeholder="ornek@trax.app"
-                value={email} onChange={e => { setEmail(e.target.value); setErr(''); }} />
+              <input type="email" inputMode="email" autoComplete="username"
+                placeholder="ornek@trax.app" value={email}
+                onChange={e => { setEmail(e.target.value); setErr(''); }} />
             </div>
           </label>
 
@@ -56,30 +108,54 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
             <span className="fld-l">{t.passwordLbl}</span>
             <div className="fld-in">
               <Icon name="lock" size={17} />
-              <input type={show ? 'text' : 'password'} autoComplete="current-password" placeholder="••••••••"
-                value={pw} onChange={e => { setPw(e.target.value); setErr(''); }} />
-              <button type="button" className="fld-eye" onClick={() => setShow(s => !s)} aria-label="Şifreyi göster">
+              <input type={show ? 'text' : 'password'} autoComplete={isLogin ? 'current-password' : 'new-password'}
+                placeholder="••••••••" value={pw}
+                onChange={e => { setPw(e.target.value); setErr(''); }} />
+              <button type="button" className="fld-eye" onClick={() => setShow(s => !s)} aria-label="Toggle password">
                 <Icon name={show ? 'eyeoff' : 'eye'} size={17} />
               </button>
             </div>
           </label>
 
-          <div className="auth-row" style={{ animationDelay: '.16s' }}>
-            <span />
-            <span className="link sm">{t.forgotPw}</span>
-          </div>
+          {!isLogin && (
+            <label className="fld" style={{ animationDelay: '.16s' }}>
+              <span className="fld-l">{t.confirmPwLbl}</span>
+              <div className="fld-in">
+                <Icon name="lock" size={17} />
+                <input type={show ? 'text' : 'password'} autoComplete="new-password"
+                  placeholder="••••••••" value={confirm}
+                  onChange={e => { setConfirm(e.target.value); setErr(''); }} />
+              </div>
+            </label>
+          )}
+
+          {isLogin && (
+            <div className="auth-row" style={{ animationDelay: '.16s' }}>
+              <span />
+              <span className="link sm">{t.forgotPw}</span>
+            </div>
+          )}
 
           {err && <div className="auth-err">{err}</div>}
 
-          <button type="submit" className={'btn primary auth-go' + (busy ? ' busy' : '')} disabled={busy} style={{ animationDelay: '.2s' }}>
+          <button type="submit"
+            className={'btn primary auth-go' + (busy ? ' busy' : '')}
+            disabled={busy || !valid}
+            style={{ animationDelay: '.2s' }}>
             {busy
               ? <span className="spin" />
-              : <><Icon name="logout" size={17} style={{ transform: 'scaleX(-1)' }} />{t.signInBtn}</>}
+              : <>
+                  <Icon name={isLogin ? 'logout' : 'userplus'} size={17}
+                    style={isLogin ? { transform: 'scaleX(-1)' } : undefined} />
+                  {isLogin ? t.signInBtn : t.signUpBtn}
+                </>}
           </button>
 
           <div className="auth-foot" style={{ animationDelay: '.24s' }}>
-            {t.noAccount}{' '}
-            <span className="link" onClick={onSignup}>{t.createAccount}</span>
+            {isLogin ? t.noAccount : t.haveAccount}{' '}
+            <span className="link" onClick={() => switchMode(isLogin ? 'signup' : 'login')}>
+              {isLogin ? t.createAccount : t.signInLink}
+            </span>
           </div>
         </form>
       </div>

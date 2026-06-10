@@ -1,7 +1,15 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as fbSignOut,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { Member, Profile, Session, MemberFormData, Lang } from './types';
-import { members as initialMembers } from './data';
 import { derivePlan, fmtDate, load, save, PLAN_LEN } from './utils';
+import { auth, db } from './firebase';
 
 export interface StoreValue {
   members: Member[];
@@ -14,8 +22,10 @@ export interface StoreValue {
   updateProfile: (p: Partial<Profile>) => void;
   completeOnboarding: (p: Profile) => void;
   session: Session | null;
-  login: (email: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  loading: boolean;
   notifRead: boolean;
   markNotifsRead: () => void;
   attendanceLog: Record<string, number[]>;
@@ -35,26 +45,87 @@ export function useStore(): StoreValue {
 }
 
 function useStoreValue(): StoreValue {
-  const [members, setMembers] = useState<Member[]>(() => load('trax_members', initialMembers));
-  const [profile, setProfile] = useState<Profile | null>(() => load('trax_profile', null));
-  const [session, setSession] = useState<Session | null>(() => load('trax_session', null));
-  const [notifRead, setNotifRead] = useState<boolean>(() => load('trax_notifread', false));
+  const [members, setMembers] = useState<Member[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [notifRead, setNotifRead] = useState(false);
   const [lang, setLangState] = useState<Lang>(() => load('trax_lang', 'en' as Lang));
-  const setLang = useCallback((l: Lang) => { setLangState(l); save('trax_lang', l); }, []);
+  const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>({});
 
-  const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>(() => {
-    const saved = load('trax_attendance', null);
-    if (saved) return saved;
-    const d = new Date();
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return { [key]: [9, 3, 1, 5, 7, 11] };
-  });
+  // undefined = Firebase still initializing, null = signed out, User = signed in
+  const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(undefined);
+  const dataReadyRef = useRef(false);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => save('trax_members', members), [members]);
-  useEffect(() => save('trax_profile', profile), [profile]);
-  useEffect(() => save('trax_session', session), [session]);
-  useEffect(() => save('trax_notifread', notifRead), [notifRead]);
-  useEffect(() => save('trax_attendance', attendanceLog), [attendanceLog]);
+  const session: Session | null = firebaseUser
+    ? { email: firebaseUser.email || '', at: Date.now() }
+    : null;
+
+  const loading = firebaseUser === undefined;
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, async (user) => {
+      dataReadyRef.current = false;
+      if (user) {
+        try {
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data.members)       setMembers(data.members);
+            if (data.profile)       setProfile(data.profile);
+            if (data.attendanceLog) setAttendanceLog(data.attendanceLog);
+            if (data.notifRead !== undefined) setNotifRead(data.notifRead);
+            if (data.lang)          setLangState(data.lang);
+          } else {
+            setMembers([]);
+            setProfile(null);
+            setAttendanceLog({});
+            setNotifRead(false);
+          }
+        } catch {
+          setMembers([]);
+          setProfile(null);
+          setAttendanceLog({});
+        }
+        dataReadyRef.current = true;
+      } else {
+        setMembers([]);
+        setProfile(null);
+        setAttendanceLog({});
+        setNotifRead(false);
+      }
+      setFirebaseUser(user);
+    });
+  }, []);
+
+  // Debounced Firestore sync — skips while data is still loading
+  useEffect(() => {
+    if (!firebaseUser || !dataReadyRef.current) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      setDoc(doc(db, 'users', firebaseUser.uid), {
+        members, profile, attendanceLog, notifRead, lang,
+      }).catch(e => console.error('Firestore sync failed:', e));
+    }, 800);
+    return () => { if (syncTimerRef.current) clearTimeout(syncTimerRef.current); };
+  }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
+
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l);
+    save('trax_lang', l);
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  }, []);
+
+  const signup = useCallback(async (email: string, password: string) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  }, []);
+
+  const logout = useCallback(() => {
+    dataReadyRef.current = false;
+    fbSignOut(auth).catch(console.error);
+  }, []);
 
   const addMember = useCallback((f: MemberFormData): number => {
     const now = new Date();
@@ -95,10 +166,9 @@ function useStoreValue(): StoreValue {
     setProfile(prev => prev ? { ...prev, ...p } : null);
   }, []);
 
-  const login = useCallback((email: string) => setSession({ email, at: Date.now() }), []);
-  const logout = useCallback(() => setSession(null), []);
   const completeOnboarding = useCallback((p: Profile) => setProfile(p), []);
   const markNotifsRead = useCallback(() => setNotifRead(true), []);
+
   const toggleAttendance = useCallback((date: string, memberId: number) => {
     const curr = attendanceLog[date] || [];
     const wasAttended = curr.includes(memberId);
@@ -131,7 +201,7 @@ function useStoreValue(): StoreValue {
 
   return {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
-    profile, updateProfile, completeOnboarding, session, login, logout,
+    profile, updateProfile, completeOnboarding, session, login, signup, logout, loading,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,
   };

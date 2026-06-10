@@ -3,10 +3,10 @@ import { StoreProvider, useStore } from './store';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import AppShell from './components/AppShell';
+import Icon from './components/Icon';
 
 function MobileApp() {
-  const store = useStore();
-  const { session, profile, login, completeOnboarding } = store;
+  const { session, profile, login, signup, completeOnboarding, loading } = useStore();
 
   useEffect(() => {
     const r = document.documentElement;
@@ -16,7 +16,6 @@ function MobileApp() {
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
 
-    // iOS: extend phone to full screen height (viewport-fit=cover workaround)
     const gap = Math.max(0, window.screen.height - window.innerHeight);
     r.style.setProperty('--screen-gap', gap + 'px');
     const phoneH = window.screen.height + 60;
@@ -26,11 +25,24 @@ function MobileApp() {
     document.body.style.minHeight = phoneH + 'px';
   }, []);
 
-  const loggedIn  = !!session;
-  const onboarded = !!profile;
+  if (loading) return (
+    <div className="auth">
+      <div className="auth-bg">
+        <span className="orb o1" />
+        <span className="orb o2" />
+        <span className="auth-grid" />
+      </div>
+      <div className="auth-inner" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div className="auth-mark" style={{ marginBottom: 0 }}>
+          <Icon name="bolt" size={26} stroke={2.2} />
+        </div>
+        <div style={{ marginTop: 24 }}><span className="spin" style={{ width: 28, height: 28, borderWidth: 3 }} /></div>
+      </div>
+    </div>
+  );
 
-  if (!loggedIn) return <Login onLogin={login} onSignup={() => login('kayit@trax.app')} />;
-  if (!onboarded) return <Onboarding email={session.email} onComplete={completeOnboarding} />;
+  if (!session) return <Login onLogin={login} onSignup={signup} />;
+  if (!profile)  return <Onboarding email={session.email} onComplete={completeOnboarding} />;
   return <AppShell />;
 }
 
