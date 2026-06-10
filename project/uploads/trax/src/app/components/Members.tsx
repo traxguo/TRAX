@@ -5,6 +5,7 @@ import { glowOf } from '../utils';
 import { initials } from '../data';
 import type { MemberGlow } from '../types';
 import Icon from './Icon';
+import Empty from './Empty';
 
 interface MembersProps {
   open: (id: number) => void;
@@ -89,11 +90,7 @@ export default function Members({ open }: MembersProps) {
             </div>
           );
         })}
-        {list.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '40px 0' }}>
-            {t.noMembers}
-          </div>
-        )}
+        {list.length === 0 && <Empty ico="users" text={t.noMembers} />}
       </div>
     </div>
   );

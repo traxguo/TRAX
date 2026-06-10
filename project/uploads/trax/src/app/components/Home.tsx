@@ -4,6 +4,7 @@ import { glowOf, toKey, toDow, getWeek } from '../utils';
 import { colorFor, initials } from '../data';
 import type { TabKey } from '../types';
 import Icon from './Icon';
+import Empty from './Empty';
 
 interface HomeProps {
   go: (tab: TabKey) => void;
@@ -78,7 +79,7 @@ export default function Home({ go, open }: HomeProps) {
           </div>
           <div className="h-spark">
             {counts.map((v, i) => (
-              <i key={i} className={i === todayIdx ? 'dim' : ''} style={{ height: (v / maxV * 100) + '%' }} />
+              <i key={i} className={i === todayIdx ? 'hot' : ''} style={{ height: (v / maxV * 100) + '%' }} />
             ))}
           </div>
         </div>
@@ -129,11 +130,7 @@ export default function Home({ go, open }: HomeProps) {
             </div>
           );
         })}
-        {soon.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
-            {t.noRenewals}
-          </div>
-        )}
+        {soon.length === 0 && <Empty ico="check" text={t.noRenewals} />}
       </div>
 
       {/* activity */}
@@ -153,11 +150,7 @@ export default function Home({ go, open }: HomeProps) {
             <div className="t tnum">{a.when}</div>
           </div>
         ))}
-        {recent.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
-            {t.noActivity}
-          </div>
-        )}
+        {recent.length === 0 && <Empty ico="scan" text={t.noActivity} />}
       </div>
     </div>
   );

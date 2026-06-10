@@ -5,6 +5,7 @@ import { glowOf } from '../utils';
 import { colorFor, initials } from '../data';
 import type { Member } from '../types';
 import Icon from './Icon';
+import Empty from './Empty';
 
 type TemplateId = 'renew' | 'winback' | 'welcome';
 
@@ -97,9 +98,7 @@ export default function WhatsApp() {
             <span style={{ width: 9, height: 9, borderRadius: 99, background: glowOf(m) === 's-red' ? 'var(--bad)' : 'var(--warn)' }} />
           </div>
         ))}
-        {targets.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>{t.noRecipients}</div>
-        )}
+        {targets.length === 0 && <Empty ico="chat" text={t.noRecipients} />}
       </div>
 
       {done ? (

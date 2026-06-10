@@ -4,6 +4,7 @@ import { useT } from '../i18n';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
 import QRScanner from './QRScanner';
+import Empty from './Empty';
 
 function toKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -130,11 +131,7 @@ export default function CheckIn() {
       {/* ── Member list ── */}
       <div className="card" style={{ paddingTop:4, paddingBottom:4 }}>
 
-        {visible.length === 0 && !editMode && (
-          <div style={{ padding:'22px 0', textAlign:'center', color:'var(--tx-3)', fontSize:13 }}>
-            {t.noSchedule}
-          </div>
-        )}
+        {visible.length === 0 && !editMode && <Empty ico="calendar" text={t.noSchedule} />}
 
         {visible.map(m => {
           const came = attended.includes(m.id);

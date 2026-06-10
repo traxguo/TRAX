@@ -5,6 +5,7 @@ import { glowOf } from '../utils';
 import { activity } from '../data';
 import Sheet from './Sheet';
 import Icon from './Icon';
+import Empty from './Empty';
 
 interface NotifSheetProps {
   open: boolean;
@@ -63,9 +64,7 @@ export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetPr
             {n.mid && <Icon name="chev" size={15} style={{ color: 'var(--tx-3)' }} />}
           </div>
         ))}
-        {items.length === 0 && (
-          <div className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>{t.noNotifs}</div>
-        )}
+        {items.length === 0 && <Empty ico="bell" text={t.noNotifs} />}
       </div>
     </Sheet>
   );
