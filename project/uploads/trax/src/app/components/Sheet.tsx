@@ -23,9 +23,9 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     setVis(false);
   }, [open]);
 
-  // Pin the sheet to the *visible* viewport so it always sits above the keyboard.
+  // Pin the sheet to the *visible* viewport so it always sits above the keyboard (Safari).
   useEffect(() => {
-    if (!open) { setKbOpen(false); return; }
+    if (!open) return;
     const vv = window.visualViewport;
     if (!vv) return;
     const apply = () => {
@@ -34,20 +34,28 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
       wrap.style.height = vv.height + 'px';
       wrap.style.top = vv.offsetTop + 'px';
       wrap.style.bottom = 'auto';
-      setKbOpen(window.innerHeight - vv.height - vv.offsetTop > 100);
     };
     apply();
     vv.addEventListener('resize', apply);
-    return () => {
-      vv.removeEventListener('resize', apply);
-    };
+    return () => vv.removeEventListener('resize', apply);
   }, [open]);
 
-  // Bring the focused field into view (covers Safari, which doesn't auto-scroll reliably).
+  useEffect(() => { if (!open) setKbOpen(false); }, [open]);
+
+  // Keyboard detection via focus — reliable in standalone PWAs where
+  // visualViewport does NOT resize when the keyboard appears.
+  const isField = (el: EventTarget | null) =>
+    el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+
   const onFocusField = (e: React.FocusEvent) => {
+    if (!isField(e.target)) return;
+    setKbOpen(true);
     const el = e.target as HTMLElement;
-    if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
     setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
+  };
+
+  const onBlurField = () => {
+    setTimeout(() => { if (!isField(document.activeElement)) setKbOpen(false); }, 120);
   };
 
   if (!open) return null;
@@ -71,7 +79,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
             <Icon name="x" size={18} />
           </button>
         </div>
-        <div className="sheet-body" onFocus={onFocusField}>{children}</div>
+        <div className="sheet-body" onFocus={onFocusField} onBlur={onBlurField}>{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>
