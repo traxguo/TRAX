@@ -16,14 +16,6 @@ function MobileApp() {
     r.style.setProperty('--acc-deep', '#d11f2c');
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
-
-    const gap = Math.max(0, window.screen.height - window.innerHeight);
-    r.style.setProperty('--screen-gap', gap + 'px');
-    const phoneH = window.screen.height + 60;
-    r.style.setProperty('--phone-h', phoneH + 'px');
-    r.style.setProperty('--phone-ext', (phoneH - window.innerHeight) + 'px');
-    document.documentElement.style.minHeight = phoneH + 'px';
-    document.body.style.minHeight = phoneH + 'px';
   }, []);
 
   if (loading) return (

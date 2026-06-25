@@ -38,10 +38,8 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     };
     apply();
     vv.addEventListener('resize', apply);
-    vv.addEventListener('scroll', apply);
     return () => {
       vv.removeEventListener('resize', apply);
-      vv.removeEventListener('scroll', apply);
     };
   }, [open]);
 
