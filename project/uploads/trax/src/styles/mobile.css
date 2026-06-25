@@ -382,7 +382,7 @@ body {
 @keyframes fldUp  { from { transform: translateY(10px); } to { transform: none; } }
 
 /* ============ SHEETS ============ */
-.sheet-wrap { position: absolute; inset: 0; z-index: 70; display: flex; flex-direction: column; justify-content: flex-end; }
+.sheet-wrap { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 70; display: flex; flex-direction: column; justify-content: flex-end; }
 .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); opacity: 0; transition: opacity .24s; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 .sheet-wrap.in .sheet-backdrop { opacity: 1; }
 .sheet { position: relative; z-index: 1; max-height: 86%; display: flex; flex-direction: column;

@@ -12,8 +12,7 @@ interface SheetProps {
 
 export default function Sheet({ open, onClose, title, eyebrow, children, footer }: SheetProps) {
   const [vis, setVis] = useState(false);
-  const [kb, setKb] = useState(0);
-  const baseRef = useRef<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -23,24 +22,24 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     setVis(false);
   }, [open]);
 
-  // keyboard: shift sheet above the on-screen keyboard
+  // Pin the sheet to the *visible* viewport so it always sits above the keyboard.
   useEffect(() => {
-    if (!open) { baseRef.current = null; setKb(0); return; }
+    if (!open) return;
     const vv = window.visualViewport;
     if (!vv) return;
-    const ext = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phone-ext')) || 0;
-    const calc = () => {
-      const hidden = window.innerHeight - vv.height - vv.offsetTop;
-      if (baseRef.current === null) baseRef.current = hidden;
-      const raised = Math.max(0, hidden - (baseRef.current || 0));
-      setKb(raised > 40 ? raised + ext : 0);
+    const apply = () => {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+      wrap.style.height = vv.height + 'px';
+      wrap.style.top = vv.offsetTop + 'px';
+      wrap.style.bottom = 'auto';
     };
-    calc();
-    vv.addEventListener('resize', calc);
-    vv.addEventListener('scroll', calc);
+    apply();
+    vv.addEventListener('resize', apply);
+    vv.addEventListener('scroll', apply);
     return () => {
-      vv.removeEventListener('resize', calc);
-      vv.removeEventListener('scroll', calc);
+      vv.removeEventListener('resize', apply);
+      vv.removeEventListener('scroll', apply);
     };
   }, [open]);
 
@@ -52,13 +51,9 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
   };
 
   return (
-    <div className={'sheet-wrap' + (vis ? ' in' : '')}>
+    <div ref={wrapRef} className={'sheet-wrap' + (vis ? ' in' : '')}>
       <div className="sheet-backdrop" onClick={close} />
-      <div
-        className="sheet"
-        onClick={e => e.stopPropagation()}
-        style={kb > 0 ? { marginBottom: kb, maxHeight: `calc(86% - ${kb}px)` } : undefined}
-      >
+      <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-grip" />
         <div className="sheet-head">
           <div>

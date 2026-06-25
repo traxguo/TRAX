@@ -65,7 +65,7 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
         ? <Fld label={t.expiryLbl} icon="calendar" type="date" value={f.date} onChange={v => upd('date', v)} />
         : <Fld label={t.sessionsLbl} icon="dumbbell" type="number" value={f.adet} onChange={v => upd('adet', v)} placeholder="10" />}
 
-      <Fld label={t.trainerOptLbl} icon="award" value={f.trainer} onChange={v => upd('trainer', v)} placeholder="—" opt />
+      <Fld label={t.trainerOptLbl} icon="award" value={f.trainer} onChange={v => upd('trainer', v)} placeholder={t.trainerPH} opt />
 
       <div className="fld">
         <span className="fld-l">{t.scheduleDaysLbl} <span className="opt">{t.optional}</span></span>
