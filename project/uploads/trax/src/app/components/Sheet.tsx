@@ -12,6 +12,7 @@ interface SheetProps {
 
 export default function Sheet({ open, onClose, title, eyebrow, children, footer }: SheetProps) {
   const [vis, setVis] = useState(false);
+  const [kbOpen, setKbOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
 
   // Pin the sheet to the *visible* viewport so it always sits above the keyboard.
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setKbOpen(false); return; }
     const vv = window.visualViewport;
     if (!vv) return;
     const apply = () => {
@@ -33,6 +34,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
       wrap.style.height = vv.height + 'px';
       wrap.style.top = vv.offsetTop + 'px';
       wrap.style.bottom = 'auto';
+      setKbOpen(window.innerHeight - vv.height - vv.offsetTop > 100);
     };
     apply();
     vv.addEventListener('resize', apply);
@@ -43,6 +45,13 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     };
   }, [open]);
 
+  // Bring the focused field into view (covers Safari, which doesn't auto-scroll reliably).
+  const onFocusField = (e: React.FocusEvent) => {
+    const el = e.target as HTMLElement;
+    if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
+    setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
+  };
+
   if (!open) return null;
 
   const close = () => {
@@ -51,7 +60,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
   };
 
   return (
-    <div ref={wrapRef} className={'sheet-wrap' + (vis ? ' in' : '')}>
+    <div ref={wrapRef} className={'sheet-wrap' + (vis ? ' in' : '') + (kbOpen ? ' kb-open' : '')}>
       <div className="sheet-backdrop" onClick={close} />
       <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-grip" />
@@ -64,7 +73,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
             <Icon name="x" size={18} />
           </button>
         </div>
-        <div className="sheet-body">{children}</div>
+        <div className="sheet-body" onFocus={onFocusField}>{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>

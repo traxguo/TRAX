@@ -390,6 +390,7 @@ body {
   border-radius: 30px 30px 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -30px 70px rgba(0,0,0,0.6); transform: translateY(100%); transition: transform .26s cubic-bezier(.2,.8,.2,1); }
 .sheet-wrap.in .sheet { transform: none; }
+.sheet-wrap.kb-open .sheet { padding-bottom: 12px; max-height: 100%; }
 .sheet-grip { width: 40px; height: 5px; border-radius: 99px; background: var(--line-2); margin: 0 auto 12px; flex: none; }
 .sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex: none; }
 .sheet-eyebrow { font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--acc); font-weight: 700; margin-bottom: 3px; }
