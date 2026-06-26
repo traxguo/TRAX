@@ -101,8 +101,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
       </div>
       <div className="auth-inner">
         <div className="auth-brand">
-          <div className="auth-mark"><Icon name="bolt" size={26} stroke={2.2} /></div>
-          <div className="auth-word">TRA<b>X</b></div>
+          <img src="/wordmark.png" alt="TRAX" className="auth-logo" />
           <div className="auth-tag">{t.loginTagline}</div>
         </div>
         <form className="auth-card" onSubmit={submitReset}>
@@ -145,8 +144,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
 
       <div className="auth-inner">
         <div className="auth-brand">
-          <div className="auth-mark"><Icon name="bolt" size={26} stroke={2.2} /></div>
-          <div className="auth-word">TRA<b>X</b></div>
+          <img src="/wordmark.png" alt="TRAX" className="auth-logo" />
           <div className="auth-tag">{t.loginTagline}</div>
         </div>
 

@@ -360,6 +360,7 @@ body {
 .auth-word.sm { font-size: 24px; }
 .auth-word b { color: var(--acc); }
 .auth-tag { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--tx-3); font-weight: 600; margin-top: 6px; }
+.auth-logo { width: 188px; max-width: 64%; height: auto; display: block; margin: 0 auto 4px; }
 @keyframes markPulse { 0%,100% { box-shadow: 0 12px 30px var(--acc-glow), inset 0 1px 0 rgba(255,255,255,0.3); } 50% { box-shadow: 0 12px 44px var(--acc-glow), 0 0 0 6px rgba(var(--acc-rgb),0.08), inset 0 1px 0 rgba(255,255,255,0.3); } }
 
 .auth-card { position: relative; background: rgba(22,16,19,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);

@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png'],
+      includeAssets: ['favicon-32.png', 'favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'TRAX',
         short_name: 'TRAX',
@@ -17,7 +17,9 @@ export default defineConfig({
         theme_color: '#0b0809',
         start_url: '/',
         icons: [
-          { src: '/logo.png', sizes: 'any', type: 'image/png' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
