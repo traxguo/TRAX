@@ -43,10 +43,10 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
   const valid = f.name.trim().length > 1 && f.phone.trim().length > 5 && (f.plan === 'Aylık' ? !!f.date : Number(f.adet) > 0);
 
   return (
-    <Sheet open={open} onClose={onClose}
+    <Sheet open={open} onClose={onClose} fullscreen
       eyebrow={mode === 'edit' ? t.editEyebrow : t.newMemberEyebrow}
       title={mode === 'edit' ? (f.name || t.addMemberTitle) : t.addMemberTitle}>
-      <Fld label={t.fullNameLbl} icon="user" value={f.name} onChange={v => upd('name', v)} placeholder={t.fullNameLbl} autoFocus />
+      <Fld label={t.fullNameLbl} icon="user" value={f.name} onChange={v => upd('name', v)} placeholder={t.fullNameLbl} />
       <Fld label={t.phoneLbl} icon="phone" type="tel" value={f.phone} onChange={v => upd('phone', v)} placeholder="05__ ___ __ __" />
       <Fld label={t.emailLbl} icon="mail" type="email" value={f.email} onChange={v => upd('email', v)} placeholder="ornek@mail.com" opt />
 

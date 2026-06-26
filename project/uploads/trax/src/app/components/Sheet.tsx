@@ -8,9 +8,10 @@ interface SheetProps {
   eyebrow?: string;
   children: ReactNode;
   footer?: ReactNode;
+  fullscreen?: boolean;
 }
 
-export default function Sheet({ open, onClose, title, eyebrow, children, footer }: SheetProps) {
+export default function Sheet({ open, onClose, title, eyebrow, children, footer, fullscreen }: SheetProps) {
   const [vis, setVis] = useState(false);
   const [kbOpen, setKbOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -33,8 +34,9 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
   }, [open]);
 
   // Track the visible viewport so the sheet sits above the keyboard (Safari).
+  // Not needed for fullscreen — it already covers the whole screen.
   useEffect(() => {
-    if (!open) return;
+    if (!open || fullscreen) return;
     const vv = window.visualViewport;
     if (!vv) return;
     const apply = () => {
@@ -51,7 +53,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
       vv.removeEventListener('resize', apply);
       vv.removeEventListener('scroll', apply);
     };
-  }, [open]);
+  }, [open, fullscreen]);
 
   // Keyboard detection via focus — reliable in standalone PWAs where
   // visualViewport does NOT resize when the keyboard appears.
@@ -77,7 +79,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
   };
 
   return (
-    <div ref={wrapRef} className={'sheet-wrap' + (vis ? ' in' : '') + (kbOpen ? ' kb-open' : '')}>
+    <div ref={wrapRef} className={'sheet-wrap' + (vis ? ' in' : '') + (kbOpen ? ' kb-open' : '') + (fullscreen ? ' fullscreen' : '')}>
       <div className="sheet-backdrop" onClick={close} />
       <div className="sheet" onClick={e => e.stopPropagation()}>
         <div className="sheet-grip" />
