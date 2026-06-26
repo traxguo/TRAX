@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
+import { useInstall } from '../install';
 import type { Profile, Lang } from '../types';
 import { initials } from '../data';
 import Sheet from './Sheet';
@@ -25,6 +26,7 @@ function KV({ ico, k, v }: { ico: string; k: string; v: string }) {
 export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
   const { profile, updateProfile, logout, deleteAccount, members, lang, setLang } = useStore();
   const t = useT();
+  const { canInstall, trigger } = useInstall();
   const [edit, setEdit] = useState(false);
   const [f, setF] = useState<Profile | null>(profile);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -87,7 +89,12 @@ export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
               ))}
             </div>
           </div>
-          <button className="btn" style={{ marginTop: 16 }} onClick={() => setEdit(true)}>
+          {canInstall && (
+            <button className="btn" style={{ marginTop: 16 }} onClick={trigger}>
+              <Icon name="download" size={16} />{t.installRow}
+            </button>
+          )}
+          <button className="btn" style={{ marginTop: canInstall ? 10 : 16 }} onClick={() => setEdit(true)}>
             <Icon name="edit" size={15} />{t.editInfoBtn}
           </button>
           <button className="btn danger" style={{ marginTop: 10 }} onClick={logout}>

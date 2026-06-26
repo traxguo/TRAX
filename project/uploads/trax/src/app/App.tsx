@@ -5,6 +5,7 @@ import Onboarding from './components/Onboarding';
 import AppShell from './components/AppShell';
 import Icon from './components/Icon';
 import InstallBanner from './components/InstallBanner';
+import { InstallProvider } from './install';
 
 function MobileApp() {
   const { session, profile, login, signup, completeOnboarding, loading } = useStore();
@@ -47,7 +48,9 @@ function MobileApp() {
 export default function App() {
   return (
     <StoreProvider>
-      <MobileApp />
+      <InstallProvider>
+        <MobileApp />
+      </InstallProvider>
     </StoreProvider>
   );
 }

@@ -53,6 +53,7 @@ const en = {
   iosStep1:          'Tap the Share button in the toolbar',
   iosStep2:          'Choose “Add to Home Screen”',
   iosStep3:          'Tap “Add” — done!',
+  installRow:        'Add to home screen',
 
   // Status
   statusActive:   'Active',
@@ -298,6 +299,7 @@ const tr: typeof en = {
   iosStep1:          'Alttaki Paylaş butonuna dokun',
   iosStep2:          '“Ana Ekrana Ekle”yi seç',
   iosStep3:          '“Ekle”ye dokun — bitti!',
+  installRow:        'Ana ekrana ekle',
 
   // Status
   statusActive:   'Aktif',
