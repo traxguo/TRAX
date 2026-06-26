@@ -77,7 +77,7 @@ function relTime(startedAt: string) {
   return `${Math.floor(d / 30)} ay önce`;
 }
 
-export default function IncomePage({ onClose }: { onClose: () => void }) {
+export default function IncomePage({ onClose, onManage }: { onClose: () => void; onManage: () => void }) {
   const { fetchAllGyms } = useStore();
   const [gyms, setGyms] = useState<GymSummary[] | null>(null);
 
@@ -157,6 +157,11 @@ export default function IncomePage({ onClose }: { onClose: () => void }) {
         .feed-amount { font-family: monospace; font-size: 13px; color: #4ade80; font-weight: 500; }
         .feed-time { font-size: 10.5px; color: #555; margin-top: 1px; }
         .feed-empty { font-size: 12.5px; color: #5e5e5e; text-align: center; padding: 16px 0; }
+        .dash-manage { width: 100%; margin-top: 16px; padding: 15px; border-radius: 14px;
+          background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.22); color: #4ade80;
+          font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .dash-manage span { font-size: 18px; }
       `}</style>
 
       <div className="dash-inner">
@@ -212,6 +217,8 @@ export default function IncomePage({ onClose }: { onClose: () => void }) {
             {gyms !== null && feed.length === 0 && <div className="feed-empty">Henüz kayıt yok — ilk salon geldiğinde burada görünecek 🚀</div>}
           </div>
         </div>
+
+        <button className="dash-manage" onClick={onManage}>Salonları Yönet <span>›</span></button>
       </div>
     </div>
   );

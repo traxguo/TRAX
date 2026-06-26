@@ -3,7 +3,6 @@ import { useStore } from '../store';
 import { initials, colorFor } from '../data';
 import type { GymSummary, SubStatus } from '../types';
 import Icon from './Icon';
-import IncomePage from './IncomePage';
 
 function daysLeft(endDate: string): number {
   const end = new Date(endDate + 'T23:59:59');
@@ -47,7 +46,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<SubStatus | 'all'>('all');
   const [confirmDel, setConfirmDel] = useState(false);
-  const [showIncome, setShowIncome] = useState(false);
 
   const load = () => fetchAllGyms().then(setGyms).catch(e => setErr(String(e?.message || e)));
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
@@ -87,8 +85,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setBusy(false);
   }
 
-  if (showIncome) return <IncomePage onClose={() => setShowIncome(false)} />;
-
   return (
     <div className="admin">
       <div className="m-head detail-head">
@@ -104,10 +100,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
         {/* metrics */}
         <div className="adm-stats">
-          <div className="adm-stat" onClick={() => setShowIncome(true)} style={{ cursor: 'pointer', borderColor: 'rgba(74,222,128,0.3)' }}>
-            <div className="adm-v tnum" style={{ color: '#4ade80' }}>${mrr}</div>
-            <div className="adm-l">Aylık gelir (MRR) ›</div>
-          </div>
+          <div className="adm-stat"><div className="adm-v tnum" style={{ color: '#4ade80' }}>${mrr}</div><div className="adm-l">Aylık gelir (MRR)</div></div>
           <div className="adm-stat"><div className="adm-v tnum">{total}</div><div className="adm-l">Toplam salon</div></div>
           <div className="adm-stat"><div className="adm-v tnum" style={{ color: 'var(--ok)' }}>{activeCount}</div><div className="adm-l">Aktif abone</div></div>
           <div className="adm-stat"><div className="adm-v tnum" style={{ color: 'var(--warn)' }}>{trialCount}</div><div className="adm-l">Denemede</div></div>

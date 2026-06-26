@@ -751,7 +751,7 @@ html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100
 @keyframes bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 8px); } }
 
 /* ============ admin panel ============ */
-.admin { position: fixed; inset: 0; z-index: 80; background:
+.admin { position: fixed; inset: 0; z-index: 100; background:
   radial-gradient(460px 300px at 88% -8%, rgba(255,59,67,0.10), transparent 62%), var(--bg);
   display: flex; flex-direction: column; animation: mfade .26s; }
 .admin .m-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
