@@ -58,11 +58,16 @@ body {
 
 /* ---- header ---- */
 .m-head {
-  padding: max(52px, env(safe-area-inset-top, 0px) + 12px) 22px 8px;
+  /* browser tab: no notch, keep the top tight so there's no dead gap */
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 22px 8px;
   display: flex;
   align-items: center;
   gap: 12px;
   flex: none;
+}
+/* installed PWA: clear the status bar / notch (unchanged from before) */
+@media (display-mode: standalone) {
+  .m-head { padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 12px)); }
 }
 .m-head .eyebrow { font-size: 10.5px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--acc); font-weight: 700; margin-bottom: 7px; }
 .m-head .title-row { display: flex; align-items: center; gap: 11px; min-width: 0; }
