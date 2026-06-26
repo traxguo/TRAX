@@ -10,8 +10,21 @@ import {
   setPersistence,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import type { Member, Profile, Session, MemberFormData, Lang } from './types';
+import { doc, getDoc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
+import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymSummary } from './types';
+
+export const ADMIN_EMAIL = 'goktugslv@gmail.com';
+
+const TRIAL_DAYS = 14;
+const MONTHLY_PRICE_USD = 20;
+
+function isoDate(d: Date) { return d.toISOString().slice(0, 10); }
+
+function freshTrial(): Subscription {
+  const now = new Date();
+  const end = new Date(now.getTime() + TRIAL_DAYS * 864e5);
+  return { status: 'trial', endDate: isoDate(end), plan: 'monthly', priceUsd: MONTHLY_PRICE_USD, startedAt: isoDate(now) };
+}
 import { derivePlan, fmtDate, load, save, PLAN_LEN } from './utils';
 import { auth, db } from './firebase';
 
@@ -39,6 +52,11 @@ export interface StoreValue {
   removeDayFromMember: (memberId: number, day: number) => void;
   lang: Lang;
   setLang: (l: Lang) => void;
+  // subscription / admin
+  subscription: Subscription | null;
+  isAdmin: boolean;
+  fetchAllGyms: () => Promise<GymSummary[]>;
+  updateGymSubscription: (uid: string, patch: Partial<Subscription>) => Promise<void>;
 }
 
 const StoreCtx = createContext<StoreValue | null>(null);
@@ -55,6 +73,7 @@ function useStoreValue(): StoreValue {
   const [notifRead, setNotifRead] = useState(false);
   const [lang, setLangState] = useState<Lang>(() => load('trax_lang', 'en' as Lang));
   const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>({});
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   // undefined = Firebase still initializing, null = signed out, User = signed in
   const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(undefined);
@@ -79,11 +98,13 @@ function useStoreValue(): StoreValue {
             if (data.attendanceLog) setAttendanceLog(data.attendanceLog);
             if (data.notifRead !== undefined) setNotifRead(data.notifRead);
             if (data.lang)          setLangState(data.lang);
+            setSubscription(data.subscription || freshTrial());
           } else {
             setMembers([]);
             setProfile(null);
             setAttendanceLog({});
             setNotifRead(false);
+            setSubscription(freshTrial());
           }
           dataReadyRef.current = true;
         } catch (e) {
@@ -95,6 +116,7 @@ function useStoreValue(): StoreValue {
         setProfile(null);
         setAttendanceLog({});
         setNotifRead(false);
+        setSubscription(null);
       }
       setFirebaseUser(user);
     });
@@ -105,8 +127,9 @@ function useStoreValue(): StoreValue {
     if (!firebaseUser || !dataReadyRef.current) return;
     setDoc(doc(db, 'users', firebaseUser.uid), {
       members, profile, attendanceLog, notifRead, lang,
-    }).catch(e => console.error('Firestore sync failed:', e));
-  }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
+      subscription, email: firebaseUser.email || '',
+    }, { merge: true }).catch(e => console.error('Firestore sync failed:', e));
+  }, [members, profile, attendanceLog, notifRead, lang, subscription, firebaseUser]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -207,11 +230,37 @@ function useStoreValue(): StoreValue {
     ));
   }, []);
 
+  const isAdmin = (firebaseUser?.email || '').toLowerCase() === ADMIN_EMAIL;
+
+  // Admin: read every gym account (allowed by Firestore rules for the admin email)
+  const fetchAllGyms = useCallback(async (): Promise<GymSummary[]> => {
+    const snap = await getDocs(collection(db, 'users'));
+    return snap.docs.map(d => {
+      const data = d.data();
+      return {
+        uid: d.id,
+        email: data.email || data.profile?.email || '—',
+        salonName: data.profile?.salonName || '—',
+        city: data.profile?.city || '',
+        memberCount: Array.isArray(data.members) ? data.members.length : 0,
+        subscription: data.subscription || freshTrial(),
+      };
+    });
+  }, []);
+
+  const updateGymSubscription = useCallback(async (uid: string, patch: Partial<Subscription>) => {
+    await setDoc(doc(db, 'users', uid), { subscription: patch }, { merge: true });
+    if (firebaseUser && uid === firebaseUser.uid) {
+      setSubscription(prev => (prev ? { ...prev, ...patch } : prev));
+    }
+  }, [firebaseUser]);
+
   return {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,
+    subscription, isAdmin, fetchAllGyms, updateGymSubscription,
   };
 }
 

@@ -15,6 +15,7 @@ import NotifSheet from './NotifSheet';
 import ProfileSheet from './ProfileSheet';
 import MemberFormSheet from './MemberFormSheet';
 import ConfirmSheet from './ConfirmSheet';
+import AdminPanel from './AdminPanel';
 
 const TABS: { k: TabKey; ico: string }[] = [
   { k: 'home',     ico: 'grid' },
@@ -47,6 +48,7 @@ export default function AppShell() {
   const [sheet, setSheet] = useState<SheetKey>(null);
   const [editing, setEditing] = useState<Member | null>(null);
   const [deleting, setDeleting] = useState<Member | null>(null);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const owner = (profile?.ownerName) || 'Mert';
   const h = HEAD[tab];
@@ -121,7 +123,9 @@ export default function AppShell() {
 
       <SearchSheet open={sheet === 'search'} onClose={() => setSheet(null)} onOpenMember={openMember} />
       <NotifSheet  open={sheet === 'notif'}  onClose={() => setSheet(null)} onOpenMember={openMember} />
-      <ProfileSheet open={sheet === 'profile'} onClose={() => setSheet(null)} />
+      <ProfileSheet open={sheet === 'profile'} onClose={() => setSheet(null)}
+        onOpenAdmin={() => { setSheet(null); setShowAdmin(true); }} />
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
       <MemberFormSheet
         open={sheet === 'add'} onClose={() => setSheet(null)} mode="add"
         onSubmit={(f: MemberFormData) => addMember(f)} />

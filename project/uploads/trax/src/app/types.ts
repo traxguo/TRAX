@@ -33,6 +33,26 @@ export interface Profile {
   email: string;
 }
 
+export type SubStatus = 'trial' | 'active' | 'expired' | 'suspended';
+
+export interface Subscription {
+  status: SubStatus;
+  endDate: string;       // ISO YYYY-MM-DD — trial/paid period end
+  plan: string;          // e.g. 'monthly'
+  priceUsd: number;      // monthly price for revenue calc
+  startedAt: string;     // ISO when the gym first signed up
+}
+
+// One row in the admin panel — a summary of each gym account
+export interface GymSummary {
+  uid: string;
+  email: string;
+  salonName: string;
+  city: string;
+  memberCount: number;
+  subscription: Subscription;
+}
+
 export interface Session {
   email: string;
   at: number;

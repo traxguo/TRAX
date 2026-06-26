@@ -11,6 +11,7 @@ import Icon from './Icon';
 interface ProfileSheetProps {
   open: boolean;
   onClose: () => void;
+  onOpenAdmin?: () => void;
 }
 
 function KV({ ico, k, v }: { ico: string; k: string; v: string }) {
@@ -23,8 +24,8 @@ function KV({ ico, k, v }: { ico: string; k: string; v: string }) {
   );
 }
 
-export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
-  const { profile, updateProfile, logout, deleteAccount, members, lang, setLang } = useStore();
+export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileSheetProps) {
+  const { profile, updateProfile, logout, deleteAccount, members, lang, setLang, isAdmin } = useStore();
   const t = useT();
   const { canInstall, trigger } = useInstall();
   const [edit, setEdit] = useState(false);
@@ -89,8 +90,13 @@ export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
               ))}
             </div>
           </div>
+          {isAdmin && onOpenAdmin && (
+            <button className="btn" style={{ marginTop: 16, color: 'var(--acc)', borderColor: 'rgba(var(--acc-rgb),0.3)' }} onClick={onOpenAdmin}>
+              <Icon name="grid" size={16} />Yönetici Paneli
+            </button>
+          )}
           {canInstall && (
-            <button className="btn" style={{ marginTop: 16 }} onClick={trigger}>
+            <button className="btn" style={{ marginTop: isAdmin ? 10 : 16 }} onClick={trigger}>
               <Icon name="download" size={16} />{t.installRow}
             </button>
           )}
