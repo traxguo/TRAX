@@ -14,15 +14,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script>
-    /* iOS viewport-fit=cover: extend phone below the viewport so the bottom
-       nav sits on top of the home indicator with no black gap. Must run
-       before React renders to avoid a layout flash. */
+    /* iOS installed PWA only: extend phone below the viewport so the bottom
+       nav sits on the home indicator with no black gap. In a browser tab
+       innerHeight is shrunk by the toolbars, which would make --phone-ext
+       huge and push the nav up — so there we use 0 and rely on 100dvh. */
     (function(){
-      var h = window.screen.height + 60;
       var r = document.documentElement;
-      r.style.setProperty('--phone-h', h + 'px');
-      r.style.setProperty('--phone-ext', (h - window.innerHeight) + 'px');
-      r.style.minHeight = h + 'px';
+      var standalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+      if (standalone) {
+        var h = window.screen.height + 60;
+        r.style.setProperty('--phone-h', h + 'px');
+        r.style.setProperty('--phone-ext', (h - window.innerHeight) + 'px');
+        r.style.minHeight = h + 'px';
+      } else {
+        r.style.setProperty('--phone-ext', '0px');
+      }
     })();
   </script>
 </head>

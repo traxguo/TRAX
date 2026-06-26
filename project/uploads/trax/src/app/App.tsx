@@ -17,12 +17,21 @@ function MobileApp() {
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
 
-    // iOS: keep --phone-ext / --phone-h in sync on resize & orientation
+    // Keep --phone-ext / --phone-h in sync. Only the installed PWA uses the
+    // extend-below-viewport hack; a browser tab uses 0 + 100dvh fallback.
     const sync = () => {
-      const h = window.screen.height + 60;
-      r.style.setProperty('--phone-h', h + 'px');
-      r.style.setProperty('--phone-ext', (h - window.innerHeight) + 'px');
-      r.style.minHeight = h + 'px';
+      const standalone = window.matchMedia('(display-mode: standalone)').matches
+        || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+      if (standalone) {
+        const h = window.screen.height + 60;
+        r.style.setProperty('--phone-h', h + 'px');
+        r.style.setProperty('--phone-ext', (h - window.innerHeight) + 'px');
+        r.style.minHeight = h + 'px';
+      } else {
+        r.style.setProperty('--phone-ext', '0px');
+        r.style.removeProperty('--phone-h');
+        r.style.minHeight = '';
+      }
     };
     sync();
     window.addEventListener('resize', sync);
