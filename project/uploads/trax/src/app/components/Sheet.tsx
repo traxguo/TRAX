@@ -23,7 +23,16 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     setVis(false);
   }, [open]);
 
-  // Pin the sheet to the *visible* viewport so it always sits above the keyboard (Safari).
+  // Hard-lock the background while the sheet is open. Without this, iOS
+  // scrolls the whole page when the keyboard opens and everything jumps.
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    html.classList.add('modal-lock');
+    return () => { html.classList.remove('modal-lock'); setKbOpen(false); };
+  }, [open]);
+
+  // Track the visible viewport so the sheet sits above the keyboard (Safari).
   useEffect(() => {
     if (!open) return;
     const vv = window.visualViewport;
@@ -37,10 +46,12 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     };
     apply();
     vv.addEventListener('resize', apply);
-    return () => vv.removeEventListener('resize', apply);
+    vv.addEventListener('scroll', apply);
+    return () => {
+      vv.removeEventListener('resize', apply);
+      vv.removeEventListener('scroll', apply);
+    };
   }, [open]);
-
-  useEffect(() => { if (!open) setKbOpen(false); }, [open]);
 
   // Keyboard detection via focus — reliable in standalone PWAs where
   // visualViewport does NOT resize when the keyboard appears.
@@ -51,7 +62,7 @@ export default function Sheet({ open, onClose, title, eyebrow, children, footer 
     if (!isField(e.target)) return;
     setKbOpen(true);
     const el = e.target as HTMLElement;
-    setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
+    setTimeout(() => el.scrollIntoView({ block: 'center' }), 280);
   };
 
   const onBlurField = () => {

@@ -383,7 +383,9 @@ body {
 
 /* ============ SHEETS ============ */
 .sheet-wrap { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 70; display: flex; flex-direction: column; justify-content: flex-end; }
-.sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); opacity: 0; transition: opacity .24s; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); opacity: 0; transition: opacity .24s; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); touch-action: none; }
+/* lock the background completely while a sheet is open (stops iOS page-scroll jank) */
+html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100% !important; overscroll-behavior: none !important; }
 .sheet-wrap.in .sheet-backdrop { opacity: 1; }
 .sheet { position: relative; z-index: 1; max-height: 86%; display: flex; flex-direction: column;
   background: linear-gradient(180deg, #1c1418, var(--bg) 60%); border: 1px solid var(--line-2); border-bottom: none;
