@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store';
+import { initials, colorFor } from '../data';
 import type { GymSummary, SubStatus } from '../types';
 import Icon from './Icon';
 
@@ -28,13 +29,23 @@ function isoPlusDays(from: string, days: number) {
   return new Date(start.getTime() + days * 864e5).toISOString().slice(0, 10);
 }
 
+const FILTERS: { k: SubStatus | 'all'; l: string }[] = [
+  { k: 'all', l: 'Tümü' },
+  { k: 'active', l: 'Aktif' },
+  { k: 'trial', l: 'Deneme' },
+  { k: 'expired', l: 'Süresi doldu' },
+  { k: 'suspended', l: 'Askıda' },
+];
+
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
-  const { fetchAllGyms, updateGymSubscription } = useStore();
+  const { fetchAllGyms, updateGymSubscription, deleteGym } = useStore();
   const [gyms, setGyms] = useState<GymSummary[] | null>(null);
   const [err, setErr] = useState('');
   const [sel, setSel] = useState<GymSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
+  const [filter, setFilter] = useState<SubStatus | 'all'>('all');
+  const [confirmDel, setConfirmDel] = useState(false);
 
   const load = () => fetchAllGyms().then(setGyms).catch(e => setErr(String(e?.message || e)));
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
@@ -44,11 +55,11 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const trialCount = gyms?.filter(g => effStatus(g) === 'trial').length ?? 0;
   const mrr = gyms?.filter(g => effStatus(g) === 'active').reduce((s, g) => s + (g.subscription.priceUsd || 0), 0) ?? 0;
 
-  const list = (gyms || []).filter(g =>
-    !q.trim() ||
-    g.salonName.toLowerCase().includes(q.toLowerCase()) ||
-    g.email.toLowerCase().includes(q.toLowerCase())
-  ).sort((a, b) => daysLeft(a.subscription.endDate) - daysLeft(b.subscription.endDate));
+  const list = (gyms || []).filter(g => {
+    if (filter !== 'all' && effStatus(g) !== filter) return false;
+    if (!q.trim()) return true;
+    return g.salonName.toLowerCase().includes(q.toLowerCase()) || g.email.toLowerCase().includes(q.toLowerCase());
+  }).sort((a, b) => daysLeft(a.subscription.endDate) - daysLeft(b.subscription.endDate));
 
   async function act(patch: Partial<GymSummary['subscription']>) {
     if (!sel) return;
@@ -62,6 +73,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   }
 
   const extend = (days: number) => sel && act({ status: 'active', endDate: isoPlusDays(sel.subscription.endDate, days) });
+
+  async function doDelete() {
+    if (!sel) return;
+    setBusy(true);
+    try {
+      await deleteGym(sel.uid);
+      setGyms(gs => gs?.filter(g => g.uid !== sel.uid) ?? null);
+      setSel(null); setConfirmDel(false);
+    } catch (e) { setErr(String((e as Error)?.message || e)); }
+    setBusy(false);
+  }
 
   return (
     <div className="admin">
@@ -92,6 +114,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           {q && <button className="fld-eye" onClick={() => setQ('')}><Icon name="x" size={15} /></button>}
         </div>
 
+        <div className="filter-rail">
+          {FILTERS.map(f => (
+            <button key={f.k} className={'fchip' + (filter === f.k ? ' on' : '')} onClick={() => setFilter(f.k)}>
+              {f.l}
+            </button>
+          ))}
+        </div>
+
         {gyms === null && !err && (
           <div className="row" style={{ justifyContent: 'center', padding: '30px 0' }}><span className="spin" /></div>
         )}
@@ -102,8 +132,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             const meta = STATUS_META[st];
             const dl = daysLeft(g.subscription.endDate);
             return (
-              <div key={g.uid} className="mcard" onClick={() => setSel(g)}>
-                <div className="info" style={{ marginLeft: 2 }}>
+              <div key={g.uid} className="mcard" onClick={() => { setSel(g); setConfirmDel(false); }}>
+                <div className="av-m" style={{ background: colorFor(g.salonName) }}>{initials(g.salonName)}</div>
+                <div className="info">
                   <div className="nm">{g.salonName}</div>
                   <div className="kalan tnum" style={{ fontSize: 12 }}>{g.email} · {g.memberCount} üye</div>
                 </div>
@@ -139,6 +170,24 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             {effStatus(sel) === 'suspended'
               ? <button className="btn" style={{ marginTop: 8, color: 'var(--ok)' }} disabled={busy} onClick={() => act({ status: 'active' })}>Aktifleştir</button>
               : <button className="btn danger" style={{ marginTop: 8 }} disabled={busy} onClick={() => act({ status: 'suspended' })}>Hesabı askıya al</button>}
+
+            {!confirmDel ? (
+              <button className="btn" style={{ marginTop: 8, color: 'var(--bad)', fontSize: 13 }} disabled={busy} onClick={() => setConfirmDel(true)}>
+                Hesabı kalıcı sil
+              </button>
+            ) : (
+              <div style={{ marginTop: 8, background: 'rgba(255,77,82,0.08)', border: '1px solid rgba(255,77,82,0.25)', borderRadius: 12, padding: 12 }}>
+                <div style={{ fontSize: 12.5, color: 'var(--tx-2)', marginBottom: 10, lineHeight: 1.4 }}>
+                  Bu salonun <b>tüm verisi</b> (üyeler dahil) kalıcı silinecek. Geri alınamaz.
+                </div>
+                <div className="row" style={{ gap: 8 }}>
+                  <button className="btn" style={{ flex: 1, fontSize: 13 }} disabled={busy} onClick={() => setConfirmDel(false)}>Vazgeç</button>
+                  <button className="btn danger" style={{ flex: 1, fontSize: 13 }} disabled={busy} onClick={doDelete}>
+                    {busy ? <span className="spin" /> : 'Evet, sil'}
+                  </button>
+                </div>
+              </div>
+            )}
             <button className="btn" style={{ marginTop: 8 }} disabled={busy} onClick={() => setSel(null)}>Kapat</button>
           </div>
         </div>

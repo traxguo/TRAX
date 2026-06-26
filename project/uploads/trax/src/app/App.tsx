@@ -4,10 +4,11 @@ import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import AppShell from './components/AppShell';
 import InstallBanner from './components/InstallBanner';
+import SubLock from './components/SubLock';
 import { InstallProvider } from './install';
 
 function MobileApp() {
-  const { session, profile, login, signup, completeOnboarding, loading } = useStore();
+  const { session, profile, login, signup, completeOnboarding, loading, subBlocked } = useStore();
 
   useEffect(() => {
     const r = document.documentElement;
@@ -58,6 +59,7 @@ function MobileApp() {
 
   if (!session) return <Login onLogin={login} onSignup={signup} />;
   if (!profile)  return <Onboarding email={session.email} onComplete={completeOnboarding} />;
+  if (subBlocked) return <SubLock />;
   return (
     <>
       <AppShell />

@@ -54,9 +54,11 @@ export interface StoreValue {
   setLang: (l: Lang) => void;
   // subscription / admin
   subscription: Subscription | null;
+  subBlocked: boolean;
   isAdmin: boolean;
   fetchAllGyms: () => Promise<GymSummary[]>;
   updateGymSubscription: (uid: string, patch: Partial<Subscription>) => Promise<void>;
+  deleteGym: (uid: string) => Promise<void>;
 }
 
 const StoreCtx = createContext<StoreValue | null>(null);
@@ -255,12 +257,25 @@ function useStoreValue(): StoreValue {
     }
   }, [firebaseUser]);
 
+  const deleteGym = useCallback(async (uid: string) => {
+    await deleteDoc(doc(db, 'users', uid));
+  }, []);
+
+  // Lock the app when the period has ended or the account is suspended.
+  // Admin is always exempt; null subscription means "still loading".
+  const subBlocked = (() => {
+    if (isAdmin || !subscription) return false;
+    if (subscription.status === 'suspended') return true;
+    const end = new Date(subscription.endDate + 'T23:59:59').getTime();
+    return Date.now() > end;
+  })();
+
   return {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,
-    subscription, isAdmin, fetchAllGyms, updateGymSubscription,
+    subscription, subBlocked, isAdmin, fetchAllGyms, updateGymSubscription, deleteGym,
   };
 }
 

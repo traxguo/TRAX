@@ -763,3 +763,7 @@ html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100
 .adm-kv { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .adm-kv:last-of-type { border-bottom: none; }
 .adm-kv span { color: var(--tx-2); }
+
+/* subscription lock screen */
+.lock-mark { width: 58px; height: 58px; border-radius: 18px; margin: 0 auto; display: grid; place-items: center;
+  color: var(--acc); background: var(--acc-dim); border: 1px solid rgba(var(--acc-rgb),0.3); }

@@ -54,6 +54,11 @@ const en = {
   iosStep2:          'Choose “Add to Home Screen”',
   iosStep3:          'Tap “Add” — done!',
   installRow:        'Add to home screen',
+  subEndedTitle:     'Subscription ended',
+  subEndedBody:      'Your access has paused because the subscription period ended. Renew to continue managing your studio.',
+  subSuspendedTitle: 'Account suspended',
+  subSuspendedBody:  'Your account has been temporarily suspended. Please get in touch to reactivate it.',
+  subRenewBtn:       'Renew / Contact',
 
   // Status
   statusActive:   'Active',
@@ -300,6 +305,11 @@ const tr: typeof en = {
   iosStep2:          '“Ana Ekrana Ekle”yi seç',
   iosStep3:          '“Ekle”ye dokun — bitti!',
   installRow:        'Ana ekrana ekle',
+  subEndedTitle:     'Abonelik sona erdi',
+  subEndedBody:      'Abonelik süren bittiği için erişimin durduruldu. Devam etmek için aboneliğini yenile.',
+  subSuspendedTitle: 'Hesap askıya alındı',
+  subSuspendedBody:  'Hesabın geçici olarak askıya alındı. Yeniden açmak için lütfen iletişime geç.',
+  subRenewBtn:       'Yenile / İletişim',
 
   // Status
   statusActive:   'Aktif',
