@@ -16,6 +16,21 @@ function MobileApp() {
     r.style.setProperty('--acc-deep', '#d11f2c');
     r.style.setProperty('--acc-dim',  'rgba(255,59,67,0.14)');
     r.style.setProperty('--acc-glow', 'rgba(255,59,67,0.42)');
+
+    // iOS: keep --phone-ext / --phone-h in sync on resize & orientation
+    const sync = () => {
+      const h = window.screen.height + 60;
+      r.style.setProperty('--phone-h', h + 'px');
+      r.style.setProperty('--phone-ext', (h - window.innerHeight) + 'px');
+      r.style.minHeight = h + 'px';
+    };
+    sync();
+    window.addEventListener('resize', sync);
+    window.addEventListener('orientationchange', sync);
+    return () => {
+      window.removeEventListener('resize', sync);
+      window.removeEventListener('orientationchange', sync);
+    };
   }, []);
 
   if (loading) return (
