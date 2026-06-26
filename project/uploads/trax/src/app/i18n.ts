@@ -43,6 +43,17 @@ const en = {
   undoBtn:      'Undo',
   shareBtn:     'Share',
 
+  // Install banner / iOS guide
+  installTitle:      'Install TRAX',
+  installSubAndroid: 'Add to home screen for quick access',
+  installSubIos:     'Tap to see how',
+  installBtn:        'Install',
+  installHowBtn:     'How',
+  iosGuideTitle:     'Add to Home Screen',
+  iosStep1:          'Tap the Share button in the toolbar',
+  iosStep2:          'Choose “Add to Home Screen”',
+  iosStep3:          'Tap “Add” — done!',
+
   // Status
   statusActive:   'Active',
   statusExpiring: 'Expiring',
@@ -276,6 +287,17 @@ const tr: typeof en = {
   deletedToast: (name: string) => `${name} silindi`,
   undoBtn:      'Geri al',
   shareBtn:     'Paylaş',
+
+  // Install banner / iOS guide
+  installTitle:      'TRAX’ı Yükle',
+  installSubAndroid: 'Ana ekrana ekleyerek hızlı eriş',
+  installSubIos:     'Nasıl yapılır gör',
+  installBtn:        'Yükle',
+  installHowBtn:     'Nasıl',
+  iosGuideTitle:     'Ana Ekrana Ekle',
+  iosStep1:          'Alttaki Paylaş butonuna dokun',
+  iosStep2:          '“Ana Ekrana Ekle”yi seç',
+  iosStep3:          '“Ekle”ye dokun — bitti!',
 
   // Status
   statusActive:   'Aktif',
