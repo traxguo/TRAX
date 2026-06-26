@@ -3,7 +3,6 @@ import { StoreProvider, useStore } from './store';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import AppShell from './components/AppShell';
-import Icon from './components/Icon';
 import InstallBanner from './components/InstallBanner';
 import { InstallProvider } from './install';
 
@@ -27,9 +26,7 @@ function MobileApp() {
         <span className="auth-grid" />
       </div>
       <div className="auth-inner" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div className="auth-mark" style={{ marginBottom: 0 }}>
-          <Icon name="bolt" size={26} stroke={2.2} />
-        </div>
+        <img src="/icon-192.png" alt="TRAX" style={{ width: 88, height: 88, borderRadius: 22 }} />
         <div style={{ marginTop: 24 }}><span className="spin" style={{ width: 28, height: 28, borderWidth: 3 }} /></div>
       </div>
     </div>

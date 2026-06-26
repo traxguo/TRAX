@@ -72,7 +72,9 @@ export default function AppShell() {
                 ? <div className="eyebrow">{t.hello(owner)}</div>
                 : <div className="eyebrow">{h.eyebrow}</div>}
               <div className="title-row">
-                <h1>{tab === 'home' ? <>TRA<b>X</b></> : h.title}</h1>
+                {tab === 'home'
+                  ? <img src="/wordmark.png" alt="TRAX" className="head-logo" />
+                  : <h1>{h.title}</h1>}
                 {h.hasCount && <span className="count-chip tnum">{t.memberCount(members.length)}</span>}
               </div>
             </div>
