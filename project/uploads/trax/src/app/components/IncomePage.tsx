@@ -92,14 +92,15 @@ export default function IncomePage({ onClose, onManage }: { onClose: () => void;
   const animatedMrr = useAnimatedNumber(mrr, 1100);
   const animatedCustomers = useAnimatedNumber(customers, 700);
 
-  // growth curve rising to the real MRR (visual trajectory to "today")
+  // honest curve: flat baseline at $0, real growth trajectory once revenue exists
   const history = useMemo(() => {
-    const end = Math.max(mrr, 50);
-    const start = end * 0.42;
+    if (mrr <= 0) return Array.from({ length: 24 }, () => 0);
+    const end = mrr, start = end * 0.42;
     return Array.from({ length: 24 }, (_, i) => start + (end - start) * (i / 23) + Math.sin(i / 2) * end * 0.018);
   }, [mrr]);
   const bounds = useMemo(() => {
     const dataMin = Math.min(...history), dataMax = Math.max(...history);
+    if (dataMax <= 0) return { min: 0, max: 100 };
     return { min: dataMin * 0.92, max: dataMax + (dataMax - dataMin) * 0.25 };
   }, [history]);
 
@@ -209,7 +210,9 @@ export default function IncomePage({ onClose, onManage }: { onClose: () => void;
                   </div>
                 </div>
                 <div className="feed-right">
-                  <div className="feed-amount">+{fmtMoney(g.subscription.priceUsd || 0)}</div>
+                  {effStatus(g) === 'active'
+                    ? <div className="feed-amount">+{fmtMoney(g.subscription.priceUsd || 0)}</div>
+                    : <div className="feed-amount" style={{ color: '#6b6b6b' }}>—</div>}
                   <div className="feed-time">{relTime(g.subscription.startedAt)}</div>
                 </div>
               </div>

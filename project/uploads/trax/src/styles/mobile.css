@@ -751,10 +751,18 @@ html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100
 @keyframes bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 8px); } }
 
 /* ============ admin panel ============ */
-.admin { position: fixed; inset: 0; z-index: 100; background:
-  radial-gradient(460px 300px at 88% -8%, rgba(255,59,67,0.10), transparent 62%), var(--bg);
+.admin {
+  /* green-themed scope: override the accent so every red highlight turns green */
+  --acc: #4ade80; --acc-rgb: 74,222,128; --acc-deep: #22c55e;
+  --acc-dim: rgba(74,222,128,0.14); --acc-glow: rgba(74,222,128,0.42);
+  position: fixed; inset: 0; z-index: 100;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(74,222,128,0.10), transparent),
+    linear-gradient(180deg, #0d0d0d 0%, #080808 100%);
   display: flex; flex-direction: column; animation: mfade .26s; }
 .admin .m-screen { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.admin .adm-stat { background: linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012)); border-color: rgba(255,255,255,0.07); }
+.admin .mcard { background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); }
 .adm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .adm-stat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
 .adm-v { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }

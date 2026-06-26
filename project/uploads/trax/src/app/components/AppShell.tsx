@@ -79,7 +79,7 @@ export default function AppShell() {
                 {tab === 'home'
                   ? <img src="/wordmark.png" alt="TRAX" className="head-logo" />
                   : <h1>{h.title}</h1>}
-                {h.hasCount && <span className="count-chip tnum">{t.memberCount(members.length)}</span>}
+                {h.hasCount && <span className="count-chip tnum">{members.length}</span>}
               </div>
             </div>
             <div className="actions">
