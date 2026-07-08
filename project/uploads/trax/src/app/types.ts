@@ -14,9 +14,11 @@ export interface Member {
   kind: MemberKind;
   adet?: number;
   status: MemberStatus;
-  joined: string;
-  expires: string;
-  daysLeft: number;
+  joined: string;       // legacy display string (TR); prefer joinedAt
+  joinedAt?: string;    // ISO YYYY-MM-DD — source of truth
+  expires: string;      // legacy display string (TR); prefer expiresAt
+  expiresAt?: string;   // ISO YYYY-MM-DD — source of truth for expiry
+  daysLeft: number;     // recomputed from expiresAt on every load
   lastVisit: string;
   visits: number;
   attendance: number;

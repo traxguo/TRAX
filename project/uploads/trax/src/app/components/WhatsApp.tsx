@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
-import { glowOf } from '../utils';
+import { glowOf, waPhone } from '../utils';
 import { colorFor, initials } from '../data';
 import type { Member } from '../types';
 import Icon from './Icon';
@@ -10,7 +10,7 @@ import Empty from './Empty';
 type TemplateId = 'renew' | 'winback' | 'welcome';
 
 export default function WhatsApp() {
-  const { members } = useStore();
+  const { members, lang } = useStore();
   const t = useT();
   const [tmpl, setTmpl] = useState<TemplateId>('renew');
 
@@ -18,7 +18,10 @@ export default function WhatsApp() {
     {
       id: 'renew' as TemplateId, name: t.tmplRenewName, tag: 'warn',
       body: <span>{t.tmplRenewBody('{name}', '{kalan}').split('{name}').join('').split('{kalan}').join('')}</span>,
-      getText: (m: Member) => t.tmplRenewBody(m.name.split(' ')[0], t.kalan(m)),
+      // "expires in 15 days ago" reads broken — expired members get the win-back text
+      getText: (m: Member) => glowOf(m) === 's-red'
+        ? t.tmplWinbackBody(m.name.split(' ')[0])
+        : t.tmplRenewBody(m.name.split(' ')[0], t.kalan(m)),
     },
     {
       id: 'winback' as TemplateId, name: t.tmplWinback, tag: 'bad',
@@ -33,7 +36,7 @@ export default function WhatsApp() {
   ];
 
   function waUrl(m: Member, getText: (m: Member) => string) {
-    const phone = '90' + m.phone.replace(/\D/g, '').replace(/^0/, '');
+    const phone = waPhone(m.phone, lang);
     return `https://wa.me/${phone}?text=${encodeURIComponent(getText(m))}`;
   }
   const targets = members.filter(m => glowOf(m) === 's-red' || glowOf(m) === 's-yellow');

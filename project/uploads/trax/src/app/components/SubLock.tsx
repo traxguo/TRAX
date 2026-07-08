@@ -21,8 +21,8 @@ export default function SubLock() {
           <div className="auth-sub" style={{ marginBottom: 18 }}>
             {suspended ? t.subSuspendedBody : t.subEndedBody}
           </div>
-          <a className="btn primary" href="https://wa.me/905000000000" target="_blank" rel="noreferrer">
-            <Icon name="whatsapp" size={17} />{t.subRenewBtn}
+          <a className="btn primary" href="mailto:traxguo@gmail.com?subject=TRAX%20Renewal">
+            <Icon name="mail" size={17} />{t.subRenewBtn}
           </a>
           <button className="btn" style={{ marginTop: 10 }} onClick={logout}>
             <Icon name="logout" size={16} />{t.logoutBtn}

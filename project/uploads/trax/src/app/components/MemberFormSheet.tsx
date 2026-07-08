@@ -30,7 +30,8 @@ export default function MemberFormSheet({ open, onClose, initial, onSubmit, mode
         name: initial.name || '', phone: initial.phone || '', email: initial.email || '',
         trainer: initial.trainer && initial.trainer !== '—' ? initial.trainer : '',
         plan: isPaket ? 'Paket' : 'Aylık',
-        date: new Date(Date.now() + dl * 864e5).toISOString().slice(0, 10),
+        // real expiry date — falling back to daysLeft-from-today silently extended memberships
+        date: initial.expiresAt || new Date(Date.now() + dl * 864e5).toISOString().slice(0, 10),
         adet: isPaket ? String(initial.adet || 10) : '10',
         days: initial.days || [],
       });

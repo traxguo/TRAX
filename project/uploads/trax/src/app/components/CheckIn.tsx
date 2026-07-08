@@ -1,33 +1,11 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
+import { toKey, toDow, getWeek } from '../utils';
 import { colorFor, initials } from '../data';
 import Icon from './Icon';
 import QRScanner from './QRScanner';
 import Empty from './Empty';
-
-function toKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function getWeek(today: Date): Date[] {
-  const dow = today.getDay();
-  const offset = dow === 0 ? -6 : 1 - dow;
-  const mon = new Date(today);
-  mon.setDate(today.getDate() + offset);
-  mon.setHours(0, 0, 0, 0);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(mon);
-    d.setDate(mon.getDate() + i);
-    return d;
-  });
-}
-
-// JS: 0=Sun,1=Mon... → our: 0=Mon...6=Sun
-function toDow(d: Date) {
-  const js = d.getDay();
-  return js === 0 ? 6 : js - 1;
-}
 
 export default function CheckIn() {
   const [tab, setTab] = useState<'calendar' | 'qr'>('calendar');
@@ -54,7 +32,7 @@ export default function CheckIn() {
   const addable   = isAll ? [] : nonFrozen.filter(m => !(m.days || []).includes(selDow));
 
   const dayIdx  = isAll ? -1 : week.findIndex(d => toKey(d) === selKey);
-  const dayName = isAll ? 'Tüm Hafta' : (DAYS[dayIdx] ?? '');
+  const dayName = isAll ? t.allWeekTitle : (DAYS[dayIdx] ?? '');
   const dateStr = isAll ? '' : `${selDate.getDate()} ${MONTHS[selDate.getMonth()]}`;
 
   function selectDay(k: string) {

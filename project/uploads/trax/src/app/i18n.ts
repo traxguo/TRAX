@@ -105,6 +105,9 @@ const en = {
   alreadyIn:      'Already checked in',
   camError:       'Camera access denied. Please enable in settings.',
   qrPackageEnded: '⚠️ Package ended — update the package',
+  qrExpiredWarn:  '⚠️ Membership expired — renewal needed',
+  qrFrozenWarn:   '⚠️ Membership is frozen',
+  allWeekTitle:   'All Week',
 
   // Member QR
   memberQR:       'Member QR Code',
@@ -356,6 +359,9 @@ const tr: typeof en = {
   alreadyIn:      'Zaten giriş yapmış',
   camError:       'Kamera erişimi reddedildi. Ayarlardan izin verin.',
   qrPackageEnded: '⚠️ Paket bitti — paketi güncelle',
+  qrExpiredWarn:  '⚠️ Üyelik süresi dolmuş — yenileme gerekli',
+  qrFrozenWarn:   '⚠️ Üyelik dondurulmuş',
+  allWeekTitle:   'Tüm Hafta',
 
   // Member QR
   memberQR:       'Üye QR Kodu',

@@ -26,9 +26,11 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'firebase-cache', networkTimeoutSeconds: 10 },
+            // fonts only — Firestore/auth must never be served from SW cache
+            // (Firestore has its own IndexedDB offline persistence)
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: { cacheName: 'google-fonts', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
           },
         ],
       },

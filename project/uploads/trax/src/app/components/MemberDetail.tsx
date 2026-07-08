@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { useStore } from '../store';
 import { useT } from '../i18n';
-import { glowOf, PLAN_LEN } from '../utils';
+import { glowOf, PLAN_LEN, waPhone, fmtIso } from '../utils';
 import { colorFor, initials } from '../data';
 import type { Member } from '../types';
 import Icon from './Icon';
@@ -22,7 +22,7 @@ interface DetailProps {
 }
 
 export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps) {
-  const { members, renewMember, attendanceLog } = useStore();
+  const { members, renewMember, attendanceLog, lang } = useStore();
   const t = useT();
   const m = members.find(x => x.id === id);
   const [renewed, setRenewed] = useState(false);
@@ -37,7 +37,8 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
     }).then(setQrUrl);
   }, [showQR, m?.id]);
 
-  if (!m) { back(); return null; }
+  useEffect(() => { if (!m) back(); }, [m, back]);
+  if (!m) return null;
 
   async function shareQR() {
     if (!qrUrl || !m) return;
@@ -59,18 +60,28 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
   const pct = m.daysLeft < 0 ? 100 : Math.max(5, Math.min(100, Math.round((1 - m.daysLeft / len) * 100)));
 
   // real check-in history from attendance log (latest first)
-  const myDates = Object.keys(attendanceLog)
+  const allDates = Object.keys(attendanceLog)
     .filter(k => (attendanceLog[k] || []).includes(m.id))
-    .sort().reverse().slice(0, 5);
+    .sort().reverse();
+  const myDates = allDates.slice(0, 5);
   const history = [
     ...myDates.map(k => {
       const [y, mo, da] = k.split('-').map(Number);
       return { ico: 'scan', acc: true, t: t.checkedIn, s: `${da} ${t.months12s[mo - 1]} ${y}` };
     }),
-    { ico: 'plus', acc: false, t: t.memberCreated, s: m.joined },
+    { ico: 'plus', acc: false, t: t.memberCreated, s: fmtIso(m.joinedAt, m.joined, t.months12s) },
   ];
 
-  const phone = '90' + (m.phone || '').replace(/\D/g, '').replace(/^0/, '');
+  // live stats from the attendance log (stored visits/attendance are never updated)
+  const realVisits = allDates.length;
+  const cutoff = new Date(Date.now() - 28 * 864e5).toISOString().slice(0, 10);
+  const recent = allDates.filter(k => k >= cutoff).length;
+  const scheduledPerWeek = (m.days || []).length;
+  const attendPct = scheduledPerWeek > 0
+    ? Math.min(100, Math.round((recent / (scheduledPerWeek * 4)) * 100))
+    : null;
+
+  const phone = waPhone(m.phone, lang);
   const waMsg = encodeURIComponent(t.tmplWelcomeBody(m.name.split(' ')[0]));
   const waLink = `https://wa.me/${phone}?text=${waMsg}`;
 
@@ -134,7 +145,7 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
               <i style={{ width: Math.max(6, Math.min(100, (m.adet ?? 0) * 10)) + '%', background: c, boxShadow: `0 0 12px ${c}` }} />
             </div>
             <div className="row" style={{ marginTop: 9, justifyContent: 'space-between' }}>
-              <span className="muted" style={{ fontSize: 11.5 }}>{t.startPfx}{m.joined}</span>
+              <span className="muted" style={{ fontSize: 11.5 }}>{t.startPfx}{fmtIso(m.joinedAt, m.joined, t.months12s)}</span>
               <span className="tnum" style={{ fontSize: 11.5, color: c, fontWeight: 650 }}>{t.kalan(m)}</span>
             </div>
           </div>
@@ -142,13 +153,13 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
           <div className="card dcard" style={{ marginTop: 16 }}>
             <div className="row" style={{ marginBottom: 12 }}>
               <span style={{ fontWeight: 680, fontSize: 14 }}>{t.membershipPrd}</span>
-              <span className="muted tnum" style={{ marginLeft: 'auto', fontSize: 12.5 }}>{t.endPfx}{m.expires}</span>
+              <span className="muted tnum" style={{ marginLeft: 'auto', fontSize: 12.5 }}>{t.endPfx}{fmtIso(m.expiresAt, m.expires, t.months12s)}</span>
             </div>
             <div className="bar" style={{ height: 9 }}>
               <i style={{ width: pct + '%', background: c, boxShadow: `0 0 12px ${c}` }} />
             </div>
             <div className="row" style={{ marginTop: 9, justifyContent: 'space-between' }}>
-              <span className="muted" style={{ fontSize: 11.5 }}>{t.startPfx}{m.joined}</span>
+              <span className="muted" style={{ fontSize: 11.5 }}>{t.startPfx}{fmtIso(m.joinedAt, m.joined, t.months12s)}</span>
               <span className="tnum" style={{ fontSize: 11.5, color: c, fontWeight: 650 }}>%{pct}{t.completedSfx}</span>
             </div>
           </div>
@@ -158,12 +169,12 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
         <div className="dstats">
           <div className="dstat">
             <div className="dstat-ic"><Icon name="scan" size={16} /></div>
-            <div className="dstat-v tnum">{m.visits}</div>
+            <div className="dstat-v tnum">{realVisits}</div>
             <div className="dstat-l">{t.totalVisits}</div>
           </div>
           <div className="dstat">
-            <div className="dstat-ic" style={{ color: m.attendance >= 70 ? 'var(--ok)' : 'var(--warn)' }}><Icon name="trend" size={16} /></div>
-            <div className="dstat-v tnum">%{m.attendance}</div>
+            <div className="dstat-ic" style={{ color: (attendPct ?? 0) >= 70 ? 'var(--ok)' : 'var(--warn)' }}><Icon name="trend" size={16} /></div>
+            <div className="dstat-v tnum">{attendPct === null ? '—' : `%${attendPct}`}</div>
             <div className="dstat-l">{t.attendRate}</div>
           </div>
           <div className="dstat">

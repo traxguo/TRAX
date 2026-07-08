@@ -25,7 +25,7 @@ function freshTrial(): Subscription {
   const end = new Date(now.getTime() + TRIAL_DAYS * 864e5);
   return { status: 'trial', endDate: isoDate(end), plan: 'monthly', priceUsd: MONTHLY_PRICE_USD, startedAt: isoDate(now) };
 }
-import { derivePlan, fmtDate, load, save, PLAN_LEN } from './utils';
+import { derivePlan, fmtDate, load, save, PLAN_LEN, refreshMembers, daysUntil } from './utils';
 import { auth, db } from './firebase';
 
 export interface StoreValue {
@@ -44,6 +44,7 @@ export interface StoreValue {
   logout: () => void;
   deleteAccount: () => Promise<void>;
   loading: boolean;
+  loadFailed: boolean;
   notifRead: boolean;
   markNotifsRead: () => void;
   attendanceLog: Record<string, number[]>;
@@ -79,7 +80,11 @@ function useStoreValue(): StoreValue {
 
   // undefined = Firebase still initializing, null = signed out, User = signed in
   const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(undefined);
+  const [loadFailed, setLoadFailed] = useState(false);
   const dataReadyRef = useRef(false);
+  // set during signup so the missing-doc branch knows this is a brand-new
+  // account (gets a trial) and not a deleted one (stays locked out)
+  const pendingSignupRef = useRef(false);
 
   const session: Session | null = firebaseUser
     ? { email: firebaseUser.email || '', at: Date.now() }
@@ -90,28 +95,47 @@ function useStoreValue(): StoreValue {
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
       dataReadyRef.current = false;
+      setLoadFailed(false);
       if (user) {
         try {
           const snap = await getDoc(doc(db, 'users', user.uid));
           if (snap.exists()) {
             const data = snap.data();
-            if (data.members)       setMembers(data.members);
+            // recompute daysLeft/status from expiry dates — stored values rot
+            if (data.members)       setMembers(refreshMembers(data.members));
             if (data.profile)       setProfile(data.profile);
             if (data.attendanceLog) setAttendanceLog(data.attendanceLog);
             if (data.notifRead !== undefined) setNotifRead(data.notifRead);
             if (data.lang)          setLangState(data.lang);
-            setSubscription(data.subscription || freshTrial());
+            if (data.subscription) {
+              setSubscription(data.subscription);
+            } else {
+              // legacy doc from before subscriptions existed: one-time trial migration
+              const trial = freshTrial();
+              setSubscription(trial);
+              setDoc(doc(db, 'users', user.uid), { subscription: trial }, { merge: true }).catch(console.error);
+            }
+            dataReadyRef.current = true;
+          } else if (pendingSignupRef.current) {
+            // brand-new signup whose doc write may still be in flight
+            pendingSignupRef.current = false;
+            setMembers([]); setProfile(null); setAttendanceLog({}); setNotifRead(false);
+            const trial = freshTrial();
+            setSubscription(trial);
+            setDoc(doc(db, 'users', user.uid), { subscription: trial, email: user.email || '' }, { merge: true }).catch(console.error);
+            dataReadyRef.current = true;
           } else {
-            setMembers([]);
-            setProfile(null);
-            setAttendanceLog({});
-            setNotifRead(false);
-            setSubscription(freshTrial());
+            // no doc and not signing up: account was deleted by the admin.
+            // Lock it instead of handing out a fresh trial (zombie-login exploit).
+            setMembers([]); setProfile(null); setAttendanceLog({}); setNotifRead(false);
+            setSubscription({ status: 'suspended', endDate: '2000-01-01', plan: 'monthly', priceUsd: MONTHLY_PRICE_USD, startedAt: '2000-01-01' });
+            // dataReady stays false: nothing this session may write a doc back
           }
-          dataReadyRef.current = true;
         } catch (e) {
-          // Load failed: keep sync disabled so we never overwrite server data with empty state
+          // Load failed: keep sync disabled and show the retry screen —
+          // never render the app on unknown data (fails closed, not open)
           console.error('Firestore load failed:', e);
+          setLoadFailed(true);
         }
       } else {
         setMembers([]);
@@ -124,14 +148,17 @@ function useStoreValue(): StoreValue {
     });
   }, []);
 
-  // Immediate Firestore sync on every state change — offline cache handles network gaps
+  // Immediate Firestore sync on every state change — offline cache handles gaps.
+  // NOTE: subscription is deliberately NOT synced here; a stale local copy would
+  // clobber admin suspensions/extensions. It is written only at trial creation
+  // and through updateGymSubscription.
   useEffect(() => {
     if (!firebaseUser || !dataReadyRef.current) return;
     setDoc(doc(db, 'users', firebaseUser.uid), {
       members, profile, attendanceLog, notifRead, lang,
-      subscription, email: firebaseUser.email || '',
+      email: firebaseUser.email || '',
     }, { merge: true }).catch(e => console.error('Firestore sync failed:', e));
-  }, [members, profile, attendanceLog, notifRead, lang, subscription, firebaseUser]);
+  }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -145,7 +172,10 @@ function useStoreValue(): StoreValue {
 
   const signup = useCallback(async (email: string, password: string) => {
     await setPersistence(auth, browserLocalPersistence);
-    await createUserWithEmailAndPassword(auth, email, password);
+    pendingSignupRef.current = true;
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // create the doc immediately so this account is never mistaken for a deleted one
+    await setDoc(doc(db, 'users', cred.user.uid), { subscription: freshTrial(), email }, { merge: true }).catch(console.error);
   }, []);
 
   const logout = useCallback(() => {
@@ -156,15 +186,19 @@ function useStoreValue(): StoreValue {
   const deleteAccount = useCallback(async () => {
     const user = auth.currentUser;
     if (!user) return;
-    await deleteDoc(doc(db, 'users', user.uid));
+    // Delete the Auth user FIRST: if it throws (requires-recent-login) nothing
+    // is lost. On success the ID token stays valid long enough to remove the doc.
+    dataReadyRef.current = false;
     await deleteUser(user);
+    await deleteDoc(doc(db, 'users', user.uid)).catch(console.error);
   }, []);
 
   const addMember = useCallback((f: MemberFormData): number => {
     const now = new Date();
+    const joinedAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const base: Member = {
       id: Date.now(), name: f.name.trim(), phone: f.phone.trim(),
-      email: (f.email || '').trim(), joined: fmtDate(now), lastVisit: '—',
+      email: (f.email || '').trim(), joined: fmtDate(now), joinedAt, lastVisit: '—',
       visits: 0, attendance: 0, trainer: (f.trainer || '').trim() || '—',
       plan: 'Aylık', kind: 'aylik', status: 'active', daysLeft: 30, expires: '—', days: f.days || [],
     };
@@ -190,8 +224,12 @@ function useStoreValue(): StoreValue {
       if (m.id !== id) return m;
       if (m.kind === 'paket') return { ...m, adet: (m.adet || 0) + 10, status: 'active' as const };
       const len = PLAN_LEN[m.plan] || 30;
-      const exp = new Date(Date.now() + len * 864e5);
-      return { ...m, daysLeft: len, status: 'active' as const, expires: fmtDate(exp) };
+      // extend from the current expiry if still in the future, else from today
+      const baseTime = m.expiresAt && daysUntil(m.expiresAt) > 0
+        ? new Date(m.expiresAt + 'T12:00:00').getTime() : Date.now();
+      const exp = new Date(baseTime + len * 864e5);
+      const expiresAt = `${exp.getFullYear()}-${String(exp.getMonth() + 1).padStart(2, '0')}-${String(exp.getDate()).padStart(2, '0')}`;
+      return { ...m, daysLeft: daysUntil(expiresAt), status: 'active' as const, expires: fmtDate(exp), expiresAt };
     }));
   }, []);
 
@@ -212,9 +250,7 @@ function useStoreValue(): StoreValue {
     setMembers(ms => ms.map(m => {
       if (m.id !== memberId || m.kind !== 'paket') return m;
       const adet = m.adet || 0;
-      if (!wasAttended) return { ...m, adet: adet - 1 };
-      if (wasAttended)  return { ...m, adet: adet + 1 };
-      return m;
+      return { ...m, adet: wasAttended ? adet + 1 : adet - 1 };
     }));
   }, [attendanceLog]);
 
@@ -247,7 +283,7 @@ function useStoreValue(): StoreValue {
         memberCount: Array.isArray(data.members) ? data.members.length : 0,
         subscription: data.subscription || freshTrial(),
       };
-    });
+    }).filter(g => g.email.toLowerCase() !== ADMIN_EMAIL); // own account isn't a customer
   }, []);
 
   const updateGymSubscription = useCallback(async (uid: string, patch: Partial<Subscription>) => {
@@ -272,7 +308,7 @@ function useStoreValue(): StoreValue {
 
   return {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
-    profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading,
+    profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading, loadFailed,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
     addDayToMember, removeDayFromMember, lang, setLang,
     subscription, subBlocked, isAdmin, fetchAllGyms, updateGymSubscription, deleteGym,

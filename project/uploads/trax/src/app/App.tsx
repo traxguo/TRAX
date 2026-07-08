@@ -8,7 +8,7 @@ import SubLock from './components/SubLock';
 import { InstallProvider } from './install';
 
 function MobileApp() {
-  const { session, profile, login, signup, completeOnboarding, loading, subBlocked } = useStore();
+  const { session, profile, login, signup, completeOnboarding, loading, loadFailed, subBlocked, lang } = useStore();
 
   useEffect(() => {
     const r = document.documentElement;
@@ -53,6 +53,23 @@ function MobileApp() {
       <div className="auth-inner" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <img src="/icon-192.png" alt="TRAX" style={{ width: 88, height: 88, borderRadius: 22 }} />
         <div style={{ marginTop: 24 }}><span className="spin" style={{ width: 28, height: 28, borderWidth: 3 }} /></div>
+      </div>
+    </div>
+  );
+
+  if (loadFailed) return (
+    <div className="auth">
+      <div className="auth-bg">
+        <span className="orb o1" /><span className="orb o2" /><span className="auth-grid" />
+      </div>
+      <div className="auth-inner" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/icon-192.png" alt="TRAX" style={{ width: 72, height: 72, borderRadius: 18 }} />
+        <div style={{ marginTop: 20, fontSize: 14.5, color: 'var(--tx-2)', textAlign: 'center', maxWidth: 260, lineHeight: 1.5 }}>
+          {lang === 'tr' ? 'Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.' : 'Could not connect. Check your internet and try again.'}
+        </div>
+        <button className="btn primary" style={{ marginTop: 18, width: 'auto', padding: '13px 28px' }} onClick={() => window.location.reload()}>
+          {lang === 'tr' ? 'Tekrar dene' : 'Retry'}
+        </button>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
 import { glowOf } from '../utils';
-import { activity } from '../data';
 import Sheet from './Sheet';
 import Icon from './Icon';
 import Empty from './Empty';
@@ -37,13 +36,12 @@ export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetPr
     const out: NotifItem[] = [];
     members.forEach(m => {
       const g = glowOf(m);
-      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: t.notifExpired(m.name), s: `${t.daysAgo(m.daysLeft)} · ${m.plan}` });
-      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: t.notifExpiring(m.name), s: `${t.daysLeftN(m.daysLeft)} · ${m.plan}` });
+      // t.kalan handles both monthly ("15 days ago") and package ("Package ended")
+      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: t.notifExpired(m.name), s: `${t.kalan(m)} · ${m.plan}` });
+      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: t.notifExpiring(m.name), s: `${t.kalan(m)} · ${m.plan}` });
     });
-    activity.filter(a => a.type === 'join').forEach((a, i) => {
-      out.push({ id: 'j' + i, ico: 'userplus', tone: 'acc', t: t.notifJoined(a.who), s: `${a.text} · ${a.time}` });
-    });
-    return out.sort((a, b) => (a.tone === 'bad' ? -1 : 1));
+    const w = (tone: string) => (tone === 'bad' ? 0 : tone === 'warn' ? 1 : 2);
+    return out.sort((a, b) => w(a.tone) - w(b.tone));
   }, [members, t]);
 
   return (
