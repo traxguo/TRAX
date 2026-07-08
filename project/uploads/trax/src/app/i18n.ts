@@ -59,6 +59,13 @@ const en = {
   subSuspendedTitle: 'Account suspended',
   subSuspendedBody:  'Your account has been temporarily suspended. Please get in touch to reactivate it.',
   subRenewBtn:       'Renew / Contact',
+  termsTitle:        'Terms of Service',
+  privacyTitle:      'Privacy Policy',
+  acceptLegal:       'I accept the Terms of Service and Privacy Policy',
+  acceptLegalErr:    'You must accept the terms to create an account.',
+  exportBtn:         'Export data',
+  supportRow:        'Contact support',
+  verifySent:        'Verification e-mail sent — check your inbox.',
 
   // Status
   statusActive:   'Active',
@@ -313,6 +320,13 @@ const tr: typeof en = {
   subSuspendedTitle: 'Hesap askıya alındı',
   subSuspendedBody:  'Hesabın geçici olarak askıya alındı. Yeniden açmak için lütfen iletişime geç.',
   subRenewBtn:       'Yenile / İletişim',
+  termsTitle:        'Kullanım Şartları',
+  privacyTitle:      'Gizlilik Politikası',
+  acceptLegal:       'Kullanım Şartları ve Gizlilik Politikası\'nı kabul ediyorum',
+  acceptLegalErr:    'Hesap oluşturmak için şartları kabul etmelisin.',
+  exportBtn:         'Verileri dışa aktar',
+  supportRow:        'Destek / İletişim',
+  verifySent:        'Doğrulama e-postası gönderildi — gelen kutunu kontrol et.',
 
   // Status
   statusActive:   'Aktif',

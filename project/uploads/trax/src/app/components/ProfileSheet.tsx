@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
 import { useInstall } from '../install';
+import type { LegalKind } from '../legal';
+import LegalSheet from './LegalSheet';
 import type { Profile, Lang } from '../types';
 import { initials } from '../data';
 import Sheet from './Sheet';
@@ -25,7 +27,7 @@ function KV({ ico, k, v }: { ico: string; k: string; v: string }) {
 }
 
 export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileSheetProps) {
-  const { profile, updateProfile, logout, deleteAccount, members, lang, setLang, isAdmin } = useStore();
+  const { profile, updateProfile, logout, deleteAccount, members, attendanceLog, lang, setLang, isAdmin } = useStore();
   const t = useT();
   const { canInstall, trigger } = useInstall();
   const [edit, setEdit] = useState(false);
@@ -33,6 +35,22 @@ export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileShee
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [delErr, setDelErr] = useState('');
+  const [legal, setLegal] = useState<LegalKind | null>(null);
+
+  // GDPR/KVKK: hand the owner a full JSON backup of their studio's data
+  async function exportData() {
+    const payload = { exportedAt: new Date().toISOString(), profile, members, attendanceLog };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const name = `trax-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const file = new File([blob], name, { type: 'application/json' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'TRAX' }); return; } catch { /* cancelled */ }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
 
   useEffect(() => { if (open) { setEdit(false); setF(profile); setConfirmDelete(false); setDelErr(''); } }, [open, profile]);
 
@@ -103,6 +121,9 @@ export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileShee
           <button className="btn" style={{ marginTop: canInstall ? 10 : 16 }} onClick={() => setEdit(true)}>
             <Icon name="edit" size={15} />{t.editInfoBtn}
           </button>
+          <button className="btn" style={{ marginTop: 10 }} onClick={exportData}>
+            <Icon name="share" size={15} />{t.exportBtn}
+          </button>
           <button className="btn danger" style={{ marginTop: 10 }} onClick={logout}>
             <Icon name="logout" size={16} />{t.logoutBtn}
           </button>
@@ -127,8 +148,17 @@ export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileShee
               </div>
             </div>
           )}
+
+          <div style={{ marginTop: 18, textAlign: 'center', fontSize: 12, lineHeight: 2 }}>
+            <span className="link sm" onClick={() => setLegal('terms')}>{t.termsTitle}</span>
+            <span style={{ color: 'var(--tx-3)', margin: '0 7px' }}>·</span>
+            <span className="link sm" onClick={() => setLegal('privacy')}>{t.privacyTitle}</span>
+            <span style={{ color: 'var(--tx-3)', margin: '0 7px' }}>·</span>
+            <a className="link sm" href="mailto:traxguo@gmail.com?subject=TRAX%20Support" style={{ textDecoration: 'none' }}>{t.supportRow}</a>
+          </div>
         </>
       )}
+      <LegalSheet kind={legal} onClose={() => setLegal(null)} />
     </Sheet>
   );
 }

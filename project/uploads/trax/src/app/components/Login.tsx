@@ -3,6 +3,8 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useT } from '../i18n';
 import type { T } from '../i18n';
+import type { LegalKind } from '../legal';
+import LegalSheet from './LegalSheet';
 import Icon from './Icon';
 
 interface LoginProps {
@@ -41,12 +43,14 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [accept, setAccept] = useState(false);
+  const [legal, setLegal] = useState<LegalKind | null>(null);
 
   const emailOk = /\S+@\S+\.\S+/.test(email);
   const pwOk = pw.length >= 6;
   const valid = mode === 'login'
     ? emailOk && pwOk
-    : emailOk && pwOk && pw === confirm;
+    : emailOk && pwOk && pw === confirm && accept;
 
   function reset() {
     setErr(''); setPw(''); setConfirm(''); setShow(false);
@@ -75,7 +79,9 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!valid) {
-      setErr(mode === 'signup' && pw !== confirm ? t.pwMismatch : t.loginError);
+      setErr(mode === 'signup' && pw === confirm && emailOk && pwOk && !accept
+        ? t.acceptLegalErr
+        : mode === 'signup' && pw !== confirm ? t.pwMismatch : t.loginError);
       return;
     }
     setErr(''); setBusy(true);
@@ -187,6 +193,22 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
             </label>
           )}
 
+          {!isLogin && (
+            <div style={{ marginTop: 14 }} className="fld">
+              <label className="remember-row" onClick={() => setAccept(a => !a)}>
+                <span className={'remember-box' + (accept ? ' on' : '')}>
+                  {accept && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </span>
+                <span className="remember-lbl" style={{ lineHeight: 1.4 }}>{t.acceptLegal}</span>
+              </label>
+              <div style={{ marginTop: 8, fontSize: 12 }}>
+                <span className="link sm" onClick={() => setLegal('terms')}>{t.termsTitle}</span>
+                <span style={{ color: 'var(--tx-3)', margin: '0 7px' }}>·</span>
+                <span className="link sm" onClick={() => setLegal('privacy')}>{t.privacyTitle}</span>
+              </div>
+            </div>
+          )}
+
           {isLogin && (
             <div className="auth-row" style={{ animationDelay: '.16s' }}>
               <label className="remember-row" onClick={() => setRemember(r => !r)}>
@@ -222,6 +244,7 @@ export default function Login({ onLogin, onSignup }: LoginProps) {
           </div>
         </form>
       </div>
+      <LegalSheet kind={legal} onClose={() => setLegal(null)} />
     </div>
   );
 }

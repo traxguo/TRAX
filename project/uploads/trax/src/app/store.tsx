@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as fbSignOut,
   deleteUser,
+  sendEmailVerification,
   onAuthStateChanged,
   browserLocalPersistence,
   browserSessionPersistence,
@@ -176,6 +177,8 @@ function useStoreValue(): StoreValue {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     // create the doc immediately so this account is never mistaken for a deleted one
     await setDoc(doc(db, 'users', cred.user.uid), { subscription: freshTrial(), email }, { merge: true }).catch(console.error);
+    // non-blocking: verification unlocks future rule hardening (email_verified)
+    sendEmailVerification(cred.user).catch(console.error);
   }, []);
 
   const logout = useCallback(() => {
