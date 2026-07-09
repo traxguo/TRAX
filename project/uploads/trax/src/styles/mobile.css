@@ -286,7 +286,7 @@ body {
 .m-search { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; transition: border-color .14s, box-shadow .14s; }
 .m-search.big { padding: 17px 18px; border-radius: 16px; }
 .m-search:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-dim); }
-.m-search input { background: none; border: none; outline: none; color: var(--tx); font-size: 15px; width: 100%; font-family: var(--font); }
+.m-search input { background: none; border: none; outline: none; color: var(--tx); font-size: 16px; width: 100%; font-family: var(--font); }
 .m-search.big input { font-size: 18px; font-weight: 500; }
 .m-search input::placeholder { color: var(--tx-3); }
 
@@ -782,5 +782,5 @@ html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100
   color: var(--tx-2); font-size: 12px; font-weight: 600; cursor: pointer; }
 .tmpl-ta { width: 100%; margin-top: 10px; background: var(--bg); border: 1px solid var(--line-2);
   border-radius: 12px; padding: 12px; color: var(--tx); font-family: var(--font);
-  font-size: 13px; line-height: 1.5; resize: vertical; }
+  font-size: 16px; line-height: 1.5; resize: vertical; } /* ≥16px: iOS zooms on smaller focused fields */
 .tmpl-ta:focus { outline: none; border-color: var(--acc); }
