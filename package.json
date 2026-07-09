@@ -1,0 +1,8 @@
+{
+  "name": "trax-repo",
+  "private": true,
+  "description": "Repo root: serverless functions in /api (Vercel Root Directory is ./ — the app itself lives in project/uploads/trax)",
+  "dependencies": {
+    "firebase-admin": "^14.1.0"
+  }
+}
