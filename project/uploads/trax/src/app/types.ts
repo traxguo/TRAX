@@ -57,6 +57,7 @@ export interface GymSummary {
 
 export interface Session {
   email: string;
+  uid: string;
   at: number;
 }
 

@@ -17,7 +17,7 @@ import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymS
 export const ADMIN_EMAIL = 'goktugslv@gmail.com';
 
 const TRIAL_DAYS = 14;
-const MONTHLY_PRICE_USD = 20;
+const MONTHLY_PRICE_USD = 19.99;
 
 function isoDate(d: Date) { return d.toISOString().slice(0, 10); }
 
@@ -88,7 +88,7 @@ function useStoreValue(): StoreValue {
   const pendingSignupRef = useRef(false);
 
   const session: Session | null = firebaseUser
-    ? { email: firebaseUser.email || '', at: Date.now() }
+    ? { email: firebaseUser.email || '', uid: firebaseUser.uid, at: Date.now() }
     : null;
 
   const loading = firebaseUser === undefined;
