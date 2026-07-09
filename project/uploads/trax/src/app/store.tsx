@@ -12,7 +12,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
-import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymSummary } from './types';
+import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymSummary, WaTemplates } from './types';
 
 export const ADMIN_EMAIL = 'goktugslv@gmail.com';
 
@@ -25,6 +25,12 @@ function freshTrial(): Subscription {
   const now = new Date();
   const end = new Date(now.getTime() + TRIAL_DAYS * 864e5);
   return { status: 'trial', endDate: isoDate(end), plan: 'monthly', priceUsd: MONTHLY_PRICE_USD, startedAt: isoDate(now) };
+}
+
+// Accounts created before subscriptions existed: their trial is considered
+// spent — they hit the paywall and the admin can extend manually if desired.
+function expiredLegacy(): Subscription {
+  return { status: 'trial', endDate: '2024-01-01', plan: 'monthly', priceUsd: MONTHLY_PRICE_USD, startedAt: '2024-01-01' };
 }
 import { derivePlan, fmtDate, load, save, PLAN_LEN, refreshMembers, daysUntil } from './utils';
 import { auth, db } from './firebase';
@@ -54,6 +60,8 @@ export interface StoreValue {
   removeDayFromMember: (memberId: number, day: number) => void;
   lang: Lang;
   setLang: (l: Lang) => void;
+  waTemplates: WaTemplates;
+  setWaTemplate: (id: keyof WaTemplates, text: string | null) => void;
   // subscription / admin
   subscription: Subscription | null;
   subBlocked: boolean;
@@ -78,6 +86,7 @@ function useStoreValue(): StoreValue {
   const [lang, setLangState] = useState<Lang>(() => load('trax_lang', 'en' as Lang));
   const [attendanceLog, setAttendanceLog] = useState<Record<string, number[]>>({});
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [waTemplates, setWaTemplates] = useState<WaTemplates>({});
 
   // undefined = Firebase still initializing, null = signed out, User = signed in
   const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(undefined);
@@ -108,13 +117,14 @@ function useStoreValue(): StoreValue {
             if (data.attendanceLog) setAttendanceLog(data.attendanceLog);
             if (data.notifRead !== undefined) setNotifRead(data.notifRead);
             if (data.lang)          setLangState(data.lang);
+            if (data.waTemplates)   setWaTemplates(data.waTemplates);
             if (data.subscription) {
               setSubscription(data.subscription);
             } else {
-              // legacy doc from before subscriptions existed: one-time trial migration
-              const trial = freshTrial();
-              setSubscription(trial);
-              setDoc(doc(db, 'users', user.uid), { subscription: trial }, { merge: true }).catch(console.error);
+              // legacy doc from before subscriptions existed: trial counts as spent
+              const legacy = expiredLegacy();
+              setSubscription(legacy);
+              setDoc(doc(db, 'users', user.uid), { subscription: legacy }, { merge: true }).catch(console.error);
             }
             dataReadyRef.current = true;
           } else if (pendingSignupRef.current) {
@@ -156,10 +166,18 @@ function useStoreValue(): StoreValue {
   useEffect(() => {
     if (!firebaseUser || !dataReadyRef.current) return;
     setDoc(doc(db, 'users', firebaseUser.uid), {
-      members, profile, attendanceLog, notifRead, lang,
+      members, profile, attendanceLog, notifRead, lang, waTemplates,
       email: firebaseUser.email || '',
     }, { merge: true }).catch(e => console.error('Firestore sync failed:', e));
-  }, [members, profile, attendanceLog, notifRead, lang, firebaseUser]);
+  }, [members, profile, attendanceLog, notifRead, lang, waTemplates, firebaseUser]);
+
+  const setWaTemplate = useCallback((id: keyof WaTemplates, text: string | null) => {
+    setWaTemplates(prev => {
+      const next = { ...prev };
+      if (text === null || !text.trim()) delete next[id]; else next[id] = text;
+      return next;
+    });
+  }, []);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -284,7 +302,7 @@ function useStoreValue(): StoreValue {
         salonName: data.profile?.salonName || '—',
         city: data.profile?.city || '',
         memberCount: Array.isArray(data.members) ? data.members.length : 0,
-        subscription: data.subscription || freshTrial(),
+        subscription: data.subscription || expiredLegacy(),
       };
     }).filter(g => g.email.toLowerCase() !== ADMIN_EMAIL); // own account isn't a customer
   }, []);
@@ -313,7 +331,7 @@ function useStoreValue(): StoreValue {
     members, addMember, updateMember, deleteMember, restoreMember, renewMember,
     profile, updateProfile, completeOnboarding, session, login, signup, logout, deleteAccount, loading, loadFailed,
     notifRead, markNotifsRead, attendanceLog, toggleAttendance,
-    addDayToMember, removeDayFromMember, lang, setLang,
+    addDayToMember, removeDayFromMember, lang, setLang, waTemplates, setWaTemplate,
     subscription, subBlocked, isAdmin, fetchAllGyms, updateGymSubscription, deleteGym,
   };
 }

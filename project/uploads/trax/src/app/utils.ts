@@ -85,6 +85,14 @@ export function glowOf(m: Member): MemberGlow {
   return 's-green';
 }
 
+/** Fill a WhatsApp template's {isim}/{kalan}/{salon} tokens. */
+export function fillTmpl(raw: string, vars: { isim?: string; kalan?: string; salon?: string }): string {
+  return raw
+    .split('{isim}').join(vars.isim ?? '')
+    .split('{kalan}').join(vars.kalan ?? '')
+    .split('{salon}').join(vars.salon ?? '');
+}
+
 export function derivePlan(f: MemberFormData): Partial<Member> {
   if (f.plan === 'Paket') {
     const adet = Math.max(1, parseInt(f.adet, 10) || 1);

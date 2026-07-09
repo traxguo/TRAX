@@ -141,7 +141,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 <div style={{ textAlign: 'right', marginRight: 6 }}>
                   <span className="adm-badge" style={{ color: meta.color, background: meta.bg }}>{meta.label}</span>
                   <div className="muted tnum" style={{ fontSize: 11, marginTop: 4 }}>
-                    {dl < 0 ? `${Math.abs(dl)}g önce` : `${dl}g kaldı`}
+                    {dl < -365 ? 'eski hesap' : dl < 0 ? `${Math.abs(dl)}g önce` : `${dl}g kaldı`}
                   </div>
                 </div>
               </div>

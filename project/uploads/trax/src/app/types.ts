@@ -55,6 +55,9 @@ export interface GymSummary {
   subscription: Subscription;
 }
 
+// custom WhatsApp message templates ({isim}/{kalan}/{salon} tokens)
+export type WaTemplates = Partial<Record<'renew' | 'winback' | 'welcome', string>>;
+
 export interface Session {
   email: string;
   uid: string;

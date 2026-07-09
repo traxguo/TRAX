@@ -775,3 +775,12 @@ html.modal-lock, html.modal-lock body { overflow: hidden !important; height: 100
 /* subscription lock screen */
 .lock-mark { width: 58px; height: 58px; border-radius: 18px; margin: 0 auto; display: grid; place-items: center;
   color: var(--acc); background: var(--acc-dim); border: 1px solid rgba(var(--acc-rgb),0.3); }
+
+/* whatsapp template editing */
+.tmpl-edit { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid var(--line-2); border-radius: 9px; padding: 6px 11px;
+  color: var(--tx-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+.tmpl-ta { width: 100%; margin-top: 10px; background: var(--bg); border: 1px solid var(--line-2);
+  border-radius: 12px; padding: 12px; color: var(--tx); font-family: var(--font);
+  font-size: 13px; line-height: 1.5; resize: vertical; }
+.tmpl-ta:focus { outline: none; border-color: var(--acc); }

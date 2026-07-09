@@ -264,6 +264,14 @@ const en = {
     `We miss you ${name}! Return this week and get 20% off your first month. 🎁`,
   tmplWelcomeBody:(name: string) =>
     `Welcome to the TRAX family ${name}! Happy training! 🔥`,
+
+  // editable raw templates — {isim} member, {kalan} time left, {salon} studio name
+  tmplRenewRaw:   'Hi {isim}! Your {salon} membership expires in {kalan}. Come by the studio to renew. 💪',
+  tmplWinbackRaw: 'We miss you {isim}! Come back to {salon} this week and get 20% off your first month. 🎁',
+  tmplWelcomeRaw: 'Welcome to the {salon} family {isim}! Happy training! 🔥',
+  tmplEditBtn:    'Edit template',
+  tmplResetBtn:   'Reset to default',
+  tmplHint:       '{isim} → member name · {kalan} → time left · {salon} → studio name',
 };
 
 const tr: typeof en = {
@@ -527,6 +535,14 @@ const tr: typeof en = {
     `Seni özledik ${name}! Bu hafta dönersen ilk aya %20 indirim hediye. 🎁`,
   tmplWelcomeBody:(name: string) =>
     `TRAX ailesine hoş geldin ${name}! İyi antrenmanlar! 🔥`,
+
+  // editable raw templates — {isim} member, {kalan} time left, {salon} studio name
+  tmplRenewRaw:   'Merhaba {isim}! {salon} üyeliğinin bitmesine {kalan} kaldı. Yenilemek için stüdyoya uğrayabilirsin. 💪',
+  tmplWinbackRaw: 'Seni özledik {isim}! Bu hafta {salon}\'a dönersen ilk aya %20 indirim hediye. 🎁',
+  tmplWelcomeRaw: '{salon} ailesine hoş geldin {isim}! İyi antrenmanlar! 🔥',
+  tmplEditBtn:    'Şablonu düzenle',
+  tmplResetBtn:   'Varsayılana dön',
+  tmplHint:       '{isim} → üye adı · {kalan} → kalan süre · {salon} → salon adı',
 };
 
 export const LANG = { en, tr };

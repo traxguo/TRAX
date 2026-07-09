@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { useStore } from '../store';
 import { useT } from '../i18n';
-import { glowOf, PLAN_LEN, waPhone, fmtIso } from '../utils';
+import { glowOf, PLAN_LEN, waPhone, fmtIso, fillTmpl } from '../utils';
 import { colorFor, initials } from '../data';
 import type { Member } from '../types';
 import Icon from './Icon';
@@ -22,7 +22,7 @@ interface DetailProps {
 }
 
 export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps) {
-  const { members, renewMember, attendanceLog, lang } = useStore();
+  const { members, renewMember, attendanceLog, lang, profile, waTemplates } = useStore();
   const t = useT();
   const m = members.find(x => x.id === id);
   const [renewed, setRenewed] = useState(false);
@@ -82,7 +82,8 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
     : null;
 
   const phone = waPhone(m.phone, lang);
-  const waMsg = encodeURIComponent(t.tmplWelcomeBody(m.name.split(' ')[0]));
+  const waMsg = encodeURIComponent(fillTmpl(waTemplates.welcome || t.tmplWelcomeRaw,
+    { isim: m.name.split(' ')[0], kalan: t.kalan(m), salon: profile?.salonName || 'TRAX' }));
   const waLink = `https://wa.me/${phone}?text=${waMsg}`;
 
   return (
