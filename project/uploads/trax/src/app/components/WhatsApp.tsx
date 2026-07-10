@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useT } from '../i18n';
 import { glowOf, waPhone, fillTmpl } from '../utils';
@@ -42,9 +42,27 @@ export default function WhatsApp() {
     const phone = waPhone(m.phone, lang);
     return `https://wa.me/${phone}?text=${encodeURIComponent(getText(m))}`;
   }
-  const targets = members.filter(m => glowOf(m) === 's-red' || glowOf(m) === 's-yellow');
-  const [sel, setSel] = useState<Set<number>>(() => new Set(targets.filter(x => glowOf(x) === 's-yellow').map(x => x.id)));
+  // recipients depend on the selected template:
+  // renew → expiring+expired · winback → expired only · welcome → everyone, newest first
+  const nonFrozen = members.filter(m => m.status !== 'frozen');
+  const targets = tmpl === 'welcome'
+    ? [...nonFrozen].sort((a, b) => (b.joinedAt || '').localeCompare(a.joinedAt || ''))
+    : tmpl === 'winback'
+      ? nonFrozen.filter(m => glowOf(m) === 's-red')
+      : nonFrozen.filter(m => glowOf(m) === 's-red' || glowOf(m) === 's-yellow');
+
+  const defaultSel = () => {
+    if (tmpl === 'welcome') {
+      const cutoff = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+      return new Set(targets.filter(m => (m.joinedAt || '') >= cutoff).map(m => m.id));
+    }
+    if (tmpl === 'winback') return new Set(targets.map(m => m.id));
+    return new Set(targets.filter(x => glowOf(x) === 's-yellow').map(x => x.id));
+  };
+  const [sel, setSel] = useState<Set<number>>(defaultSel);
   const [sentIdx, setSentIdx] = useState(-1);
+  // re-derive the default selection whenever the template changes
+  useEffect(() => { setSel(defaultSel()); setSentIdx(-1); /* eslint-disable-next-line */ }, [tmpl]);
 
   const toggle = (id: number) => {
     setSel(prev => {
