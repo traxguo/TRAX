@@ -52,9 +52,9 @@
   .btn.ghost{background:rgba(255,255,255,.03)}
   .btn.big{padding:16px 30px;font-size:16px;border-radius:15px}
 
-  /* ══ STICKY SCROLL STORY ══ */
-  .story{position:relative;height:440vh}
-  .stage{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  /* ══ SCROLL STORY ══ */
+  .story{position:relative;height:420vh}
+  .stage{position:sticky;top:0;height:100svh;overflow:hidden}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
   .o1{width:560px;height:560px;background:rgba(255,59,67,.14);top:-180px;right:-140px}
   .o2{width:420px;height:420px;background:rgba(255,59,67,.07);bottom:-140px;left:-120px}
@@ -64,37 +64,58 @@
     background-size:44px 44px;
     mask-image:radial-gradient(70% 60% at 50% 45%,#000,transparent)}
 
+  /* intro choreography */
+  @keyframes wordUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+  @keyframes phoneRise{0%{opacity:0;transform:translateY(16svh) scale(.9)}70%{opacity:1;transform:translateY(-1.2svh) scale(1.015)}100%{opacity:1;transform:none}}
+  @keyframes screenOn{from{filter:brightness(.15)}to{filter:brightness(1)}}
+  @keyframes barGrow{from{transform:scaleY(.06)}to{transform:scaleY(1)}}
+  @keyframes rowIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+  .iw{display:inline-block;opacity:0;animation:wordUp .6s cubic-bezier(.2,.8,.2,1) forwards}
+
   /* hero text (scene 0) */
-  .hero-txt{position:absolute;z-index:5;left:max(22px,calc(50vw - 520px));top:50%;
-    transform:translateY(-50%);max-width:520px;will-change:opacity,transform}
+  .hero-txt{position:absolute;z-index:6;left:max(22px,calc(50vw - 520px));top:50%;
+    transform:translateY(-50%);max-width:500px;will-change:opacity,transform}
   .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
-    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:20px}
+    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:18px}
   .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);
     box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  h1{font-size:clamp(36px,5.6vw,60px);font-weight:800;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
+  h1{font-size:clamp(34px,5.4vw,58px);font-weight:800;letter-spacing:-.045em;line-height:1.05;text-wrap:balance}
   h1 .red{color:var(--acc)}
-  .hero-sub{margin-top:18px;font-size:clamp(15px,2vw,18px);color:var(--tx2);line-height:1.6;max-width:44ch}
-  .hero-ctas{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
-  .hero-note{margin-top:13px;font-size:13px;color:var(--tx3)}
-  .scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:6;
-    font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx3);
-    display:flex;flex-direction:column;align-items:center;gap:7px;will-change:opacity}
-  .scroll-hint i{width:1px;height:34px;background:linear-gradient(180deg,var(--acc),transparent);
-    animation:drip 1.6s ease-in-out infinite}
-  @keyframes drip{0%{transform:scaleY(.2);transform-origin:top}55%{transform:scaleY(1)}100%{transform:scaleY(.2);transform-origin:bottom;opacity:0}}
+  .hero-sub{margin-top:16px;font-size:clamp(15px,2vw,18px);color:var(--tx2);line-height:1.6;max-width:42ch}
+  .hero-ctas{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap}
+  .hero-note{margin-top:12px;font-size:13px;color:var(--tx3)}
 
-  /* captions (scenes 1-3) */
-  .cap{position:absolute;z-index:5;left:max(22px,calc(50vw - 520px));top:50%;
-    transform:translateY(-40%);max-width:400px;opacity:0;will-change:opacity,transform;pointer-events:none}
+  /* scroll invite pill */
+  .hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:7;
+    display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:99px;
+    background:rgba(22,16,19,.8);border:1px solid var(--line2);backdrop-filter:blur(10px);
+    font-size:12.5px;font-weight:600;color:var(--tx2);white-space:nowrap;will-change:opacity}
+  .hint .ar{color:var(--acc);font-weight:800;animation:nudge 1.5s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+
+  /* captions — exclusive slots, never two at once */
+  .cap{position:absolute;z-index:6;left:max(22px,calc(50vw - 520px));top:50%;
+    transform:translateY(-40%);max-width:390px;opacity:0;will-change:opacity,transform;pointer-events:none}
   .cap .k{font-size:11.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin-bottom:12px;display:block}
   .cap h3{font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.035em;line-height:1.12}
   .cap p{margin-top:12px;font-size:15.5px;color:var(--tx2);line-height:1.6}
 
+  /* progress rail */
+  .rail{position:absolute;right:max(18px,calc(50vw - 560px));top:50%;transform:translateY(-50%);
+    z-index:7;display:flex;flex-direction:column;gap:22px}
+  .rd{display:flex;align-items:center;gap:10px;flex-direction:row-reverse}
+  .rd i{width:9px;height:9px;border-radius:99px;background:rgba(255,255,255,.18);transition:all .3s;flex:none}
+  .rd span{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);
+    opacity:0;transform:translateX(6px);transition:all .3s}
+  .rd.on i{background:var(--acc);box-shadow:0 0 12px var(--glow);transform:scale(1.35)}
+  .rd.on span{opacity:1;transform:none;color:var(--tx2)}
+
   /* phone */
   .phone-wrap{position:absolute;z-index:4;left:50%;top:50%;will-change:transform;
     transform:translate(-50%,-50%);perspective:1300px}
-  .phone{width:min(300px,68vw);aspect-ratio:9/19;border-radius:44px;position:relative;
+  .intro-shell{opacity:0;animation:phoneRise 1.1s cubic-bezier(.2,.85,.25,1.1) .45s forwards}
+  .phone{width:min(300px,66vw);aspect-ratio:9/19;border-radius:44px;position:relative;
     background:#050405;border:1px solid rgba(255,255,255,.16);
     box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 90px rgba(255,59,67,.10),inset 0 0 0 3px #000;
     padding:12px;will-change:transform}
@@ -102,20 +123,27 @@
   .scr{position:absolute;inset:12px;border-radius:34px;overflow:hidden;
     background:radial-gradient(300px 200px at 85% -5%,rgba(255,59,67,.12),transparent 60%),#0b0809;
     display:flex;flex-direction:column;padding:42px 14px 14px;opacity:0;will-change:opacity}
-  .scr.s1{opacity:1}
+  .scr.s1{opacity:1;animation:screenOn .8s ease .75s backwards}
   .hi{font-size:8px;letter-spacing:.2em;color:var(--acc);font-weight:700;text-transform:uppercase}
   img.wm{height:13px;width:auto;margin-top:4px;align-self:flex-start}
   .mcard{margin-top:12px;border-radius:16px;padding:13px;
     background:linear-gradient(160deg,#221217,#160e12);border:1px solid rgba(255,59,67,.22)}
   .lv{display:flex;align-items:center;gap:5px;font-size:6.5px;color:var(--acc);font-weight:700;letter-spacing:.14em}
   .lv i{width:4px;height:4px;border-radius:99px;background:var(--acc);box-shadow:0 0 6px var(--glow);animation:pulse 1.8s infinite}
-  .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px}
+  .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px;font-variant-numeric:tabular-nums}
   .lbl{font-size:8px;color:var(--tx2);margin-top:1px}
   .bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:10px}
-  .bars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12)}
+  .bars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12);transform-origin:bottom;
+    animation:barGrow .5s cubic-bezier(.2,.8,.3,1.2) backwards}
+  .bars i:nth-child(1){animation-delay:1.0s}.bars i:nth-child(2){animation-delay:1.07s}
+  .bars i:nth-child(3){animation-delay:1.14s}.bars i:nth-child(4){animation-delay:1.21s}
+  .bars i:nth-child(5){animation-delay:1.28s}.bars i:nth-child(6){animation-delay:1.35s}
+  .bars i:nth-child(7){animation-delay:1.42s}
   .bars i.hot{background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(255,59,67,.4)}
   .rowi{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
   .rowi:last-child{border:none}
+  .s1 .rowi{animation:rowIn .45s ease backwards}
+  .s1 .rowi:nth-child(1){animation-delay:1.5s}.s1 .rowi:nth-child(2){animation-delay:1.62s}.s1 .rowi:nth-child(3){animation-delay:1.74s}
   .av{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:7px;font-weight:800;color:#111;flex:none}
   .nm{font-size:8.5px;font-weight:600}
   .st{margin-left:auto;font-size:7px;font-weight:700;padding:2.5px 6px;border-radius:99px}
@@ -150,33 +178,41 @@
   .bubble{margin-top:10px;background:#123a24;border:1px solid rgba(74,222,128,.3);
     border-radius:12px 12px 12px 3px;padding:9px 11px;font-size:8px;line-height:1.55;color:#d9ffe9}
   .bubble b{color:#fff}
-  .wa-rows{margin-top:10px}
   .chk{width:13px;height:13px;border-radius:4px;background:var(--acc);display:grid;place-items:center;color:#fff;font-size:8px;font-weight:900;flex:none}
   .wa-send{margin-top:12px;border-radius:11px;padding:10px;text-align:center;font-size:9px;font-weight:800;color:#fff;
     background:linear-gradient(150deg,var(--acc),var(--acc2));box-shadow:0 6px 18px rgba(255,59,67,.35)}
 
-  /* mobile story layout */
+  /* ── mobile story layout ── */
   @media(max-width:880px){
-    .hero-txt{left:22px;right:22px;top:max(86px, 9svh);transform:none;text-align:center;max-width:none}
-    .hero-ctas{justify-content:center}
-    .phone-wrap{top:60%}
-    .phone{width:min(240px,58vw)}
-    .cap{left:18px;right:18px;top:auto;bottom:26px;transform:none;max-width:none;text-align:center;
-      background:rgba(11,8,9,.78);backdrop-filter:blur(10px);border:1px solid var(--line);
-      border-radius:16px;padding:16px}
-    .cap h3{font-size:20px}
-    .cap p{font-size:13px;margin-top:7px}
-    .scroll-hint{display:none}
+    .hero-txt{left:20px;right:20px;top:max(78px,8svh);transform:none;text-align:center;max-width:none}
+    h1{font-size:clamp(30px,8.4vw,40px)}
+    .hero-sub{margin-inline:auto;font-size:14.5px;max-width:34ch}
+    .hero-ctas{justify-content:center;margin-top:20px}
+    .hero-note{font-size:12px}
+    .phone-wrap{top:auto;bottom:-16svh;transform:translate(-50%,0)}
+    .phone{width:min(252px,60vw)}
+    .cap{left:16px;right:16px;top:max(78px,8svh);transform:none;max-width:none;text-align:center;
+      background:rgba(13,9,11,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border:1px solid var(--line);border-radius:18px;padding:18px 16px}
+    .cap h3{font-size:21px}
+    .cap p{font-size:13px;margin-top:8px}
+    .rail{right:auto;left:50%;top:auto;bottom:14px;transform:translateX(-50%);flex-direction:row;gap:10px}
+    .rd span{display:none}
+    .hint{bottom:16px}
   }
 
-  /* reduced motion: flatten the story into a plain hero */
+  /* reduced motion: flatten story */
   @media (prefers-reduced-motion:reduce){
     .story{height:auto}
-    .stage{position:static;height:auto;padding:140px 0 60px;flex-direction:column;gap:40px}
+    .stage{position:static;height:auto;padding:140px 0 60px;display:flex;flex-direction:column;gap:44px;align-items:center;overflow:visible}
     .hero-txt{position:static;transform:none;text-align:center}
-    .phone-wrap{position:static;transform:none}
+    .iw{opacity:1;animation:none}
+    .intro-shell{opacity:1;animation:none}
+    .phone-wrap{position:static;transform:none;bottom:auto}
     .phone{transform:none!important}
-    .cap,.scroll-hint{display:none}
+    .scr.s1{animation:none}
+    .bars i,.s1 .rowi{animation:none}
+    .cap,.hint,.rail{display:none}
   }
 
   /* ── sections ── */
@@ -255,27 +291,32 @@
   </div>
 </nav>
 
-<!-- ══ SCROLL STORY: hero → dashboard → QR → WhatsApp ══ -->
+<!-- ══ SCROLL STORY ══ -->
 <div class="story" id="story">
   <div class="stage">
     <span class="orb o1"></span><span class="orb o2"></span><span class="grid-bg"></span>
 
-    <!-- scene 0: hero text -->
+    <!-- scene 0: hero -->
     <div class="hero-txt" id="heroTxt">
-      <span class="eyebrow"><span class="dot"></span>Built for studio owners</span>
-      <h1>The paper log is over.<br>Run your gym from <span class="red">your phone</span>.</h1>
-      <p class="hero-sub">Members, QR check-ins, payment reminders and revenue — one app for gyms, pilates and PT studios.</p>
-      <div class="hero-ctas">
+      <span class="eyebrow iw" style="animation-delay:.1s"><span class="dot"></span>Built for studio owners</span>
+      <h1>
+        <span class="iw" style="animation-delay:.22s">The paper log</span>
+        <span class="iw red" style="animation-delay:.34s">is over.</span><br>
+        <span class="iw" style="animation-delay:.5s">Run your gym</span>
+        <span class="iw" style="animation-delay:.62s">from your phone.</span>
+      </h1>
+      <p class="hero-sub iw" style="animation-delay:.8s">Members, QR check-ins, payment reminders and revenue — one app for gyms, pilates and PT studios.</p>
+      <div class="hero-ctas iw" style="animation-delay:.95s">
         <a class="btn red big" href="/">Start 14-day free trial ↗</a>
       </div>
-      <div class="hero-note">No credit card · 5-minute setup · Cancel anytime</div>
+      <div class="hero-note iw" style="animation-delay:1.05s">No credit card · 5-minute setup · Cancel anytime</div>
     </div>
 
     <!-- captions -->
     <div class="cap" id="cap1">
-      <span class="k">01 · Today at a glance</span>
+      <span class="k">01 · Dashboard</span>
       <h3>Your whole studio,<br>one live screen.</h3>
-      <p>Check-ins as they happen, who's due for renewal, and your weekly pulse — before your coffee gets cold.</p>
+      <p>Check-ins as they happen, who's due for renewal, your weekly pulse — before your coffee gets cold.</p>
     </div>
     <div class="cap" id="cap2">
       <span class="k">02 · QR check-in</span>
@@ -288,58 +329,68 @@
       <p>One tap sends personal WhatsApp reminders — in your studio's name, in your own words.</p>
     </div>
 
-    <!-- the phone -->
+    <!-- progress rail -->
+    <div class="rail" id="rail">
+      <div class="rd" data-s="0"><i></i><span>Intro</span></div>
+      <div class="rd" data-s="1"><i></i><span>Dashboard</span></div>
+      <div class="rd" data-s="2"><i></i><span>QR</span></div>
+      <div class="rd" data-s="3"><i></i><span>Reminders</span></div>
+    </div>
+
+    <!-- phone -->
     <div class="phone-wrap" id="phoneWrap">
-      <div class="phone" id="phone">
-        <div class="notch"></div>
+      <div class="intro-shell">
+        <div class="phone" id="phone">
+          <div class="notch"></div>
 
-        <!-- screen 1: dashboard -->
-        <div class="scr s1" id="scr1">
-          <div class="hi">Welcome back, Sarah</div>
-          <img class="wm" src="/wordmark.png" alt="">
-          <div class="mcard">
-            <div class="lv"><i></i>LIVE · TODAY</div>
-            <div class="num">24</div>
-            <div class="lbl">check-ins · 31 scheduled today</div>
-            <div class="bars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
+          <!-- screen 1: dashboard -->
+          <div class="scr s1" id="scr1">
+            <div class="hi">Welcome back, Sarah</div>
+            <img class="wm" src="/wordmark.png" alt="">
+            <div class="mcard">
+              <div class="lv"><i></i>LIVE · TODAY</div>
+              <div class="num" id="counter">0</div>
+              <div class="lbl">check-ins · 31 scheduled today</div>
+              <div class="bars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
+            </div>
+            <div style="margin-top:10px">
+              <div class="rowi"><span class="av" style="background:#4be38a">EW</span><span class="nm">Emma Wilson</span><span class="st ok">In</span></div>
+              <div class="rowi"><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
+              <div class="rowi"><span class="av" style="background:#ffb84d">SC</span><span class="nm">Sofia Costa</span><span class="st ok">In</span></div>
+            </div>
+            <div class="mnav"><i class="on"></i><i></i><i></i><i></i></div>
           </div>
-          <div style="margin-top:10px">
-            <div class="rowi"><span class="av" style="background:#4be38a">EW</span><span class="nm">Emma Wilson</span><span class="st ok">In</span></div>
-            <div class="rowi"><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
-            <div class="rowi"><span class="av" style="background:#ffb84d">SC</span><span class="nm">Sofia Costa</span><span class="st ok">In</span></div>
-          </div>
-          <div class="mnav"><i class="on"></i><i></i><i></i><i></i></div>
-        </div>
 
-        <!-- screen 2: QR scan -->
-        <div class="scr" id="scr2">
-          <div class="hi">Check-in</div>
-          <img class="wm" src="/wordmark.png" alt="">
-          <div class="qr-zone">
-            <div class="qr-frame"><b></b><b></b><b></b><b></b><span class="qr-code"></span><span class="scanline"></span></div>
-            <div class="qr-ok"><span class="cv">✓</span><span>Emma Wilson — Checked in</span></div>
+          <!-- screen 2: QR -->
+          <div class="scr" id="scr2">
+            <div class="hi">Check-in</div>
+            <img class="wm" src="/wordmark.png" alt="">
+            <div class="qr-zone">
+              <div class="qr-frame"><b></b><b></b><b></b><b></b><span class="qr-code"></span><span class="scanline"></span></div>
+              <div class="qr-ok"><span class="cv">✓</span><span>Emma Wilson — Checked in</span></div>
+            </div>
+            <div class="mnav"><i></i><i></i><i class="on"></i><i></i></div>
           </div>
-          <div class="mnav"><i></i><i></i><i class="on"></i><i></i></div>
-        </div>
 
-        <!-- screen 3: WhatsApp reminders -->
-        <div class="scr" id="scr3">
-          <div class="hi">Reminders</div>
-          <img class="wm" src="/wordmark.png" alt="">
-          <div class="wa-h">Renewal reminder</div>
-          <div class="bubble">Hi <b>Jake</b>! Your <b>IronWorks</b> membership expires in <b>4 days</b>. Swing by to renew 💪</div>
-          <div class="wa-rows">
-            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
-            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#b388ff">LB</span><span class="nm">Lucas Brown</span><span class="st warn">6 days</span></div>
-            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#2de2c0">MG</span><span class="nm">Mia Garcia</span><span class="st warn">7 days</span></div>
+          <!-- screen 3: WhatsApp -->
+          <div class="scr" id="scr3">
+            <div class="hi">Reminders</div>
+            <img class="wm" src="/wordmark.png" alt="">
+            <div class="wa-h">Renewal reminder</div>
+            <div class="bubble">Hi <b>Jake</b>! Your <b>IronWorks</b> membership expires in <b>4 days</b>. Swing by to renew 💪</div>
+            <div style="margin-top:10px">
+              <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
+              <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#b388ff">LB</span><span class="nm">Lucas Brown</span><span class="st warn">6 days</span></div>
+              <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#2de2c0">MG</span><span class="nm">Mia Garcia</span><span class="st warn">7 days</span></div>
+            </div>
+            <div class="wa-send">Send to 3 →</div>
+            <div class="mnav"><i></i><i></i><i></i><i class="on"></i></div>
           </div>
-          <div class="wa-send">Send to 3 →</div>
-          <div class="mnav"><i></i><i></i><i></i><i class="on"></i></div>
         </div>
       </div>
     </div>
 
-    <div class="scroll-hint" id="hint"><span>Scroll</span><i></i></div>
+    <div class="hint" id="hint"><span>Scroll — watch it work</span><span class="ar">↓</span></div>
   </div>
 </div>
 
@@ -453,8 +504,33 @@
   }), {threshold:.12});
   document.querySelectorAll('.rv').forEach(el => io.observe(el));
 
-  // ══ scroll story engine ══
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── intro: count-up + idle life ── */
+  const counter = document.getElementById('counter');
+  if (reduce) { counter.textContent = '24'; }
+  else {
+    let started = performance.now() + 900;           // after screen turns on
+    const tick = now => {
+      const t = Math.min(1, (now - started) / 900);
+      if (t >= 0) counter.textContent = Math.round(24 * (t*t*(3-2*t)));
+      if (t < 1) requestAnimationFrame(tick); else idle();
+    };
+    requestAnimationFrame(tick);
+    // idle life: +1 check-in every few seconds while at the top
+    let n = 24;
+    function idle() {
+      setInterval(() => {
+        if (scrollY < 80 && n < 31) {
+          n++; counter.textContent = n;
+          counter.animate([{transform:'scale(1.25)',color:'#ff3b43'},{transform:'scale(1)',color:'#fff'}],
+            {duration:420,easing:'cubic-bezier(.2,.8,.3,1)'});
+        }
+      }, 3200);
+    }
+  }
+
+  /* ── scroll story ── */
   if (!reduce) {
     const story = document.getElementById('story');
     const phoneW = document.getElementById('phoneWrap');
@@ -463,16 +539,28 @@
     const hint = document.getElementById('hint');
     const caps = [document.getElementById('cap1'), document.getElementById('cap2'), document.getElementById('cap3')];
     const scrs = [document.getElementById('scr1'), document.getElementById('scr2'), document.getElementById('scr3')];
+    const dots = [...document.querySelectorAll('.rd')];
     const mobile = () => innerWidth <= 880;
 
     const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
-    const ease = t => t*t*(3-2*t); // smoothstep
-    // fade window helper: 0→1→0 across [a,b] with soft edges
-    const win = (p,a,b,f=.05) => {
-      if (p < a || p > b) return 0;
+    const ease = t => t*t*(3-2*t);
+    // exclusive visibility window with soft edges — windows never overlap
+    const win = (p,a,b,f=.045) => {
+      if (p <= a || p >= b) return 0;
       if (p < a+f) return ease((p-a)/f);
       if (p > b-f) return ease((b-p)/f);
       return 1;
+    };
+    // piecewise-linear track through keyframe stops [p, value]
+    const track = (p, stops) => {
+      if (p <= stops[0][0]) return stops[0][1];
+      for (let i=1;i<stops.length;i++){
+        if (p <= stops[i][0]) {
+          const [pa,va] = stops[i-1], [pb,vb] = stops[i];
+          return va + (vb-va) * ease((p-pa)/(pb-pa));
+        }
+      }
+      return stops[stops.length-1][1];
     };
 
     let px=0, py=0, ticking=false;
@@ -480,38 +568,49 @@
     function render() {
       ticking = false;
       const r = story.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      const p = clamp(-r.top / total, 0, 1);
+      const p = clamp(-r.top / (r.height - innerHeight), 0, 1);
 
-      // hero text: solid until .16, gone by .26
-      const ho = 1 - ease(clamp((p-.16)/.10, 0, 1));
+      /* text slots — one visible at a time, gaps in between */
+      const ho = win(p, -0.001, .15, .05) || (p <= 0 ? 1 : 0);
       heroTxt.style.opacity = ho;
-      heroTxt.style.transform = (mobile() ? '' : 'translateY(-50%) ') + `translateY(${(1-ho)*-46}px)`;
+      heroTxt.style.transform = (mobile() ? '' : 'translateY(-50%) ') + `translateY(${(1-ho)*-40}px)`;
       heroTxt.style.pointerEvents = ho > .5 ? 'auto' : 'none';
       hint.style.opacity = ho;
 
-      // phone: desktop slides from right column to center; both: rotate through scenes
-      const settle = ease(clamp(p/.24, 0, 1));            // 0→1 as hero hands over
-      const tx = mobile() ? 0 : (1-settle) * Math.min(innerWidth*.24, 300);
-      const baseRy = -16 + settle*16 + Math.sin(p*Math.PI*2)*7;   // sweeping wobble across story
-      const baseRx = 6 - settle*6 + Math.cos(p*Math.PI*2)*3;
-      const scale = .96 + Math.sin(p*Math.PI)*.10;                 // swells mid-story
-      const damp = 1 - settle*.5;
-      phoneW.style.transform = `translate(-50%,-50%) translateX(${tx}px)`;
-      phone.style.transform = `rotateY(${baseRy + px*5*damp}deg) rotateX(${baseRx + py*-5*damp}deg) scale(${scale})`;
-
-      // screens: 1 → 2 → 3
-      scrs[0].style.opacity = win(p, 0, .46, .06) || (p===0?1:0);
-      scrs[1].style.opacity = win(p, .40, .72, .06);
-      scrs[2].style.opacity = win(p, .66, 1.01, .06);
-
-      // captions
-      const capWins = [[.26,.44],[.46,.70],[.72,.96]];
+      const capWins = [[.21,.42],[.47,.68],[.73,.95]];
       caps.forEach((c,i) => {
-        const o = win(p, capWins[i][0], capWins[i][1], .06);
+        const o = win(p, capWins[i][0], capWins[i][1]);
         c.style.opacity = o;
-        c.style.transform = (mobile() ? '' : 'translateY(-40%) ') + `translateY(${(1-o)*28}px)`;
+        c.style.transform = (mobile() ? '' : 'translateY(-40%) ') + `translateY(${(1-o)*24}px)`;
       });
+
+      /* screens — crossfade in the text gaps */
+      scrs[0].style.opacity = p < .40 ? 1 : win(p, -1, .47);
+      scrs[1].style.opacity = win(p, .40, .71);
+      scrs[2].style.opacity = win(p, .66, 1.02);
+
+      /* phone motion — planned turns, no chaos */
+      const settle = ease(clamp(p/.20, 0, 1));
+      const damp = 1 - settle;
+      const tx = mobile() ? 0 : (1-settle) * Math.min(innerWidth*.24, 300);
+      // mobile: rises from bottom peek to center as story starts
+      const tyPct = mobile() ? track(p, [[0,0],[.18,-58]]) : -50;
+      const ry = track(p, [[0,-14],[.20,-5],[.34,-5],[.47,9],[.62,9],[.73,-7],[.9,-3]]);
+      const rx = track(p, [[0,6],[.20,2],[.47,-2],[.73,2]]);
+      const sc = track(p, [[0,.97],[.24,1.03],[.5,1.06],[.78,1.03],[1,1]]);
+      if (mobile()) {
+        phoneW.style.top = 'auto';
+        phoneW.style.bottom = '0';
+        phoneW.style.transform = `translate(-50%, ${track(p,[[0,34],[.18,0]])}%) translateY(${tyPct === -58 ? '-8svh' : '0px'})`;
+        phoneW.style.bottom = track(p,[[0,-16],[.18,6]]) + 'svh';
+      } else {
+        phoneW.style.transform = `translate(-50%,-50%) translateX(${tx}px)`;
+      }
+      phone.style.transform = `rotateY(${ry + px*5*damp}deg) rotateX(${rx + py*-5*damp}deg) scale(${sc})`;
+
+      /* rail */
+      const scene = p < .18 ? 0 : p < .45 ? 1 : p < .71 ? 2 : 3;
+      dots.forEach((d,i) => d.classList.toggle('on', i === scene));
     }
 
     const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(render); } };
