@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>TRAX — Salonunu telefondan yönet</title>
-<meta name="description" content="Spor salonu, pilates ve PT stüdyoları için üye takibi, QR yoklama ve WhatsApp hatırlatma. 14 gün ücretsiz, kart gerekmez.">
-<meta property="og:title" content="TRAX — Salonunu telefondan yönet">
-<meta property="og:description" content="Defter devri bitti. Üye, yoklama, hatırlatma — hepsi cebinde. 14 gün ücretsiz.">
+<title>TRAX — Run your gym from your phone</title>
+<meta name="description" content="Member management, QR check-in and WhatsApp reminders for gyms, pilates & PT studios. 14-day free trial, no card required.">
+<meta property="og:title" content="TRAX — Run your gym from your phone">
+<meta property="og:description" content="The paper log is over. Members, check-ins, reminders — all in your pocket. 14 days free.">
 <meta property="og:image" content="/icon-1024.png">
 <link rel="icon" type="image/png" href="/favicon-32.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -24,15 +24,12 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{
-    background:var(--bg); color:var(--tx);
+  body{background:var(--bg);color:var(--tx);
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-    -webkit-font-smoothing:antialiased; letter-spacing:-.01em; overflow-x:hidden;
-  }
+    -webkit-font-smoothing:antialiased;letter-spacing:-.01em;overflow-x:hidden}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
 
-  /* reveal on scroll */
   .rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
   .rv.in{opacity:1;transform:none}
   @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
@@ -55,58 +52,73 @@
   .btn.ghost{background:rgba(255,255,255,.03)}
   .btn.big{padding:16px 30px;font-size:16px;border-radius:15px}
 
-  /* ── hero ── */
-  .hero{position:relative;padding:150px 0 60px;min-height:92svh;display:flex;align-items:center;overflow:hidden}
+  /* ══ STICKY SCROLL STORY ══ */
+  .story{position:relative;height:440vh}
+  .stage{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
   .o1{width:560px;height:560px;background:rgba(255,59,67,.14);top:-180px;right:-140px}
   .o2{width:420px;height:420px;background:rgba(255,59,67,.07);bottom:-140px;left:-120px}
-  .hero-grid{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  .grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.5;
     background-image:linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
       linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
     background-size:44px 44px;
-    mask-image:radial-gradient(70% 60% at 50% 40%,#000,transparent)}
-  .hero-in{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;width:100%}
-  @media(max-width:880px){.hero-in{grid-template-columns:1fr;text-align:center}.hero{padding-top:120px}}
+    mask-image:radial-gradient(70% 60% at 50% 45%,#000,transparent)}
+
+  /* hero text (scene 0) */
+  .hero-txt{position:absolute;z-index:5;left:max(22px,calc(50vw - 520px));top:50%;
+    transform:translateY(-50%);max-width:520px;will-change:opacity,transform}
   .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
     letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:20px}
   .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);
     box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  h1{font-size:clamp(38px,6.2vw,62px);font-weight:800;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
+  h1{font-size:clamp(36px,5.6vw,60px);font-weight:800;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
   h1 .red{color:var(--acc)}
-  .hero-sub{margin-top:20px;font-size:clamp(16px,2.2vw,19px);color:var(--tx2);line-height:1.6;max-width:46ch}
-  @media(max-width:880px){.hero-sub{margin-inline:auto}}
-  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
-  @media(max-width:880px){.hero-ctas{justify-content:center}}
-  .hero-note{margin-top:14px;font-size:13px;color:var(--tx3)}
+  .hero-sub{margin-top:18px;font-size:clamp(15px,2vw,18px);color:var(--tx2);line-height:1.6;max-width:44ch}
+  .hero-ctas{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+  .hero-note{margin-top:13px;font-size:13px;color:var(--tx3)}
+  .scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:6;
+    font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx3);
+    display:flex;flex-direction:column;align-items:center;gap:7px;will-change:opacity}
+  .scroll-hint i{width:1px;height:34px;background:linear-gradient(180deg,var(--acc),transparent);
+    animation:drip 1.6s ease-in-out infinite}
+  @keyframes drip{0%{transform:scaleY(.2);transform-origin:top}55%{transform:scaleY(1)}100%{transform:scaleY(.2);transform-origin:bottom;opacity:0}}
 
-  /* phone mockup */
-  .stage{perspective:1200px;display:flex;justify-content:center}
-  .phone{width:min(300px,72vw);aspect-ratio:9/19;border-radius:44px;position:relative;
+  /* captions (scenes 1-3) */
+  .cap{position:absolute;z-index:5;left:max(22px,calc(50vw - 520px));top:50%;
+    transform:translateY(-40%);max-width:400px;opacity:0;will-change:opacity,transform;pointer-events:none}
+  .cap .k{font-size:11.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin-bottom:12px;display:block}
+  .cap h3{font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.035em;line-height:1.12}
+  .cap p{margin-top:12px;font-size:15.5px;color:var(--tx2);line-height:1.6}
+
+  /* phone */
+  .phone-wrap{position:absolute;z-index:4;left:50%;top:50%;will-change:transform;
+    transform:translate(-50%,-50%);perspective:1300px}
+  .phone{width:min(300px,68vw);aspect-ratio:9/19;border-radius:44px;position:relative;
     background:#050405;border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(255,59,67,.10),inset 0 0 0 3px #000;
-    transform:rotateY(-14deg) rotateX(6deg);transition:transform .25s ease-out;padding:12px}
-  @media (prefers-reduced-motion:reduce){.phone{transform:none}}
-  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:34%;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:2}
-  .scr{position:relative;height:100%;border-radius:34px;overflow:hidden;
+    box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 90px rgba(255,59,67,.10),inset 0 0 0 3px #000;
+    padding:12px;will-change:transform}
+  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:34%;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:3}
+  .scr{position:absolute;inset:12px;border-radius:34px;overflow:hidden;
     background:radial-gradient(300px 200px at 85% -5%,rgba(255,59,67,.12),transparent 60%),#0b0809;
-    display:flex;flex-direction:column;padding:40px 14px 14px}
-  .scr .hi{font-size:8px;letter-spacing:.2em;color:var(--acc);font-weight:700;text-transform:uppercase}
-  .scr img.wm{height:13px;width:auto;margin-top:4px}
+    display:flex;flex-direction:column;padding:42px 14px 14px;opacity:0;will-change:opacity}
+  .scr.s1{opacity:1}
+  .hi{font-size:8px;letter-spacing:.2em;color:var(--acc);font-weight:700;text-transform:uppercase}
+  img.wm{height:13px;width:auto;margin-top:4px;align-self:flex-start}
   .mcard{margin-top:12px;border-radius:16px;padding:13px;
     background:linear-gradient(160deg,#221217,#160e12);border:1px solid rgba(255,59,67,.22)}
-  .mcard .lv{display:flex;align-items:center;gap:5px;font-size:6.5px;color:var(--acc);font-weight:700;letter-spacing:.14em}
-  .mcard .lv i{width:4px;height:4px;border-radius:99px;background:var(--acc);box-shadow:0 0 6px var(--glow);animation:pulse 1.8s infinite}
-  .mcard .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px}
-  .mcard .lbl{font-size:8px;color:var(--tx2);margin-top:1px}
+  .lv{display:flex;align-items:center;gap:5px;font-size:6.5px;color:var(--acc);font-weight:700;letter-spacing:.14em}
+  .lv i{width:4px;height:4px;border-radius:99px;background:var(--acc);box-shadow:0 0 6px var(--glow);animation:pulse 1.8s infinite}
+  .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px}
+  .lbl{font-size:8px;color:var(--tx2);margin-top:1px}
   .bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:10px}
   .bars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12)}
   .bars i.hot{background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(255,59,67,.4)}
   .rowi{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
   .rowi:last-child{border:none}
-  .av{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:7px;font-weight:800;color:#111}
-  .rowi .nm{font-size:8.5px;font-weight:600}
-  .rowi .st{margin-left:auto;font-size:7px;font-weight:700;padding:2.5px 6px;border-radius:99px}
+  .av{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:7px;font-weight:800;color:#111;flex:none}
+  .nm{font-size:8.5px;font-weight:600}
+  .st{margin-left:auto;font-size:7px;font-weight:700;padding:2.5px 6px;border-radius:99px}
   .st.ok{color:var(--ok);background:rgba(74,222,128,.13)}
   .st.warn{color:#ffc23d;background:rgba(255,194,61,.13)}
   .mnav{margin-top:auto;height:30px;border-radius:12px;background:rgba(30,20,24,.9);
@@ -114,42 +126,91 @@
   .mnav i{width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,.22)}
   .mnav i.on{background:var(--acc);box-shadow:0 0 8px var(--glow)}
 
+  /* screen 2 — QR */
+  .qr-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+  .qr-frame{position:relative;width:64%;aspect-ratio:1}
+  .qr-frame b{position:absolute;width:26px;height:26px;border:3px solid var(--acc);border-radius:6px}
+  .qr-frame b:nth-child(1){top:0;left:0;border-right:none;border-bottom:none}
+  .qr-frame b:nth-child(2){top:0;right:0;border-left:none;border-bottom:none}
+  .qr-frame b:nth-child(3){bottom:0;left:0;border-right:none;border-top:none}
+  .qr-frame b:nth-child(4){bottom:0;right:0;border-left:none;border-top:none}
+  .qr-code{position:absolute;inset:16%;border-radius:8px;background:
+    repeating-conic-gradient(#fff 0% 25%,#0b0809 0% 50%) 0 0/22% 22%;opacity:.9}
+  .scanline{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);
+    box-shadow:0 0 14px var(--glow);animation:scan 2.1s ease-in-out infinite}
+  @keyframes scan{0%,100%{top:12%}50%{top:86%}}
+  .qr-ok{display:flex;align-items:center;gap:8px;background:rgba(74,222,128,.13);
+    border:1px solid rgba(74,222,128,.35);border-radius:99px;padding:7px 13px}
+  .qr-ok .cv{width:16px;height:16px;border-radius:99px;background:var(--ok);color:#0b0809;
+    display:grid;place-items:center;font-size:9px;font-weight:900}
+  .qr-ok span{font-size:9.5px;font-weight:700;color:var(--ok)}
+
+  /* screen 3 — WhatsApp */
+  .wa-h{font-size:11px;font-weight:800;margin-top:10px}
+  .bubble{margin-top:10px;background:#123a24;border:1px solid rgba(74,222,128,.3);
+    border-radius:12px 12px 12px 3px;padding:9px 11px;font-size:8px;line-height:1.55;color:#d9ffe9}
+  .bubble b{color:#fff}
+  .wa-rows{margin-top:10px}
+  .chk{width:13px;height:13px;border-radius:4px;background:var(--acc);display:grid;place-items:center;color:#fff;font-size:8px;font-weight:900;flex:none}
+  .wa-send{margin-top:12px;border-radius:11px;padding:10px;text-align:center;font-size:9px;font-weight:800;color:#fff;
+    background:linear-gradient(150deg,var(--acc),var(--acc2));box-shadow:0 6px 18px rgba(255,59,67,.35)}
+
+  /* mobile story layout */
+  @media(max-width:880px){
+    .hero-txt{left:22px;right:22px;top:max(86px, 9svh);transform:none;text-align:center;max-width:none}
+    .hero-ctas{justify-content:center}
+    .phone-wrap{top:60%}
+    .phone{width:min(240px,58vw)}
+    .cap{left:18px;right:18px;top:auto;bottom:26px;transform:none;max-width:none;text-align:center;
+      background:rgba(11,8,9,.78);backdrop-filter:blur(10px);border:1px solid var(--line);
+      border-radius:16px;padding:16px}
+    .cap h3{font-size:20px}
+    .cap p{font-size:13px;margin-top:7px}
+    .scroll-hint{display:none}
+  }
+
+  /* reduced motion: flatten the story into a plain hero */
+  @media (prefers-reduced-motion:reduce){
+    .story{height:auto}
+    .stage{position:static;height:auto;padding:140px 0 60px;flex-direction:column;gap:40px}
+    .hero-txt{position:static;transform:none;text-align:center}
+    .phone-wrap{position:static;transform:none}
+    .phone{transform:none!important}
+    .cap,.scroll-hint{display:none}
+  }
+
   /* ── sections ── */
-  section{padding:84px 0}
+  section{padding:84px 0;position:relative}
   .sec-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
   h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.035em;line-height:1.12;text-wrap:balance}
   .sec-sub{margin-top:12px;color:var(--tx2);font-size:16px;line-height:1.6;max-width:56ch}
+  .tint{background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)}
 
-  /* pains */
   .pains{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
   @media(max-width:760px){.pains{grid-template-columns:1fr}}
   .pain{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
   .pain .q{font-size:16px;font-weight:700;line-height:1.4}
   .pain .a{margin-top:8px;font-size:13.5px;color:var(--tx3)}
 
-  /* features */
   .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
   @media(max-width:880px){.feats{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:600px){.feats{grid-template-columns:1fr}}
-  .feat{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;
-    transition:transform .2s,border-color .2s}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;transition:transform .2s,border-color .2s}
   .feat:hover{transform:translateY(-4px);border-color:rgba(255,59,67,.3)}
   .fic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:20px;
     background:var(--accdim);border:1px solid rgba(255,59,67,.25);margin-bottom:14px}
-  .feat h3{font-size:16.5px;font-weight:750;letter-spacing:-.01em}
+  .feat h3{font-size:16.5px;font-weight:750}
   .feat p{margin-top:7px;font-size:13.5px;color:var(--tx2);line-height:1.55}
 
-  /* steps */
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px;counter-reset:st}
   @media(max-width:760px){.steps{grid-template-columns:1fr}}
-  .stp{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .stp{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
   .stp::before{counter-increment:st;content:counter(st);
     display:grid;place-items:center;width:32px;height:32px;border-radius:99px;margin-bottom:14px;
     background:linear-gradient(150deg,var(--acc),var(--acc2));color:#fff;font-weight:800;font-size:15px}
   .stp h3{font-size:16px;font-weight:750}
   .stp p{margin-top:6px;font-size:13.5px;color:var(--tx2);line-height:1.55}
 
-  /* pricing */
   .price-card{max-width:430px;margin:40px auto 0;background:linear-gradient(165deg,#1c1216,var(--panel));
     border:1px solid rgba(255,59,67,.3);border-radius:26px;padding:36px 30px;text-align:center;
     box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px rgba(255,59,67,.08)}
@@ -163,7 +224,6 @@
   .tick{color:var(--acc);font-weight:800;flex:none}
   .price-note{margin-top:14px;font-size:12.5px;color:var(--tx3)}
 
-  /* faq */
   .faq{max-width:640px;margin:36px auto 0;display:flex;flex-direction:column;gap:10px}
   details{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px 20px}
   summary{cursor:pointer;font-weight:650;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:10px}
@@ -171,8 +231,7 @@
   details[open] summary::after{content:"–"}
   details p{margin-top:12px;font-size:14px;color:var(--tx2);line-height:1.6}
 
-  /* final cta */
-  .final{position:relative;text-align:center;padding:110px 0 120px;overflow:hidden}
+  .final{text-align:center;padding:110px 0 120px;overflow:hidden}
   .final .arrow{font-size:56px;color:var(--acc);display:block;margin-bottom:16px;
     text-shadow:0 0 40px var(--glow);animation:rise 2.4s ease-in-out infinite}
   @keyframes rise{0%,100%{transform:translateY(6px)}50%{transform:translateY(-6px)}}
@@ -190,76 +249,126 @@
   <div class="nav-in">
     <img src="/wordmark.png" alt="TRAX" class="nav-logo">
     <div class="nav-cta">
-      <a class="btn ghost" href="/">Giriş yap</a>
-      <a class="btn red" href="/">Ücretsiz dene</a>
+      <a class="btn ghost" href="/">Log in</a>
+      <a class="btn red" href="/">Try free</a>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<header class="hero">
-  <span class="orb o1"></span><span class="orb o2"></span><span class="hero-grid"></span>
-  <div class="wrap hero-in">
-    <div>
-      <span class="eyebrow"><span class="dot"></span>Salon sahipleri için</span>
-      <h1>Defter devri bitti.<br>Salonunu <span class="red">telefondan</span> yönet.</h1>
-      <p class="hero-sub">Üye takibi, QR yoklama, WhatsApp hatırlatma ve gelir ekranı — spor salonu, pilates ve PT stüdyoları için tek uygulamada.</p>
+<!-- ══ SCROLL STORY: hero → dashboard → QR → WhatsApp ══ -->
+<div class="story" id="story">
+  <div class="stage">
+    <span class="orb o1"></span><span class="orb o2"></span><span class="grid-bg"></span>
+
+    <!-- scene 0: hero text -->
+    <div class="hero-txt" id="heroTxt">
+      <span class="eyebrow"><span class="dot"></span>Built for studio owners</span>
+      <h1>The paper log is over.<br>Run your gym from <span class="red">your phone</span>.</h1>
+      <p class="hero-sub">Members, QR check-ins, payment reminders and revenue — one app for gyms, pilates and PT studios.</p>
       <div class="hero-ctas">
-        <a class="btn red big" href="/">14 gün ücretsiz dene ↗</a>
-        <a class="btn ghost big" href="#ozellikler">Özellikleri gör</a>
+        <a class="btn red big" href="/">Start 14-day free trial ↗</a>
       </div>
-      <div class="hero-note">Kart gerekmez · Kurulum 5 dakika · İstediğin an vazgeç</div>
+      <div class="hero-note">No credit card · 5-minute setup · Cancel anytime</div>
     </div>
-    <div class="stage">
+
+    <!-- captions -->
+    <div class="cap" id="cap1">
+      <span class="k">01 · Today at a glance</span>
+      <h3>Your whole studio,<br>one live screen.</h3>
+      <p>Check-ins as they happen, who's due for renewal, and your weekly pulse — before your coffee gets cold.</p>
+    </div>
+    <div class="cap" id="cap2">
+      <span class="k">02 · QR check-in</span>
+      <h3>Two seconds<br>at the door.</h3>
+      <p>Every member gets a personal QR code. Scan, done. Expired memberships get flagged the moment they walk in.</p>
+    </div>
+    <div class="cap" id="cap3">
+      <span class="k">03 · Reminders</span>
+      <h3>Renewals chase<br>themselves.</h3>
+      <p>One tap sends personal WhatsApp reminders — in your studio's name, in your own words.</p>
+    </div>
+
+    <!-- the phone -->
+    <div class="phone-wrap" id="phoneWrap">
       <div class="phone" id="phone">
         <div class="notch"></div>
-        <div class="scr">
-          <div class="hi">Hoş geldin, Mert</div>
+
+        <!-- screen 1: dashboard -->
+        <div class="scr s1" id="scr1">
+          <div class="hi">Welcome back, Sarah</div>
           <img class="wm" src="/wordmark.png" alt="">
           <div class="mcard">
-            <div class="lv"><i></i>CANLI · BUGÜN</div>
+            <div class="lv"><i></i>LIVE · TODAY</div>
             <div class="num">24</div>
-            <div class="lbl">giriş · bugün programda 31 üye</div>
+            <div class="lbl">check-ins · 31 scheduled today</div>
             <div class="bars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
           </div>
           <div style="margin-top:10px">
-            <div class="rowi"><span class="av" style="background:#4be38a">EY</span><span class="nm">Elif Yılmaz</span><span class="st ok">Geldi</span></div>
-            <div class="rowi"><span class="av" style="background:#66a3ff">BD</span><span class="nm">Burak Demir</span><span class="st warn">4 gün</span></div>
-            <div class="rowi"><span class="av" style="background:#ffb84d">ZK</span><span class="nm">Zeynep Kaya</span><span class="st ok">Geldi</span></div>
+            <div class="rowi"><span class="av" style="background:#4be38a">EW</span><span class="nm">Emma Wilson</span><span class="st ok">In</span></div>
+            <div class="rowi"><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
+            <div class="rowi"><span class="av" style="background:#ffb84d">SC</span><span class="nm">Sofia Costa</span><span class="st ok">In</span></div>
           </div>
-          <div class="mnav"><i></i><i class="on"></i><i></i><i></i></div>
+          <div class="mnav"><i class="on"></i><i></i><i></i><i></i></div>
+        </div>
+
+        <!-- screen 2: QR scan -->
+        <div class="scr" id="scr2">
+          <div class="hi">Check-in</div>
+          <img class="wm" src="/wordmark.png" alt="">
+          <div class="qr-zone">
+            <div class="qr-frame"><b></b><b></b><b></b><b></b><span class="qr-code"></span><span class="scanline"></span></div>
+            <div class="qr-ok"><span class="cv">✓</span><span>Emma Wilson — Checked in</span></div>
+          </div>
+          <div class="mnav"><i></i><i></i><i class="on"></i><i></i></div>
+        </div>
+
+        <!-- screen 3: WhatsApp reminders -->
+        <div class="scr" id="scr3">
+          <div class="hi">Reminders</div>
+          <img class="wm" src="/wordmark.png" alt="">
+          <div class="wa-h">Renewal reminder</div>
+          <div class="bubble">Hi <b>Jake</b>! Your <b>IronWorks</b> membership expires in <b>4 days</b>. Swing by to renew 💪</div>
+          <div class="wa-rows">
+            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
+            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#b388ff">LB</span><span class="nm">Lucas Brown</span><span class="st warn">6 days</span></div>
+            <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#2de2c0">MG</span><span class="nm">Mia Garcia</span><span class="st warn">7 days</span></div>
+          </div>
+          <div class="wa-send">Send to 3 →</div>
+          <div class="mnav"><i></i><i></i><i></i><i class="on"></i></div>
         </div>
       </div>
     </div>
+
+    <div class="scroll-hint" id="hint"><span>Scroll</span><i></i></div>
   </div>
-</header>
+</div>
 
 <!-- PAINS -->
 <section>
   <div class="wrap">
-    <div class="rv"><div class="sec-eyebrow">Tanıdık geldi mi?</div>
-    <h2>Salon işletmenin görünmeyen yükü</h2></div>
+    <div class="rv"><div class="sec-eyebrow">Sound familiar?</div>
+    <h2>The invisible weight of running a studio</h2></div>
     <div class="pains">
-      <div class="pain rv"><div class="q">"Kimin üyeliği ne zaman bitiyordu?"</div><div class="a">Defterde, Excel'de, kafanda… Süre dolar, kimse fark etmez, üye sessizce kaybolur.</div></div>
-      <div class="pain rv"><div class="q">"Bugün derse kimler gelecekti?"</div><div class="a">Yoklama kağıtları, karışan listeler, "hocam ben gelmiştim" tartışmaları.</div></div>
-      <div class="pain rv"><div class="q">"Hatırlatma atacaktım, unuttum."</div><div class="a">Tek tek WhatsApp yazmak saatler alır. Atlanan her hatırlatma, kaçan bir yenileme.</div></div>
+      <div class="pain rv"><div class="q">"Whose membership was expiring again?"</div><div class="a">In a notebook, a spreadsheet, your head… The date slips by, nobody notices, the member quietly disappears.</div></div>
+      <div class="pain rv"><div class="q">"Who's coming to class today?"</div><div class="a">Paper sign-in sheets, mixed-up lists, "but I was here yesterday" debates.</div></div>
+      <div class="pain rv"><div class="q">"I meant to text them. I forgot."</div><div class="a">Chasing renewals one by one eats hours. Every missed reminder is a missed renewal.</div></div>
     </div>
   </div>
 </section>
 
 <!-- FEATURES -->
-<section id="ozellikler" style="background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)">
+<section id="features" class="tint">
   <div class="wrap">
-    <div class="rv"><div class="sec-eyebrow">Neler yapar</div>
-    <h2>Tek uygulama, bütün salon</h2>
-    <p class="sec-sub">TRAX bir "yazılım paketi" değil — cebinde duran, 5 dakikada öğrenilen bir asistan.</p></div>
+    <div class="rv"><div class="sec-eyebrow">What it does</div>
+    <h2>One app, your whole studio</h2>
+    <p class="sec-sub">TRAX isn't a "software suite." It's an assistant that lives in your pocket and takes five minutes to learn.</p></div>
     <div class="feats">
-      <div class="feat rv"><div class="fic">👥</div><h3>Üye takibi</h3><p>Kim aktif, kimin süresi yaklaşıyor, kim geçti — renklerle tek bakışta. Arama, filtre, üye kartı.</p></div>
-      <div class="feat rv"><div class="fic">📷</div><h3>QR ile yoklama</h3><p>Üyeye özel QR kod. Kapıda okut, 2 saniyede giriş. Süresi dolanı anında uyarır.</p></div>
-      <div class="feat rv"><div class="fic">💬</div><h3>WhatsApp hatırlatma</h3><p>Yenileme, geri kazanım ve hoş geldin mesajları — kendi salonunun adıyla, tek tuşla, toplu.</p></div>
-      <div class="feat rv"><div class="fic">📅</div><h3>Ders programı</h3><p>Haftalık takvim: kim hangi gün geliyor, bugün kimler bekleniyor, kim geldi kim gelmedi.</p></div>
-      <div class="feat rv"><div class="fic">📈</div><h3>Gelir ekranı</h3><p>Aktif üyelikler, doluluk ve haftalık giriş grafiği — işinin nabzı her an elinde.</p></div>
-      <div class="feat rv"><div class="fic">⚡</div><h3>Mağazasız kurulum</h3><p>App Store yok, indirme yok. Linke gir, ana ekrana ekle — telefonunda uygulama gibi çalışır.</p></div>
+      <div class="feat rv"><div class="fic">👥</div><h3>Member tracking</h3><p>Who's active, who's due, who's lapsed — color-coded at a glance. Search, filter, full member profiles.</p></div>
+      <div class="feat rv"><div class="fic">📷</div><h3>QR check-in</h3><p>A personal QR code for every member. Scan at the door — two seconds. Expired members flagged instantly.</p></div>
+      <div class="feat rv"><div class="fic">💬</div><h3>WhatsApp reminders</h3><p>Renewal, win-back and welcome messages — in your studio's name, fully editable, sent in bulk with one tap.</p></div>
+      <div class="feat rv"><div class="fic">📅</div><h3>Class schedule</h3><p>Weekly calendar: who trains on which days, who's expected today, who showed up.</p></div>
+      <div class="feat rv"><div class="fic">📈</div><h3>Revenue view</h3><p>Active memberships, attendance and weekly check-in trends — your business's pulse, always in hand.</p></div>
+      <div class="feat rv"><div class="fic">⚡</div><h3>No app store</h3><p>Nothing to download. Open the link, add to home screen — it runs like a native app and updates itself.</p></div>
     </div>
   </div>
 </section>
@@ -267,34 +376,34 @@
 <!-- STEPS -->
 <section>
   <div class="wrap">
-    <div class="rv"><div class="sec-eyebrow">Nasıl başlarım</div>
-    <h2>5 dakikada hazırsın</h2></div>
+    <div class="rv"><div class="sec-eyebrow">Getting started</div>
+    <h2>Ready in five minutes</h2></div>
     <div class="steps">
-      <div class="stp rv"><h3>Kaydol</h3><p>E-posta + şifre, salon adını yaz. Kart bilgisi istemiyoruz.</p></div>
-      <div class="stp rv"><h3>Üyelerini ekle</h3><p>İsim ve telefon yeter. Plan seç, ders günlerini işaretle.</p></div>
-      <div class="stp rv"><h3>Otomatiğe bağla</h3><p>QR kodları paylaş, hatırlatmaları TRAX takip etsin. Sen antrenmana dön.</p></div>
+      <div class="stp rv"><h3>Sign up</h3><p>Email + password, name your studio. We don't ask for a card.</p></div>
+      <div class="stp rv"><h3>Add your members</h3><p>Name and phone is enough. Pick a plan, mark their class days.</p></div>
+      <div class="stp rv"><h3>Put it on autopilot</h3><p>Share QR codes, let TRAX watch the renewals. You get back to coaching.</p></div>
     </div>
   </div>
 </section>
 
 <!-- PRICING -->
-<section id="fiyat" style="background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)">
+<section id="pricing" class="tint">
   <div class="wrap">
-    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Fiyat</div>
-    <h2>Bir üyenin yarım aidatı kadar</h2></div>
+    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Pricing</div>
+    <h2>Less than half of one membership</h2></div>
     <div class="price-card rv">
-      <div class="price-tag">Tek plan · Her şey dahil</div>
-      <div class="price-num">$19.99<small>/ay</small></div>
-      <div class="price-per">yıllık sözleşme yok · istediğin an iptal</div>
+      <div class="price-tag">One plan · Everything included</div>
+      <div class="price-num">$19.99<small>/mo</small></div>
+      <div class="price-per">no contracts · cancel anytime</div>
       <div class="plist">
-        <div><span class="tick">✓</span><span><b>14 gün ücretsiz</b> — kart bilgisi gerekmez</span></div>
-        <div><span class="tick">✓</span><span><b>Sınırsız üye</b> ve yoklama kaydı</span></div>
-        <div><span class="tick">✓</span><span>QR yoklama + WhatsApp şablonları</span></div>
-        <div><span class="tick">✓</span><span>Türkçe & English</span></div>
-        <div><span class="tick">✓</span><span>Verilerin bulutta, dilediğinde dışa aktar</span></div>
+        <div><span class="tick">✓</span><span><b>14-day free trial</b> — no credit card required</span></div>
+        <div><span class="tick">✓</span><span><b>Unlimited members</b> and check-ins</span></div>
+        <div><span class="tick">✓</span><span>QR check-in + editable WhatsApp templates</span></div>
+        <div><span class="tick">✓</span><span>English & Türkçe</span></div>
+        <div><span class="tick">✓</span><span>Cloud-synced, export your data anytime</span></div>
       </div>
-      <a class="btn red big" href="/" style="width:100%">Ücretsiz denemeyi başlat ↗</a>
-      <div class="price-note">Deneme bitince zorunluluk yok — beğenmezsen hiçbir şey ödemezsin.</div>
+      <a class="btn red big" href="/" style="width:100%">Start your free trial ↗</a>
+      <div class="price-note">When the trial ends there's no obligation — if it's not for you, you pay nothing.</div>
     </div>
   </div>
 </section>
@@ -302,14 +411,14 @@
 <!-- FAQ -->
 <section>
   <div class="wrap">
-    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Sorular</div>
-    <h2>Merak edilenler</h2></div>
+    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Questions</div>
+    <h2>Frequently asked</h2></div>
     <div class="faq">
-      <details class="rv"><summary>Uygulamayı nereden indireceğim?</summary><p>Hiçbir yerden — TRAX tarayıcıdan çalışır. Linke girip "Ana Ekrana Ekle" dediğinde telefonunda normal bir uygulama gibi durur ve çalışır. Güncellemeler kendiliğinden gelir.</p></details>
-      <details class="rv"><summary>Üyelerimin bilgileri güvende mi?</summary><p>Veriler Google'ın Firebase altyapısında, Avrupa Birliği sunucularında saklanır. Her salon yalnızca kendi verisini görür; dilediğinde tek dosya halinde dışa aktarabilir veya tamamen silebilirsin.</p></details>
-      <details class="rv"><summary>Deneme bitince ne olur?</summary><p>Uygulama sana haber verir. Devam etmek istersen kartınla saniyeler içinde abone olursun; istemezsen hiçbir ücret alınmaz, verilerin makul bir süre seni bekler.</p></details>
-      <details class="rv"><summary>İnternet olmadan çalışır mı?</summary><p>Evet — son verilerin cihazında saklanır, çevrimdışıyken de çalışırsın. Bağlantı gelince her şey otomatik eşitlenir.</p></details>
-      <details class="rv"><summary>Bilgisayardan kullanabilir miyim?</summary><p>Evet, tarayıcıdan aynı hesapla girebilirsin. Ama TRAX en çok cebinde parlar — salonun içinde, kapıda, ders arasında.</p></details>
+      <details class="rv"><summary>Where do I download the app?</summary><p>Nowhere — TRAX runs from your browser. Open the link, tap "Add to Home Screen", and it lives on your phone like a regular app. Updates arrive automatically.</p></details>
+      <details class="rv"><summary>Is my members' data safe?</summary><p>Data is stored on Google's Firebase infrastructure. Each studio sees only its own data; you can export everything as a single file or delete your account entirely, anytime.</p></details>
+      <details class="rv"><summary>What happens when the trial ends?</summary><p>The app lets you know. If you want to continue, you subscribe with your card in seconds; if not, you're charged nothing and your data waits for you for a reasonable period.</p></details>
+      <details class="rv"><summary>Does it work offline?</summary><p>Yes — your latest data is stored on your device, so you can keep working without a connection. Everything syncs automatically when you're back online.</p></details>
+      <details class="rv"><summary>Can I use it on a computer?</summary><p>Yes, the same account works in any browser. But TRAX shines brightest in your pocket — on the floor, at the door, between classes.</p></details>
     </div>
   </div>
 </section>
@@ -319,51 +428,101 @@
   <span class="orb o1" style="top:auto;bottom:-220px;right:20%"></span>
   <div class="wrap rv">
     <span class="arrow">↗</span>
-    <h2>Salonun büyüsün,<br>defter rafta kalsın.</h2>
-    <div style="margin-top:30px"><a class="btn red big" href="/">14 gün ücretsiz dene ↗</a></div>
-    <div class="hero-note" style="margin-top:14px">Kurulum 5 dakika · Kart gerekmez</div>
+    <h2>Grow the studio.<br>Retire the notebook.</h2>
+    <div style="margin-top:30px"><a class="btn red big" href="/">Start 14-day free trial ↗</a></div>
+    <div class="hero-note" style="margin-top:14px">5-minute setup · No credit card</div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <div class="flinks">
-      <a href="/">Giriş yap</a>
-      <a href="mailto:traxguo@gmail.com">İletişim</a>
+      <a href="/">Log in</a>
+      <a href="mailto:traxguo@gmail.com">Contact</a>
     </div>
-    <div>© 2026 TRAX · Kullanım şartları ve gizlilik politikası uygulama içinde</div>
+    <div>© 2026 TRAX · Terms of Service and Privacy Policy are available in the app</div>
   </div>
 </footer>
 
 <script>
-  // nav border on scroll
   const nav = document.getElementById('nav');
   addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 10), {passive:true});
 
-  // reveal on scroll
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), {threshold:.12});
   document.querySelectorAll('.rv').forEach(el => io.observe(el));
 
-  // 3D phone: follows scroll + pointer
-  const phone = document.getElementById('phone');
+  // ══ scroll story engine ══
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (phone && !reduce) {
-    let px = 0, py = 0;
-    const apply = () => {
-      const r = Math.min(1, scrollY / 500);
-      const ry = -14 + r * 14 + px * 5;
-      const rx = 6 - r * 6 + py * -5;
-      phone.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
+  if (!reduce) {
+    const story = document.getElementById('story');
+    const phoneW = document.getElementById('phoneWrap');
+    const phone = document.getElementById('phone');
+    const heroTxt = document.getElementById('heroTxt');
+    const hint = document.getElementById('hint');
+    const caps = [document.getElementById('cap1'), document.getElementById('cap2'), document.getElementById('cap3')];
+    const scrs = [document.getElementById('scr1'), document.getElementById('scr2'), document.getElementById('scr3')];
+    const mobile = () => innerWidth <= 880;
+
+    const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+    const ease = t => t*t*(3-2*t); // smoothstep
+    // fade window helper: 0→1→0 across [a,b] with soft edges
+    const win = (p,a,b,f=.05) => {
+      if (p < a || p > b) return 0;
+      if (p < a+f) return ease((p-a)/f);
+      if (p > b-f) return ease((b-p)/f);
+      return 1;
     };
-    addEventListener('scroll', apply, {passive:true});
+
+    let px=0, py=0, ticking=false;
+
+    function render() {
+      ticking = false;
+      const r = story.getBoundingClientRect();
+      const total = r.height - innerHeight;
+      const p = clamp(-r.top / total, 0, 1);
+
+      // hero text: solid until .16, gone by .26
+      const ho = 1 - ease(clamp((p-.16)/.10, 0, 1));
+      heroTxt.style.opacity = ho;
+      heroTxt.style.transform = (mobile() ? '' : 'translateY(-50%) ') + `translateY(${(1-ho)*-46}px)`;
+      heroTxt.style.pointerEvents = ho > .5 ? 'auto' : 'none';
+      hint.style.opacity = ho;
+
+      // phone: desktop slides from right column to center; both: rotate through scenes
+      const settle = ease(clamp(p/.24, 0, 1));            // 0→1 as hero hands over
+      const tx = mobile() ? 0 : (1-settle) * Math.min(innerWidth*.24, 300);
+      const baseRy = -16 + settle*16 + Math.sin(p*Math.PI*2)*7;   // sweeping wobble across story
+      const baseRx = 6 - settle*6 + Math.cos(p*Math.PI*2)*3;
+      const scale = .96 + Math.sin(p*Math.PI)*.10;                 // swells mid-story
+      const damp = 1 - settle*.5;
+      phoneW.style.transform = `translate(-50%,-50%) translateX(${tx}px)`;
+      phone.style.transform = `rotateY(${baseRy + px*5*damp}deg) rotateX(${baseRx + py*-5*damp}deg) scale(${scale})`;
+
+      // screens: 1 → 2 → 3
+      scrs[0].style.opacity = win(p, 0, .46, .06) || (p===0?1:0);
+      scrs[1].style.opacity = win(p, .40, .72, .06);
+      scrs[2].style.opacity = win(p, .66, 1.01, .06);
+
+      // captions
+      const capWins = [[.26,.44],[.46,.70],[.72,.96]];
+      caps.forEach((c,i) => {
+        const o = win(p, capWins[i][0], capWins[i][1], .06);
+        c.style.opacity = o;
+        c.style.transform = (mobile() ? '' : 'translateY(-40%) ') + `translateY(${(1-o)*28}px)`;
+      });
+    }
+
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(render); } };
+    addEventListener('scroll', onScroll, {passive:true});
+    addEventListener('resize', onScroll, {passive:true});
     addEventListener('pointermove', e => {
-      px = (e.clientX / innerWidth - .5) * 2;
-      py = (e.clientY / innerHeight - .5) * 2;
-      apply();
+      px = (e.clientX/innerWidth - .5)*2;
+      py = (e.clientY/innerHeight - .5)*2;
+      onScroll();
     }, {passive:true});
-    apply();
+    render();
   }
 </script>
 </body>
