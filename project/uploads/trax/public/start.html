@@ -6,7 +6,7 @@
 <title>TRAX — Run your gym from your phone</title>
 <meta name="description" content="Member management, QR check-in and WhatsApp reminders for gyms, pilates & PT studios. 14-day free trial, no card required.">
 <meta property="og:title" content="TRAX — Run your gym from your phone">
-<meta property="og:description" content="The paper log is over. Members, check-ins, reminders — all in your pocket. 14 days free.">
+<meta property="og:description" content="Paper logs. Missed renewals. Not anymore. 14 days free.">
 <meta property="og:image" content="/icon-1024.png">
 <link rel="icon" type="image/png" href="/favicon-32.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -33,26 +33,6 @@
   .rv.in{opacity:1;transform:none}
   @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
 
-  /* ════ CINEMATIC INTRO OVERLAY (the hook) ════ */
-  #intro{position:fixed;inset:0;z-index:100;background:#070506;display:grid;place-items:center;
-    transition:transform .7s cubic-bezier(.7,0,.2,1),opacity .5s ease .2s}
-  #intro.done{transform:translateY(-100%);opacity:0;pointer-events:none}
-  .intro-in{position:relative;text-align:center}
-  .intro-wm{height:clamp(38px,7vw,64px);width:auto;opacity:0;
-    animation:wmIn .9s cubic-bezier(.2,.8,.2,1) .15s forwards;filter:drop-shadow(0 0 0 rgba(255,59,67,0))}
-  @keyframes wmIn{
-    0%{opacity:0;transform:scale(.7)}
-    60%{opacity:1;transform:scale(1.04);filter:drop-shadow(0 0 34px rgba(255,59,67,.55))}
-    100%{opacity:1;transform:scale(1);filter:drop-shadow(0 0 18px rgba(255,59,67,.3))}}
-  .intro-tag{margin-top:18px;font-size:12px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;
-    color:var(--tx3);opacity:0;animation:tagIn .5s ease .75s forwards}
-  @keyframes tagIn{to{opacity:1}}
-  .intro-line{position:absolute;left:50%;bottom:-44px;transform:translateX(-50%);width:1px;height:0;
-    background:linear-gradient(180deg,var(--acc),transparent);
-    animation:lineGrow .5s ease .95s forwards}
-  @keyframes lineGrow{to{height:40px}}
-  @media (prefers-reduced-motion:reduce){#intro{display:none}}
-
   /* ── nav ── */
   nav{position:fixed;top:0;left:0;right:0;z-index:50;
     background:rgba(11,8,9,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
@@ -71,147 +51,120 @@
   .btn.ghost{background:rgba(255,255,255,.03)}
   .btn.big{padding:16px 30px;font-size:16px;border-radius:15px}
 
-  /* ════ TOUR: sticky phone + normal-flow text blocks ════ */
-  .tour{position:relative}
-  .tour-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-  .orb{position:absolute;border-radius:50%;filter:blur(90px)}
+  /* ════ HERO — kinetic strike-through hook, plays on load ════ */
+  .hero{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;
+    padding:110px 0 40px}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
   .o1{width:560px;height:560px;background:rgba(255,59,67,.13);top:-160px;right:-140px}
   .o2{width:420px;height:420px;background:rgba(255,59,67,.06);bottom:-120px;left:-120px}
+  .grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(72% 62% at 50% 42%,#000,transparent)}
+  /* big background arrow, draws once */
+  .bg-arrow{position:absolute;right:-4%;bottom:-6%;width:min(560px,70vw);opacity:.5;pointer-events:none}
+  .bg-arrow path{stroke:url(#agrad);stroke-width:10;fill:none;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:1300;stroke-dashoffset:1300;animation:draw 1.4s cubic-bezier(.4,0,.2,1) 1.15s forwards;
+    filter:drop-shadow(0 0 22px rgba(255,59,67,.35))}
+  @keyframes draw{to{stroke-dashoffset:0}}
 
-  .tour-grid{position:relative;max-width:1060px;margin:0 auto;padding:0 22px;
-    display:grid;grid-template-columns:1fr minmax(300px,420px);gap:40px}
-  .blocks{position:relative;z-index:1}
-
-  /* text column: blocks in NORMAL FLOW — overlap is structurally impossible */
-  .blocks{display:flex;flex-direction:column}
-  .blk{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:90px 0 60px}
-  .k{font-size:11.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-  .k .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
+  .hero-in{position:relative;width:100%;text-align:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:26px;
+    opacity:0;animation:fadeUp .5s ease .1s forwards}
+  .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);
+    box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  h1{font-size:clamp(34px,4.8vw,54px);font-weight:800;letter-spacing:-.045em;line-height:1.06;text-wrap:balance}
-  h1 .red{color:var(--acc)}
-  .iw{display:inline-block;opacity:0;transform:translateY(26px)}
-  body.go .iw{animation:wordUp .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0s)}
-  @keyframes wordUp{to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.iw{opacity:1;transform:none}body.go .iw{animation:none}}
-  .blk h3{font-size:clamp(26px,3.4vw,40px);font-weight:800;letter-spacing:-.04em;line-height:1.1;text-wrap:balance}
-  .sub{margin-top:16px;font-size:clamp(15px,1.9vw,17.5px);color:var(--tx2);line-height:1.65;max-width:44ch}
-  .ctas{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
-  .note{margin-top:12px;font-size:13px;color:var(--tx3)}
-  .blk .mini{margin-top:18px;display:flex;flex-direction:column;gap:9px}
-  .blk .mini div{display:flex;gap:9px;font-size:14px;color:var(--tx2)}
-  .tick{color:var(--acc);font-weight:800;flex:none}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 
-  /* phone column: sticky viewport */
-  .phone-col{position:relative}
-  .phone-stick{position:sticky;top:0;height:100svh;display:flex;align-items:center;justify-content:center}
-  .parallax{will-change:transform}
-  .rot{transition:transform 1s cubic-bezier(.25,.8,.25,1);will-change:transform;transform:rotateY(-10deg) rotateX(4deg)}
-  .tour[data-s="1"] .rot{transform:rotateY(11deg) rotateX(-2deg) scale(1.02)}
-  .tour[data-s="2"] .rot{transform:rotateY(-9deg) rotateX(2deg) scale(1.01)}
-  .persp{perspective:1300px}
-  .phone{width:min(300px,64vw);aspect-ratio:9/19;border-radius:44px;position:relative;
-    background:#050405;border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 90px rgba(255,59,67,.10),inset 0 0 0 3px #000;
-    padding:12px}
-  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:34%;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:3}
-  .scr{position:absolute;inset:12px;border-radius:34px;overflow:hidden;
-    background:radial-gradient(300px 200px at 85% -5%,rgba(255,59,67,.12),transparent 60%),#0b0809;
-    display:flex;flex-direction:column;padding:42px 14px 14px;
-    opacity:0;transition:opacity .55s ease}
-  .tour[data-s="0"] #scr1{opacity:1}
-  .tour[data-s="1"] #scr2{opacity:1}
-  .tour[data-s="2"] #scr3{opacity:1}
+  h1{font-size:clamp(40px,8.4vw,84px);font-weight:800;letter-spacing:-.05em;line-height:1.04}
+  .l{display:block;opacity:0;transform:translateY(34px)}
+  .l1{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .25s forwards}
+  .l2{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .8s forwards}
+  .l3{animation:stampIn .5s cubic-bezier(.2,1.4,.3,1) 1.75s forwards;color:var(--acc);
+    text-shadow:0 0 42px rgba(255,59,67,.4)}
+  @keyframes stampIn{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
+  /* strike-through sweep */
+  .strike{position:relative;display:inline-block}
+  .strike::after{content:"";position:absolute;left:-2%;right:auto;top:52%;height:.09em;width:0;
+    border-radius:99px;background:var(--acc);box-shadow:0 0 16px var(--glow);transform:rotate(-2deg)}
+  .s1::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) .9s forwards}
+  .s2::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) 1.45s forwards}
+  @keyframes sweep{to{width:104%}}
+  .struck{color:var(--tx3);transition:color .3s}
 
-  @keyframes screenOn{from{filter:brightness(.15)}to{filter:brightness(1)}}
-  body.go #scr1{animation:screenOn .8s ease .25s backwards}
-  @keyframes barGrow{from{transform:scaleY(.06)}to{transform:scaleY(1)}}
-  @keyframes rowIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
-
-  .hi{font-size:8px;letter-spacing:.2em;color:var(--acc);font-weight:700;text-transform:uppercase}
-  img.wm{height:13px;width:auto;margin-top:4px;align-self:flex-start}
-  .mcard{margin-top:12px;border-radius:16px;padding:13px;
-    background:linear-gradient(160deg,#221217,#160e12);border:1px solid rgba(255,59,67,.22)}
-  .lv{display:flex;align-items:center;gap:5px;font-size:6.5px;color:var(--acc);font-weight:700;letter-spacing:.14em}
-  .lv i{width:4px;height:4px;border-radius:99px;background:var(--acc);box-shadow:0 0 6px var(--glow);animation:pulse 1.8s infinite}
-  .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px;font-variant-numeric:tabular-nums}
-  .lbl{font-size:8px;color:var(--tx2);margin-top:1px}
-  .bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:10px}
-  .bars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12);transform-origin:bottom}
-  body.go .bars i{animation:barGrow .5s cubic-bezier(.2,.8,.3,1.2) backwards}
-  body.go .bars i:nth-child(1){animation-delay:.5s}body.go .bars i:nth-child(2){animation-delay:.57s}
-  body.go .bars i:nth-child(3){animation-delay:.64s}body.go .bars i:nth-child(4){animation-delay:.71s}
-  body.go .bars i:nth-child(5){animation-delay:.78s}body.go .bars i:nth-child(6){animation-delay:.85s}
-  body.go .bars i:nth-child(7){animation-delay:.92s}
-  .bars i.hot{background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(255,59,67,.4)}
-  .rowi{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
-  .rowi:last-child{border:none}
-  body.go #scr1 .rowi{animation:rowIn .45s ease backwards}
-  body.go #scr1 .rowi:nth-child(1){animation-delay:1s}
-  body.go #scr1 .rowi:nth-child(2){animation-delay:1.12s}
-  body.go #scr1 .rowi:nth-child(3){animation-delay:1.24s}
-  .av{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:7px;font-weight:800;color:#111;flex:none}
-  .nm{font-size:8.5px;font-weight:600}
-  .st{margin-left:auto;font-size:7px;font-weight:700;padding:2.5px 6px;border-radius:99px}
-  .st.ok{color:var(--ok);background:rgba(74,222,128,.13)}
-  .st.warn{color:#ffc23d;background:rgba(255,194,61,.13)}
-  .mnav{margin-top:auto;height:30px;border-radius:12px;background:rgba(30,20,24,.9);
-    border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-around}
-  .mnav i{width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,.22)}
-  .mnav i.on{background:var(--acc);box-shadow:0 0 8px var(--glow)}
-
-  .qr-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-  .qr-frame{position:relative;width:64%;aspect-ratio:1}
-  .qr-frame b{position:absolute;width:26px;height:26px;border:3px solid var(--acc);border-radius:6px}
-  .qr-frame b:nth-child(1){top:0;left:0;border-right:none;border-bottom:none}
-  .qr-frame b:nth-child(2){top:0;right:0;border-left:none;border-bottom:none}
-  .qr-frame b:nth-child(3){bottom:0;left:0;border-right:none;border-top:none}
-  .qr-frame b:nth-child(4){bottom:0;right:0;border-left:none;border-top:none}
-  .qr-code{position:absolute;inset:16%;border-radius:8px;background:
-    repeating-conic-gradient(#fff 0% 25%,#0b0809 0% 50%) 0 0/22% 22%;opacity:.9}
-  .scanline{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);
-    box-shadow:0 0 14px var(--glow);animation:scan 2.1s ease-in-out infinite}
-  @keyframes scan{0%,100%{top:12%}50%{top:86%}}
-  .qr-ok{display:flex;align-items:center;gap:8px;background:rgba(74,222,128,.13);
-    border:1px solid rgba(74,222,128,.35);border-radius:99px;padding:7px 13px}
-  .qr-ok .cv{width:16px;height:16px;border-radius:99px;background:var(--ok);color:#0b0809;
-    display:grid;place-items:center;font-size:9px;font-weight:900}
-  .qr-ok span{font-size:9.5px;font-weight:700;color:var(--ok)}
-
-  .wa-h{font-size:11px;font-weight:800;margin-top:10px}
-  .bubble{margin-top:10px;background:#123a24;border:1px solid rgba(74,222,128,.3);
-    border-radius:12px 12px 12px 3px;padding:9px 11px;font-size:8px;line-height:1.55;color:#d9ffe9}
-  .bubble b{color:#fff}
-  .chk{width:13px;height:13px;border-radius:4px;background:var(--acc);display:grid;place-items:center;color:#fff;font-size:8px;font-weight:900;flex:none}
-  .wa-send{margin-top:12px;border-radius:11px;padding:10px;text-align:center;font-size:9px;font-weight:800;color:#fff;
-    background:linear-gradient(150deg,var(--acc),var(--acc2));box-shadow:0 6px 18px rgba(255,59,67,.35)}
-
-  /* ── MOBILE: sticky phone on top, text scrolls below — separate zones ── */
-  @media(max-width:880px){
-    .tour-grid{grid-template-columns:1fr;gap:0;padding:0 18px}
-    /* phone becomes a full-tour overlay so the sticky never runs out of parent */
-    .phone-col{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:5}
-    .phone-stick{position:sticky;top:0;height:47svh;padding-top:58px;
-      background:linear-gradient(180deg,var(--bg) 80%,transparent)}
-    .phone{width:min(172px,44vw);border-radius:30px;padding:8px}
-    .phone .scr{inset:8px;border-radius:24px;padding:28px 10px 10px}
-    .notch{height:15px;width:36%}
-    /* every block reads in the lower half, under the pinned phone */
-    .blk{min-height:100svh;padding:50svh 0 7svh;justify-content:flex-start;text-align:center;align-items:center}
-    h1{font-size:clamp(24px,6.8vw,31px)}
-    .blk h3{font-size:clamp(21px,6vw,27px)}
-    .sub{font-size:13.5px;max-width:38ch;margin-top:12px}
-    .ctas{justify-content:center;margin-top:20px}
-    .note{font-size:11.5px}
-    .mini{align-items:center}
-    .mini div{font-size:12.5px}
-    .k{justify-content:center}
+  .hero-sub{margin:26px auto 0;font-size:clamp(15px,2.1vw,19px);color:var(--tx2);line-height:1.6;
+    max-width:46ch;opacity:0;animation:fadeUp .55s ease 2.15s forwards}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+    opacity:0;animation:fadeUp .55s ease 2.35s forwards}
+  .hero-note{margin-top:13px;font-size:13px;color:var(--tx3);opacity:0;animation:fadeUp .5s ease 2.5s forwards}
+  .hint{margin:44px auto 0;display:flex;flex-direction:column;align-items:center;gap:8px;
+    font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx3);
+    opacity:0;animation:fadeUp .5s ease 2.8s forwards}
+  .hint i{width:1px;height:30px;background:linear-gradient(180deg,var(--acc),transparent);
+    animation:drip 1.6s ease-in-out infinite}
+  @keyframes drip{0%{transform:scaleY(.2);transform-origin:top}55%{transform:scaleY(1)}100%{transform:scaleY(.2);transform-origin:bottom;opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    .eyebrow,.l,.hero-sub,.hero-ctas,.hero-note,.hint{opacity:1;animation:none;transform:none}
+    .s1::after,.s2::after{width:104%;animation:none}
+    .bg-arrow path{stroke-dashoffset:0;animation:none}
   }
 
-  /* ── sections below ── */
+  /* ════ SHORT SCROLL HOOK — cards fly into place, then page releases ════ */
+  .fly{position:relative;height:200vh}
+  .fly-stick{position:sticky;top:0;height:100svh;overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:80px 20px 30px}
+  .fly-title{text-align:center;max-width:620px}
+  .fly-title .k{font-size:11.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acc)}
+  .fly-title h2{margin-top:12px;font-size:clamp(26px,4.6vw,42px);font-weight:800;letter-spacing:-.04em;line-height:1.1;text-wrap:balance}
+  .fly-title p{margin-top:10px;color:var(--tx2);font-size:clamp(13.5px,1.8vw,16px)}
+  .fly-row{display:flex;gap:22px;align-items:stretch;justify-content:center;flex-wrap:nowrap}
+  .fcard{width:min(250px,80vw);border-radius:20px;padding:18px;background:linear-gradient(165deg,#1a1216,var(--panel));
+    border:1px solid var(--line2);box-shadow:0 24px 60px rgba(0,0,0,.55);
+    will-change:transform,opacity,filter}
+  .fcard .fh{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--tx3)}
+  .fcard .fh i{width:6px;height:6px;border-radius:99px;background:var(--acc);box-shadow:0 0 8px var(--glow)}
+  .fcard.set{border-color:rgba(255,59,67,.35);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 34px rgba(255,59,67,.14)}
+  .big{font-size:34px;font-weight:800;letter-spacing:-.04em;margin-top:10px;font-variant-numeric:tabular-nums}
+  .sm{font-size:11.5px;color:var(--tx2);margin-top:2px}
+  .fbars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:12px}
+  .fbars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12)}
+  .fbars i.hot{background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(255,59,67,.4)}
+  .okline{margin-top:12px;display:flex;align-items:center;gap:8px;background:rgba(74,222,128,.12);
+    border:1px solid rgba(74,222,128,.3);border-radius:12px;padding:9px 12px}
+  .okline .cv{width:18px;height:18px;border-radius:99px;background:var(--ok);color:#0b0809;
+    display:grid;place-items:center;font-size:10px;font-weight:900;flex:none}
+  .okline span{font-size:11.5px;font-weight:700;color:var(--ok)}
+  .qgrid{width:74px;height:74px;margin:12px auto 0;border-radius:10px;
+    background:repeating-conic-gradient(#fff 0% 25%,#0b0809 0% 50%) 0 0/25% 25%;opacity:.92;
+    outline:3px solid rgba(255,59,67,.65);outline-offset:5px}
+  .wbub{margin-top:12px;background:#123a24;border:1px solid rgba(74,222,128,.3);
+    border-radius:12px 12px 12px 3px;padding:9px 11px;font-size:10.5px;line-height:1.55;color:#d9ffe9}
+  .wbub b{color:#fff}
+  .wsend{margin-top:10px;border-radius:10px;padding:9px;text-align:center;font-size:11px;font-weight:800;color:#fff;
+    background:linear-gradient(150deg,var(--acc),var(--acc2));box-shadow:0 6px 18px rgba(255,59,67,.35)}
+  @media(max-width:880px){
+    .fly{height:190vh}
+    .fly-stick{gap:20px;justify-content:flex-start;padding-top:86px}
+    .fly-row{flex-direction:column;gap:12px;align-items:center}
+    .fcard{width:min(300px,86vw);padding:14px}
+    .big{font-size:26px;margin-top:6px}
+    .fbars{height:26px;margin-top:9px}
+    .qgrid{width:52px;height:52px;margin-top:8px}
+    .fcard .q-center{display:flex;align-items:center;gap:14px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .fly{height:auto}
+    .fly-stick{position:static;height:auto}
+    .fcard{transform:none!important;opacity:1!important;filter:none!important}
+  }
+
+  /* ── sections ── */
   section{padding:84px 0;position:relative}
   .sec-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
-  h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.035em;line-height:1.12;text-wrap:balance}
+  h2.sec{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.035em;line-height:1.12;text-wrap:balance}
   .sec-sub{margin-top:12px;color:var(--tx2);font-size:16px;line-height:1.6;max-width:56ch}
   .tint{background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)}
 
@@ -250,6 +203,7 @@
   .plist{margin:24px 0;display:flex;flex-direction:column;gap:11px;text-align:left}
   .plist div{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--tx2)}
   .plist b{color:var(--tx);font-weight:600}
+  .tick{color:var(--acc);font-weight:800;flex:none}
   .price-note{margin-top:14px;font-size:12.5px;color:var(--tx3)}
 
   .faq{max-width:640px;margin:36px auto 0;display:flex;flex-direction:column;gap:10px}
@@ -259,11 +213,12 @@
   details[open] summary::after{content:"–"}
   details p{margin-top:12px;font-size:14px;color:var(--tx2);line-height:1.6}
 
-  .final{text-align:center;padding:110px 0 120px;overflow:hidden}
+  .final{text-align:center;padding:110px 0 120px;overflow:hidden;position:relative}
   .final .arrow{font-size:56px;color:var(--acc);display:block;margin-bottom:16px;
     text-shadow:0 0 40px var(--glow);animation:rise 2.4s ease-in-out infinite}
   @keyframes rise{0%,100%{transform:translateY(6px)}50%{transform:translateY(-6px)}}
   @media (prefers-reduced-motion:reduce){.final .arrow{animation:none}}
+  .note{font-size:13px;color:var(--tx3)}
 
   footer{border-top:1px solid var(--line);padding:34px 0 60px;text-align:center;color:var(--tx3);font-size:13px}
   footer .flinks{display:flex;gap:18px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
@@ -272,15 +227,6 @@
 </style>
 </head>
 <body>
-
-<!-- cinematic intro -->
-<div id="intro" aria-hidden="true">
-  <div class="intro-in">
-    <img class="intro-wm" src="/wordmark.png" alt="TRAX">
-    <div class="intro-tag">Run your gym from your phone</div>
-    <span class="intro-line"></span>
-  </div>
-</div>
 
 <nav id="nav">
   <div class="nav-in">
@@ -292,113 +238,61 @@
   </div>
 </nav>
 
-<!-- ════ TOUR ════ -->
-<div class="tour" id="tour" data-s="0">
-  <div class="tour-bg"><span class="orb o1"></span><span class="orb o2"></span></div>
-  <div class="tour-grid">
+<!-- ════ HERO (hook on load) ════ -->
+<header class="hero">
+  <span class="orb o1"></span><span class="orb o2"></span><span class="grid-bg"></span>
+  <svg class="bg-arrow" viewBox="0 0 600 520" fill="none" aria-hidden="true">
+    <defs><linearGradient id="agrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#d11f2c" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#ff3b43"/>
+    </linearGradient></defs>
+    <path d="M20 480 L200 300 L320 400 L560 60 M420 60 L560 60 L560 200"/>
+  </svg>
+  <div class="wrap hero-in">
+    <span class="eyebrow"><span class="dot"></span>Built for studio owners</span>
+    <h1>
+      <span class="l l1"><span class="strike s1" id="k1">Paper logs.</span></span>
+      <span class="l l2"><span class="strike s2" id="k2">Missed renewals.</span></span>
+      <span class="l l3">Not anymore.</span>
+    </h1>
+    <p class="hero-sub">TRAX runs your gym from your phone — members, QR check-ins, WhatsApp reminders and revenue in one app.</p>
+    <div class="hero-ctas">
+      <a class="btn red big" href="/">Start 14-day free trial ↗</a>
+      <a class="btn ghost big" href="#features">See features</a>
+    </div>
+    <div class="hero-note">No credit card · 5-minute setup · Cancel anytime</div>
+    <div class="hint"><span>Scroll</span><i></i></div>
+  </div>
+</header>
 
-    <!-- TEXT BLOCKS: normal document flow -->
-    <div class="blocks">
-
-      <!-- block 0 = HERO -->
-      <div class="blk" data-b="0">
-        <span class="k"><span class="dot"></span>Built for studio owners</span>
-        <h1>
-          <span class="iw" style="--d:.15s">The paper log</span>
-          <span class="iw red" style="--d:.27s">is over.</span><br>
-          <span class="iw" style="--d:.43s">Run your gym</span>
-          <span class="iw" style="--d:.55s">from your phone.</span>
-        </h1>
-        <p class="sub iw" style="--d:.72s">Members, QR check-ins, payment reminders and revenue — one app for gyms, pilates and PT studios.</p>
-        <div class="ctas iw" style="--d:.86s">
-          <a class="btn red big" href="/">Start 14-day free trial ↗</a>
-        </div>
-        <div class="note iw" style="--d:.96s">No credit card · 5-minute setup · Cancel anytime</div>
+<!-- ════ SHORT SCROLL HOOK ════ -->
+<div class="fly" id="fly">
+  <div class="fly-stick">
+    <div class="fly-title">
+      <div class="k">Watch it work</div>
+      <h2>Everything the notebook did.<br>Automated.</h2>
+      <p>Keep scrolling — the pieces fall into place.</p>
+    </div>
+    <div class="fly-row">
+      <div class="fcard" id="fc1">
+        <div class="fh"><i></i>Live · Today</div>
+        <div class="big">24</div>
+        <div class="sm">check-ins · 31 scheduled</div>
+        <div class="fbars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
       </div>
-
-      <!-- block 1 = QR -->
-      <div class="blk" data-b="1">
-        <span class="k">02 · QR check-in</span>
-        <h3>Two seconds<br>at the door.</h3>
-        <p class="sub">Every member gets a personal QR code. Scan, done. Expired memberships get flagged the moment they walk in.</p>
-        <div class="mini">
-          <div><span class="tick">✓</span><span>Instant "checked in" confirmation</span></div>
-          <div><span class="tick">✓</span><span>Expired member? Flagged on the spot</span></div>
-          <div><span class="tick">✓</span><span>Attendance saved automatically</span></div>
+      <div class="fcard" id="fc2">
+        <div class="fh"><i></i>QR check-in</div>
+        <div class="q-center">
+          <div class="qgrid"></div>
         </div>
+        <div class="okline"><span class="cv">✓</span><span>Emma Wilson — checked in</span></div>
       </div>
-
-      <!-- block 2 = WhatsApp -->
-      <div class="blk" data-b="2">
-        <span class="k">03 · Reminders</span>
-        <h3>Renewals chase<br>themselves.</h3>
-        <p class="sub">One tap sends personal WhatsApp reminders — in your studio's name, in your own words.</p>
-        <div class="mini">
-          <div><span class="tick">✓</span><span>Renewal, win-back & welcome templates</span></div>
-          <div><span class="tick">✓</span><span>Fully editable message text</span></div>
-          <div><span class="tick">✓</span><span>Bulk send with one tap</span></div>
-        </div>
-        <div class="ctas"><a class="btn red big" href="/">Try it free ↗</a></div>
+      <div class="fcard" id="fc3">
+        <div class="fh"><i></i>WhatsApp reminder</div>
+        <div class="wbub">Hi <b>Jake</b>! Your <b>IronWorks</b> membership expires in <b>4 days</b> 💪</div>
+        <div class="wsend">Send to 3 →</div>
       </div>
     </div>
-
-    <!-- PHONE: sticky, screens follow the active block -->
-    <div class="phone-col">
-      <div class="phone-stick">
-        <div class="parallax" id="parallax">
-          <div class="persp">
-            <div class="rot">
-              <div class="phone">
-                <div class="notch"></div>
-
-                <div class="scr" id="scr1">
-                  <div class="hi">Welcome back, Sarah</div>
-                  <img class="wm" src="/wordmark.png" alt="">
-                  <div class="mcard">
-                    <div class="lv"><i></i>LIVE · TODAY</div>
-                    <div class="num" id="counter">0</div>
-                    <div class="lbl">check-ins · 31 scheduled today</div>
-                    <div class="bars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
-                  </div>
-                  <div style="margin-top:10px">
-                    <div class="rowi"><span class="av" style="background:#4be38a">EW</span><span class="nm">Emma Wilson</span><span class="st ok">In</span></div>
-                    <div class="rowi"><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
-                    <div class="rowi"><span class="av" style="background:#ffb84d">SC</span><span class="nm">Sofia Costa</span><span class="st ok">In</span></div>
-                  </div>
-                  <div class="mnav"><i class="on"></i><i></i><i></i><i></i></div>
-                </div>
-
-                <div class="scr" id="scr2">
-                  <div class="hi">Check-in</div>
-                  <img class="wm" src="/wordmark.png" alt="">
-                  <div class="qr-zone">
-                    <div class="qr-frame"><b></b><b></b><b></b><b></b><span class="qr-code"></span><span class="scanline"></span></div>
-                    <div class="qr-ok"><span class="cv">✓</span><span>Emma Wilson — Checked in</span></div>
-                  </div>
-                  <div class="mnav"><i></i><i></i><i class="on"></i><i></i></div>
-                </div>
-
-                <div class="scr" id="scr3">
-                  <div class="hi">Reminders</div>
-                  <img class="wm" src="/wordmark.png" alt="">
-                  <div class="wa-h">Renewal reminder</div>
-                  <div class="bubble">Hi <b>Jake</b>! Your <b>IronWorks</b> membership expires in <b>4 days</b>. Swing by to renew 💪</div>
-                  <div style="margin-top:10px">
-                    <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#66a3ff">JM</span><span class="nm">Jake Miller</span><span class="st warn">4 days</span></div>
-                    <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#b388ff">LB</span><span class="nm">Lucas Brown</span><span class="st warn">6 days</span></div>
-                    <div class="rowi"><span class="chk">✓</span><span class="av" style="background:#2de2c0">MG</span><span class="nm">Mia Garcia</span><span class="st warn">7 days</span></div>
-                  </div>
-                  <div class="wa-send">Send to 3 →</div>
-                  <div class="mnav"><i></i><i></i><i></i><i class="on"></i></div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -406,7 +300,7 @@
 <section>
   <div class="wrap">
     <div class="rv"><div class="sec-eyebrow">Sound familiar?</div>
-    <h2>The invisible weight of running a studio</h2></div>
+    <h2 class="sec">The invisible weight of running a studio</h2></div>
     <div class="pains">
       <div class="pain rv"><div class="q">"Whose membership was expiring again?"</div><div class="a">In a notebook, a spreadsheet, your head… The date slips by, nobody notices, the member quietly disappears.</div></div>
       <div class="pain rv"><div class="q">"Who's coming to class today?"</div><div class="a">Paper sign-in sheets, mixed-up lists, "but I was here yesterday" debates.</div></div>
@@ -419,7 +313,7 @@
 <section id="features" class="tint">
   <div class="wrap">
     <div class="rv"><div class="sec-eyebrow">What it does</div>
-    <h2>One app, your whole studio</h2>
+    <h2 class="sec">One app, your whole studio</h2>
     <p class="sec-sub">TRAX isn't a "software suite." It's an assistant that lives in your pocket and takes five minutes to learn.</p></div>
     <div class="feats">
       <div class="feat rv"><div class="fic">👥</div><h3>Member tracking</h3><p>Who's active, who's due, who's lapsed — color-coded at a glance. Search, filter, full member profiles.</p></div>
@@ -436,7 +330,7 @@
 <section>
   <div class="wrap">
     <div class="rv"><div class="sec-eyebrow">Getting started</div>
-    <h2>Ready in five minutes</h2></div>
+    <h2 class="sec">Ready in five minutes</h2></div>
     <div class="steps">
       <div class="stp rv"><h3>Sign up</h3><p>Email + password, name your studio. We don't ask for a card.</p></div>
       <div class="stp rv"><h3>Add your members</h3><p>Name and phone is enough. Pick a plan, mark their class days.</p></div>
@@ -449,7 +343,7 @@
 <section id="pricing" class="tint">
   <div class="wrap">
     <div class="rv" style="text-align:center"><div class="sec-eyebrow">Pricing</div>
-    <h2>Less than half of one membership</h2></div>
+    <h2 class="sec">Less than half of one membership</h2></div>
     <div class="price-card rv">
       <div class="price-tag">One plan · Everything included</div>
       <div class="price-num">$19.99<small>/mo</small></div>
@@ -471,7 +365,7 @@
 <section>
   <div class="wrap">
     <div class="rv" style="text-align:center"><div class="sec-eyebrow">Questions</div>
-    <h2>Frequently asked</h2></div>
+    <h2 class="sec">Frequently asked</h2></div>
     <div class="faq">
       <details class="rv"><summary>Where do I download the app?</summary><p>Nowhere — TRAX runs from your browser. Open the link, tap "Add to Home Screen", and it lives on your phone like a regular app. Updates arrive automatically.</p></details>
       <details class="rv"><summary>Is my members' data safe?</summary><p>Data is stored on Google's Firebase infrastructure. Each studio sees only its own data; you can export everything as a single file or delete your account entirely, anytime.</p></details>
@@ -484,9 +378,10 @@
 
 <!-- FINAL CTA -->
 <section class="final">
+  <span class="orb o1" style="top:auto;bottom:-220px;right:20%"></span>
   <div class="wrap rv">
     <span class="arrow">↗</span>
-    <h2>Grow the studio.<br>Retire the notebook.</h2>
+    <h2 class="sec">Grow the studio.<br>Retire the notebook.</h2>
     <div style="margin-top:30px"><a class="btn red big" href="/">Start 14-day free trial ↗</a></div>
     <div class="note" style="margin-top:14px">5-minute setup · No credit card</div>
   </div>
@@ -503,71 +398,61 @@
 </footer>
 
 <script>
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* intro overlay → then start page choreography */
-  const intro = document.getElementById('intro');
-  function startPage(){
-    if (document.body.classList.contains('go')) return;
-    document.body.classList.add('go');
-    intro.classList.add('done');
-    countUp();
-  }
-  if (reduce) { startPage(); document.getElementById('counter').textContent = '24'; }
-  else {
-    setTimeout(startPage, 1600);                    // auto after the logo beat
-    intro.addEventListener('click', startPage);
-    addEventListener('scroll', startPage, {once:true, passive:true});
-  }
-
-  /* dashboard counter: 0→24, then keeps ticking while near top */
-  function countUp(){
-    if (reduce) return;
-    const counter = document.getElementById('counter');
-    const t0 = performance.now() + 500;
-    const tick = now => {
-      const t = Math.min(1, (now - t0) / 900);
-      if (t >= 0) counter.textContent = Math.round(24 * (t*t*(3-2*t)));
-      if (t < 1) requestAnimationFrame(tick);
-      else {
-        let n = 24;
-        setInterval(() => {
-          if (scrollY < innerHeight*.5 && n < 31) {
-            n++; counter.textContent = n;
-            counter.animate([{transform:'scale(1.25)',color:'#ff3b43'},{transform:'scale(1)',color:'#fff'}],
-              {duration:420,easing:'cubic-bezier(.2,.8,.3,1)'});
-          }
-        }, 3200);
-      }
-    };
-    requestAnimationFrame(tick);
-  }
-
-  /* nav border */
   const nav = document.getElementById('nav');
   addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 10), {passive:true});
 
-  /* reveals */
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), {threshold:.12});
   document.querySelectorAll('.rv').forEach(el => io.observe(el));
 
-  /* tour: phone screen follows whichever text block is on screen */
-  const tour = document.getElementById('tour');
-  const blockIO = new IntersectionObserver(es => {
-    es.forEach(e => { if (e.isIntersecting) tour.dataset.s = e.target.dataset.b; });
-  }, {rootMargin:'-45% 0px -45% 0px'});
-  document.querySelectorAll('.blk').forEach(b => blockIO.observe(b));
-
-  /* gentle pointer parallax (desktop feel; harmless on touch) */
+  /* hero: dim the struck lines right after each sweep */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!reduce) {
-    const par = document.getElementById('parallax');
-    addEventListener('pointermove', e => {
-      const x = (e.clientX/innerWidth - .5) * 10;
-      const y = (e.clientY/innerHeight - .5) * -8;
-      par.style.transform = `translate(${x}px, ${y}px)`;
-    }, {passive:true});
+    setTimeout(() => document.getElementById('k1').classList.add('struck'), 1180);
+    setTimeout(() => document.getElementById('k2').classList.add('struck'), 1730);
+  } else {
+    document.getElementById('k1').classList.add('struck');
+    document.getElementById('k2').classList.add('struck');
+  }
+
+  /* short scroll hook: cards fly from scattered poses into the row */
+  if (!reduce) {
+    const fly = document.getElementById('fly');
+    const cards = [document.getElementById('fc1'), document.getElementById('fc2'), document.getElementById('fc3')];
+    // scattered start poses (vw/vh offsets, rotation, scale)
+    const from = [
+      {x:-46, y:-34, r:-24, s:.78},
+      {x:  0, y: 58, r: 12, s:.82},
+      {x: 46, y:-30, r: 26, s:.78},
+    ];
+    // each card settles in its own window of progress
+    const winsDesk = [[0,.52],[.14,.68],[.28,.84]];
+    const winsMob  = [[0,.46],[.18,.64],[.36,.82]];
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const ease=t=>1-Math.pow(1-t,3);
+    let ticking=false;
+    function render(){
+      ticking=false;
+      const r=fly.getBoundingClientRect();
+      const total=r.height-innerHeight;
+      const p=clamp(-r.top/total,0,1);
+      const wins=innerWidth<=880?winsMob:winsDesk;
+      cards.forEach((c,i)=>{
+        const [a,b]=wins[i];
+        const t=ease(clamp((p-a)/(b-a),0,1));
+        const f=from[i];
+        const x=f.x*(1-t), y=f.y*(1-t), rot=f.r*(1-t), s=f.s+(1-f.s)*t;
+        c.style.transform=`translate(${x}vw,${y}vh) rotate(${rot}deg) scale(${s})`;
+        c.style.opacity=.15+.85*t;
+        c.style.filter=`blur(${(1-t)*6}px)`;
+        c.classList.toggle('set', t>=.999);
+      });
+    }
+    const onScroll=()=>{if(!ticking){ticking=true;requestAnimationFrame(render);}};
+    addEventListener('scroll',onScroll,{passive:true});
+    addEventListener('resize',onScroll,{passive:true});
+    render();
   }
 </script>
 </body>
