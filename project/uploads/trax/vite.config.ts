@@ -24,6 +24,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // the marketing page must never be hijacked by the SPA fallback
+        navigateFallbackDenylist: [/^\/start/, /^\/api\//],
         runtimeCaching: [
           {
             // fonts only — Firestore/auth must never be served from SW cache

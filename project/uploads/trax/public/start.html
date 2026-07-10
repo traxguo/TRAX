@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TRAX — Salonunu telefondan yönet</title>
+<meta name="description" content="Spor salonu, pilates ve PT stüdyoları için üye takibi, QR yoklama ve WhatsApp hatırlatma. 14 gün ücretsiz, kart gerekmez.">
+<meta property="og:title" content="TRAX — Salonunu telefondan yönet">
+<meta property="og:description" content="Defter devri bitti. Üye, yoklama, hatırlatma — hepsi cebinde. 14 gün ücretsiz.">
+<meta property="og:image" content="/icon-1024.png">
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0b0809">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0809; --panel:#161013; --panel2:#1d1519;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+    --tx:rgba(255,255,255,.96); --tx2:rgba(255,255,255,.60); --tx3:rgba(255,255,255,.36);
+    --acc:#ff3b43; --acc2:#d11f2c; --accdim:rgba(255,59,67,.14); --glow:rgba(255,59,67,.42);
+    --ok:#4ade80;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--tx);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased; letter-spacing:-.01em; overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+
+  /* reveal on scroll */
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+  /* ── nav ── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(11,8,9,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid transparent;transition:border-color .3s}
+  nav.solid{border-color:var(--line)}
+  .nav-in{max-width:1060px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:14px}
+  .nav-logo{height:22px;display:block}
+  .nav-cta{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 20px;border-radius:13px;font-weight:700;font-size:14.5px;cursor:pointer;
+    border:1px solid var(--line2);color:var(--tx);transition:transform .12s,box-shadow .2s}
+  .btn:active{transform:scale(.97)}
+  .btn.red{background:linear-gradient(150deg,var(--acc),var(--acc2));border:none;color:#fff;
+    box-shadow:0 8px 28px rgba(255,59,67,.34)}
+  .btn.red:hover{box-shadow:0 10px 36px rgba(255,59,67,.5)}
+  .btn.ghost{background:rgba(255,255,255,.03)}
+  .btn.big{padding:16px 30px;font-size:16px;border-radius:15px}
+
+  /* ── hero ── */
+  .hero{position:relative;padding:150px 0 60px;min-height:92svh;display:flex;align-items:center;overflow:hidden}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+  .o1{width:560px;height:560px;background:rgba(255,59,67,.14);top:-180px;right:-140px}
+  .o2{width:420px;height:420px;background:rgba(255,59,67,.07);bottom:-140px;left:-120px}
+  .hero-grid{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(70% 60% at 50% 40%,#000,transparent)}
+  .hero-in{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;width:100%}
+  @media(max-width:880px){.hero-in{grid-template-columns:1fr;text-align:center}.hero{padding-top:120px}}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:20px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);
+    box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{font-size:clamp(38px,6.2vw,62px);font-weight:800;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
+  h1 .red{color:var(--acc)}
+  .hero-sub{margin-top:20px;font-size:clamp(16px,2.2vw,19px);color:var(--tx2);line-height:1.6;max-width:46ch}
+  @media(max-width:880px){.hero-sub{margin-inline:auto}}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
+  @media(max-width:880px){.hero-ctas{justify-content:center}}
+  .hero-note{margin-top:14px;font-size:13px;color:var(--tx3)}
+
+  /* phone mockup */
+  .stage{perspective:1200px;display:flex;justify-content:center}
+  .phone{width:min(300px,72vw);aspect-ratio:9/19;border-radius:44px;position:relative;
+    background:#050405;border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(255,59,67,.10),inset 0 0 0 3px #000;
+    transform:rotateY(-14deg) rotateX(6deg);transition:transform .25s ease-out;padding:12px}
+  @media (prefers-reduced-motion:reduce){.phone{transform:none}}
+  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:34%;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:2}
+  .scr{position:relative;height:100%;border-radius:34px;overflow:hidden;
+    background:radial-gradient(300px 200px at 85% -5%,rgba(255,59,67,.12),transparent 60%),#0b0809;
+    display:flex;flex-direction:column;padding:40px 14px 14px}
+  .scr .hi{font-size:8px;letter-spacing:.2em;color:var(--acc);font-weight:700;text-transform:uppercase}
+  .scr img.wm{height:13px;width:auto;margin-top:4px}
+  .mcard{margin-top:12px;border-radius:16px;padding:13px;
+    background:linear-gradient(160deg,#221217,#160e12);border:1px solid rgba(255,59,67,.22)}
+  .mcard .lv{display:flex;align-items:center;gap:5px;font-size:6.5px;color:var(--acc);font-weight:700;letter-spacing:.14em}
+  .mcard .lv i{width:4px;height:4px;border-radius:99px;background:var(--acc);box-shadow:0 0 6px var(--glow);animation:pulse 1.8s infinite}
+  .mcard .num{font-size:30px;font-weight:800;letter-spacing:-.04em;margin-top:5px}
+  .mcard .lbl{font-size:8px;color:var(--tx2);margin-top:1px}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:10px}
+  .bars i{flex:1;border-radius:3px;background:rgba(255,255,255,.12)}
+  .bars i.hot{background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(255,59,67,.4)}
+  .rowi{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .rowi:last-child{border:none}
+  .av{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:7px;font-weight:800;color:#111}
+  .rowi .nm{font-size:8.5px;font-weight:600}
+  .rowi .st{margin-left:auto;font-size:7px;font-weight:700;padding:2.5px 6px;border-radius:99px}
+  .st.ok{color:var(--ok);background:rgba(74,222,128,.13)}
+  .st.warn{color:#ffc23d;background:rgba(255,194,61,.13)}
+  .mnav{margin-top:auto;height:30px;border-radius:12px;background:rgba(30,20,24,.9);
+    border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-around}
+  .mnav i{width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,.22)}
+  .mnav i.on{background:var(--acc);box-shadow:0 0 8px var(--glow)}
+
+  /* ── sections ── */
+  section{padding:84px 0}
+  .sec-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+  h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.035em;line-height:1.12;text-wrap:balance}
+  .sec-sub{margin-top:12px;color:var(--tx2);font-size:16px;line-height:1.6;max-width:56ch}
+
+  /* pains */
+  .pains{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+  @media(max-width:760px){.pains{grid-template-columns:1fr}}
+  .pain{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .pain .q{font-size:16px;font-weight:700;line-height:1.4}
+  .pain .a{margin-top:8px;font-size:13.5px;color:var(--tx3)}
+
+  /* features */
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+  @media(max-width:880px){.feats{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.feats{grid-template-columns:1fr}}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;
+    transition:transform .2s,border-color .2s}
+  .feat:hover{transform:translateY(-4px);border-color:rgba(255,59,67,.3)}
+  .fic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+    background:var(--accdim);border:1px solid rgba(255,59,67,.25);margin-bottom:14px}
+  .feat h3{font-size:16.5px;font-weight:750;letter-spacing:-.01em}
+  .feat p{margin-top:7px;font-size:13.5px;color:var(--tx2);line-height:1.55}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px;counter-reset:st}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .stp{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .stp::before{counter-increment:st;content:counter(st);
+    display:grid;place-items:center;width:32px;height:32px;border-radius:99px;margin-bottom:14px;
+    background:linear-gradient(150deg,var(--acc),var(--acc2));color:#fff;font-weight:800;font-size:15px}
+  .stp h3{font-size:16px;font-weight:750}
+  .stp p{margin-top:6px;font-size:13.5px;color:var(--tx2);line-height:1.55}
+
+  /* pricing */
+  .price-card{max-width:430px;margin:40px auto 0;background:linear-gradient(165deg,#1c1216,var(--panel));
+    border:1px solid rgba(255,59,67,.3);border-radius:26px;padding:36px 30px;text-align:center;
+    box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px rgba(255,59,67,.08)}
+  .price-tag{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+  .price-num{font-size:56px;font-weight:800;letter-spacing:-.04em;margin-top:10px}
+  .price-num small{font-size:17px;font-weight:600;color:var(--tx2);letter-spacing:0}
+  .price-per{color:var(--tx3);font-size:13px;margin-top:2px}
+  .plist{margin:24px 0;display:flex;flex-direction:column;gap:11px;text-align:left}
+  .plist div{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--tx2)}
+  .plist b{color:var(--tx);font-weight:600}
+  .tick{color:var(--acc);font-weight:800;flex:none}
+  .price-note{margin-top:14px;font-size:12.5px;color:var(--tx3)}
+
+  /* faq */
+  .faq{max-width:640px;margin:36px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px 20px}
+  summary{cursor:pointer;font-weight:650;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:10px}
+  summary::after{content:"+";color:var(--acc);font-weight:700;font-size:18px;line-height:1}
+  details[open] summary::after{content:"–"}
+  details p{margin-top:12px;font-size:14px;color:var(--tx2);line-height:1.6}
+
+  /* final cta */
+  .final{position:relative;text-align:center;padding:110px 0 120px;overflow:hidden}
+  .final .arrow{font-size:56px;color:var(--acc);display:block;margin-bottom:16px;
+    text-shadow:0 0 40px var(--glow);animation:rise 2.4s ease-in-out infinite}
+  @keyframes rise{0%,100%{transform:translateY(6px)}50%{transform:translateY(-6px)}}
+  @media (prefers-reduced-motion:reduce){.final .arrow{animation:none}}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 60px;text-align:center;color:var(--tx3);font-size:13px}
+  footer .flinks{display:flex;gap:18px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+  footer a{color:var(--tx2)}
+  footer a:hover{color:var(--tx)}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nav-in">
+    <img src="/wordmark.png" alt="TRAX" class="nav-logo">
+    <div class="nav-cta">
+      <a class="btn ghost" href="/">Giriş yap</a>
+      <a class="btn red" href="/">Ücretsiz dene</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="orb o1"></span><span class="orb o2"></span><span class="hero-grid"></span>
+  <div class="wrap hero-in">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>Salon sahipleri için</span>
+      <h1>Defter devri bitti.<br>Salonunu <span class="red">telefondan</span> yönet.</h1>
+      <p class="hero-sub">Üye takibi, QR yoklama, WhatsApp hatırlatma ve gelir ekranı — spor salonu, pilates ve PT stüdyoları için tek uygulamada.</p>
+      <div class="hero-ctas">
+        <a class="btn red big" href="/">14 gün ücretsiz dene ↗</a>
+        <a class="btn ghost big" href="#ozellikler">Özellikleri gör</a>
+      </div>
+      <div class="hero-note">Kart gerekmez · Kurulum 5 dakika · İstediğin an vazgeç</div>
+    </div>
+    <div class="stage">
+      <div class="phone" id="phone">
+        <div class="notch"></div>
+        <div class="scr">
+          <div class="hi">Hoş geldin, Mert</div>
+          <img class="wm" src="/wordmark.png" alt="">
+          <div class="mcard">
+            <div class="lv"><i></i>CANLI · BUGÜN</div>
+            <div class="num">24</div>
+            <div class="lbl">giriş · bugün programda 31 üye</div>
+            <div class="bars"><i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:75%"></i><i style="height:58%"></i><i style="height:88%"></i><i class="hot" style="height:100%"></i></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="rowi"><span class="av" style="background:#4be38a">EY</span><span class="nm">Elif Yılmaz</span><span class="st ok">Geldi</span></div>
+            <div class="rowi"><span class="av" style="background:#66a3ff">BD</span><span class="nm">Burak Demir</span><span class="st warn">4 gün</span></div>
+            <div class="rowi"><span class="av" style="background:#ffb84d">ZK</span><span class="nm">Zeynep Kaya</span><span class="st ok">Geldi</span></div>
+          </div>
+          <div class="mnav"><i></i><i class="on"></i><i></i><i></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PAINS -->
+<section>
+  <div class="wrap">
+    <div class="rv"><div class="sec-eyebrow">Tanıdık geldi mi?</div>
+    <h2>Salon işletmenin görünmeyen yükü</h2></div>
+    <div class="pains">
+      <div class="pain rv"><div class="q">"Kimin üyeliği ne zaman bitiyordu?"</div><div class="a">Defterde, Excel'de, kafanda… Süre dolar, kimse fark etmez, üye sessizce kaybolur.</div></div>
+      <div class="pain rv"><div class="q">"Bugün derse kimler gelecekti?"</div><div class="a">Yoklama kağıtları, karışan listeler, "hocam ben gelmiştim" tartışmaları.</div></div>
+      <div class="pain rv"><div class="q">"Hatırlatma atacaktım, unuttum."</div><div class="a">Tek tek WhatsApp yazmak saatler alır. Atlanan her hatırlatma, kaçan bir yenileme.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="ozellikler" style="background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)">
+  <div class="wrap">
+    <div class="rv"><div class="sec-eyebrow">Neler yapar</div>
+    <h2>Tek uygulama, bütün salon</h2>
+    <p class="sec-sub">TRAX bir "yazılım paketi" değil — cebinde duran, 5 dakikada öğrenilen bir asistan.</p></div>
+    <div class="feats">
+      <div class="feat rv"><div class="fic">👥</div><h3>Üye takibi</h3><p>Kim aktif, kimin süresi yaklaşıyor, kim geçti — renklerle tek bakışta. Arama, filtre, üye kartı.</p></div>
+      <div class="feat rv"><div class="fic">📷</div><h3>QR ile yoklama</h3><p>Üyeye özel QR kod. Kapıda okut, 2 saniyede giriş. Süresi dolanı anında uyarır.</p></div>
+      <div class="feat rv"><div class="fic">💬</div><h3>WhatsApp hatırlatma</h3><p>Yenileme, geri kazanım ve hoş geldin mesajları — kendi salonunun adıyla, tek tuşla, toplu.</p></div>
+      <div class="feat rv"><div class="fic">📅</div><h3>Ders programı</h3><p>Haftalık takvim: kim hangi gün geliyor, bugün kimler bekleniyor, kim geldi kim gelmedi.</p></div>
+      <div class="feat rv"><div class="fic">📈</div><h3>Gelir ekranı</h3><p>Aktif üyelikler, doluluk ve haftalık giriş grafiği — işinin nabzı her an elinde.</p></div>
+      <div class="feat rv"><div class="fic">⚡</div><h3>Mağazasız kurulum</h3><p>App Store yok, indirme yok. Linke gir, ana ekrana ekle — telefonunda uygulama gibi çalışır.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section>
+  <div class="wrap">
+    <div class="rv"><div class="sec-eyebrow">Nasıl başlarım</div>
+    <h2>5 dakikada hazırsın</h2></div>
+    <div class="steps">
+      <div class="stp rv"><h3>Kaydol</h3><p>E-posta + şifre, salon adını yaz. Kart bilgisi istemiyoruz.</p></div>
+      <div class="stp rv"><h3>Üyelerini ekle</h3><p>İsim ve telefon yeter. Plan seç, ders günlerini işaretle.</p></div>
+      <div class="stp rv"><h3>Otomatiğe bağla</h3><p>QR kodları paylaş, hatırlatmaları TRAX takip etsin. Sen antrenmana dön.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="fiyat" style="background:linear-gradient(180deg,transparent,rgba(255,59,67,.03),transparent)">
+  <div class="wrap">
+    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Fiyat</div>
+    <h2>Bir üyenin yarım aidatı kadar</h2></div>
+    <div class="price-card rv">
+      <div class="price-tag">Tek plan · Her şey dahil</div>
+      <div class="price-num">$19.99<small>/ay</small></div>
+      <div class="price-per">yıllık sözleşme yok · istediğin an iptal</div>
+      <div class="plist">
+        <div><span class="tick">✓</span><span><b>14 gün ücretsiz</b> — kart bilgisi gerekmez</span></div>
+        <div><span class="tick">✓</span><span><b>Sınırsız üye</b> ve yoklama kaydı</span></div>
+        <div><span class="tick">✓</span><span>QR yoklama + WhatsApp şablonları</span></div>
+        <div><span class="tick">✓</span><span>Türkçe & English</span></div>
+        <div><span class="tick">✓</span><span>Verilerin bulutta, dilediğinde dışa aktar</span></div>
+      </div>
+      <a class="btn red big" href="/" style="width:100%">Ücretsiz denemeyi başlat ↗</a>
+      <div class="price-note">Deneme bitince zorunluluk yok — beğenmezsen hiçbir şey ödemezsin.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="wrap">
+    <div class="rv" style="text-align:center"><div class="sec-eyebrow">Sorular</div>
+    <h2>Merak edilenler</h2></div>
+    <div class="faq">
+      <details class="rv"><summary>Uygulamayı nereden indireceğim?</summary><p>Hiçbir yerden — TRAX tarayıcıdan çalışır. Linke girip "Ana Ekrana Ekle" dediğinde telefonunda normal bir uygulama gibi durur ve çalışır. Güncellemeler kendiliğinden gelir.</p></details>
+      <details class="rv"><summary>Üyelerimin bilgileri güvende mi?</summary><p>Veriler Google'ın Firebase altyapısında, Avrupa Birliği sunucularında saklanır. Her salon yalnızca kendi verisini görür; dilediğinde tek dosya halinde dışa aktarabilir veya tamamen silebilirsin.</p></details>
+      <details class="rv"><summary>Deneme bitince ne olur?</summary><p>Uygulama sana haber verir. Devam etmek istersen kartınla saniyeler içinde abone olursun; istemezsen hiçbir ücret alınmaz, verilerin makul bir süre seni bekler.</p></details>
+      <details class="rv"><summary>İnternet olmadan çalışır mı?</summary><p>Evet — son verilerin cihazında saklanır, çevrimdışıyken de çalışırsın. Bağlantı gelince her şey otomatik eşitlenir.</p></details>
+      <details class="rv"><summary>Bilgisayardan kullanabilir miyim?</summary><p>Evet, tarayıcıdan aynı hesapla girebilirsin. Ama TRAX en çok cebinde parlar — salonun içinde, kapıda, ders arasında.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <span class="orb o1" style="top:auto;bottom:-220px;right:20%"></span>
+  <div class="wrap rv">
+    <span class="arrow">↗</span>
+    <h2>Salonun büyüsün,<br>defter rafta kalsın.</h2>
+    <div style="margin-top:30px"><a class="btn red big" href="/">14 gün ücretsiz dene ↗</a></div>
+    <div class="hero-note" style="margin-top:14px">Kurulum 5 dakika · Kart gerekmez</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="flinks">
+      <a href="/">Giriş yap</a>
+      <a href="mailto:traxguo@gmail.com">İletişim</a>
+    </div>
+    <div>© 2026 TRAX · Kullanım şartları ve gizlilik politikası uygulama içinde</div>
+  </div>
+</footer>
+
+<script>
+  // nav border on scroll
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 10), {passive:true});
+
+  // reveal on scroll
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), {threshold:.12});
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+
+  // 3D phone: follows scroll + pointer
+  const phone = document.getElementById('phone');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (phone && !reduce) {
+    let px = 0, py = 0;
+    const apply = () => {
+      const r = Math.min(1, scrollY / 500);
+      const ry = -14 + r * 14 + px * 5;
+      const rx = 6 - r * 6 + py * -5;
+      phone.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
+    };
+    addEventListener('scroll', apply, {passive:true});
+    addEventListener('pointermove', e => {
+      px = (e.clientX / innerWidth - .5) * 2;
+      py = (e.clientY / innerHeight - .5) * 2;
+      apply();
+    }, {passive:true});
+    apply();
+  }
+</script>
+</body>
+</html>
