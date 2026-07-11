@@ -65,14 +65,15 @@
   /* big background arrow, draws once */
   .bg-arrow{position:absolute;right:-4%;bottom:-6%;width:min(560px,70vw);opacity:.5;pointer-events:none}
   .bg-arrow path{stroke:url(#agrad);stroke-width:10;fill:none;stroke-linecap:round;stroke-linejoin:round;
-    stroke-dasharray:1300;stroke-dashoffset:1300;animation:draw 1.4s cubic-bezier(.4,0,.2,1) 1.15s forwards;
+    stroke-dasharray:1300;stroke-dashoffset:1300;
     filter:drop-shadow(0 0 22px rgba(255,59,67,.35))}
+  body.hook .bg-arrow path{animation:draw 1.4s cubic-bezier(.4,0,.2,1) 1.15s forwards}
   @keyframes draw{to{stroke-dashoffset:0}}
 
   .hero-in{position:relative;width:100%;text-align:center}
   .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
-    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:26px;
-    opacity:0;animation:fadeUp .5s ease .1s forwards}
+    letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:26px;opacity:0}
+  body.hook .eyebrow{animation:fadeUp .5s ease .1s forwards}
   .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--acc);
     box-shadow:0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -80,33 +81,35 @@
 
   h1{font-size:clamp(40px,8.4vw,84px);font-weight:800;letter-spacing:-.05em;line-height:1.04}
   .l{display:block;opacity:0;transform:translateY(34px)}
-  .l1{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .25s forwards}
-  .l2{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .8s forwards}
-  .l3{animation:stampIn .5s cubic-bezier(.2,1.4,.3,1) 1.75s forwards;color:var(--acc);
-    text-shadow:0 0 42px rgba(255,59,67,.4)}
+  body.hook .l1{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .25s forwards}
+  body.hook .l2{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) .8s forwards}
+  .l3{color:var(--acc);text-shadow:0 0 42px rgba(255,59,67,.4)}
+  body.hook .l3{animation:stampIn .5s cubic-bezier(.2,1.4,.3,1) 1.75s forwards}
   @keyframes stampIn{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
   /* strike-through sweep */
   .strike{position:relative;display:inline-block}
   .strike::after{content:"";position:absolute;left:-2%;right:auto;top:52%;height:.09em;width:0;
     border-radius:99px;background:var(--acc);box-shadow:0 0 16px var(--glow);transform:rotate(-2deg)}
-  .s1::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) .9s forwards}
-  .s2::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) 1.45s forwards}
+  body.hook .s1::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) .9s forwards}
+  body.hook .s2::after{animation:sweep .32s cubic-bezier(.6,0,.3,1) 1.45s forwards}
   @keyframes sweep{to{width:104%}}
   .struck{color:var(--tx3);transition:color .3s}
 
   .hero-sub{margin:26px auto 0;font-size:clamp(15px,2.1vw,19px);color:var(--tx2);line-height:1.6;
-    max-width:46ch;opacity:0;animation:fadeUp .55s ease 2.15s forwards}
-  .hero-ctas{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
-    opacity:0;animation:fadeUp .55s ease 2.35s forwards}
-  .hero-note{margin-top:13px;font-size:13px;color:var(--tx3);opacity:0;animation:fadeUp .5s ease 2.5s forwards}
+    max-width:46ch;opacity:0}
+  body.hook .hero-sub{animation:fadeUp .55s ease 2.15s forwards}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0}
+  body.hook .hero-ctas{animation:fadeUp .55s ease 2.35s forwards}
+  .hero-note{margin-top:13px;font-size:13px;color:var(--tx3);opacity:0}
+  body.hook .hero-note{animation:fadeUp .5s ease 2.5s forwards}
   .hint{margin:44px auto 0;display:flex;flex-direction:column;align-items:center;gap:8px;
-    font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx3);
-    opacity:0;animation:fadeUp .5s ease 2.8s forwards}
+    font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx3);opacity:0}
+  body.hook .hint{animation:fadeUp .5s ease 2.8s forwards}
   .hint i{width:1px;height:30px;background:linear-gradient(180deg,var(--acc),transparent);
     animation:drip 1.6s ease-in-out infinite}
   @keyframes drip{0%{transform:scaleY(.2);transform-origin:top}55%{transform:scaleY(1)}100%{transform:scaleY(.2);transform-origin:bottom;opacity:0}}
   @media (prefers-reduced-motion:reduce){
-    .eyebrow,.l,.hero-sub,.hero-ctas,.hero-note,.hint{opacity:1;animation:none;transform:none}
+    .eyebrow,.l,.hero-sub,.hero-ctas,.hero-note,.hint{opacity:1!important;animation:none!important;transform:none!important}
     .s1::after,.s2::after{width:104%;animation:none}
     .bg-arrow path{stroke-dashoffset:0;animation:none}
   }
@@ -406,14 +409,34 @@
   }), {threshold:.12});
   document.querySelectorAll('.rv').forEach(el => io.observe(el));
 
-  /* hero: dim the struck lines right after each sweep */
+  /* always open at the very top — no mid-page scroll restoration */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  scrollTo(0, 0);
+  addEventListener('pageshow', e => { if (e.persisted) scrollTo(0, 0); });
+
+  /* hook fires when the visitor is actually looking:
+     first touch/scroll/mouse move, or ~1s of focused idle — whichever first */
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!reduce) {
-    setTimeout(() => document.getElementById('k1').classList.add('struck'), 1180);
-    setTimeout(() => document.getElementById('k2').classList.add('struck'), 1730);
-  } else {
+  function playHook(){
+    if (document.body.classList.contains('hook')) return;
+    document.body.classList.add('hook');
+    if (!reduce) {
+      setTimeout(() => document.getElementById('k1').classList.add('struck'), 1180);
+      setTimeout(() => document.getElementById('k2').classList.add('struck'), 1730);
+    }
+  }
+  if (reduce) {
+    playHook();
     document.getElementById('k1').classList.add('struck');
     document.getElementById('k2').classList.add('struck');
+  } else {
+    ['scroll','pointerdown','pointermove','touchstart','keydown'].forEach(ev =>
+      addEventListener(ev, playHook, {once:true, passive:true}));
+    const armIdle = () => setTimeout(() => { if (document.visibilityState === 'visible') playHook(); }, 1100);
+    if (document.visibilityState === 'visible') armIdle();
+    else document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') armIdle();
+    }, {once:true});
   }
 
   /* short scroll hook: cards fly from scattered poses into the row */

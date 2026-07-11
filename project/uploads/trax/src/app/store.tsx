@@ -108,7 +108,12 @@ function useStoreValue(): StoreValue {
       setLoadFailed(false);
       if (user) {
         try {
-          const snap = await getDoc(doc(db, 'users', user.uid));
+          // never hang on the splash: if the read stalls (tab-lease contention,
+          // dead connection) fall through to the retry screen instead
+          const snap = await Promise.race([
+            getDoc(doc(db, 'users', user.uid)),
+            new Promise<never>((_, rej) => setTimeout(() => rej(new Error('load timeout')), 8000)),
+          ]);
           if (snap.exists()) {
             const data = snap.data();
             // recompute daysLeft/status from expiry dates — stored values rot

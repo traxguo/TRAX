@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDLDskc9duTxG7z8hQjn48-_s1p4IQ_g4U",
@@ -13,8 +13,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-// Offline persistence: writes are queued locally and synced when online
+// Offline persistence: writes are queued locally and synced when online.
+// Multi-tab manager: Safari tab + installed PWA can be open at the same
+// time without fighting over the IndexedDB lease (rare startup hangs).
 export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache(),
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   ignoreUndefinedProperties: true,
 });
