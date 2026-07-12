@@ -53,8 +53,11 @@ reply in Turkish). Target market: US primary (English content), TR secondary.
 1. Lemon Squeezy identity verification → then add LIVE-mode webhook
    (same URL + secret) and the store is revenue-ready.
 2. Lawyer review of legal texts before wide launch.
-3. Marketing phase: Instagram (EN). Starter pack artifact exists; owner
-   will send an example post style to copy.
+3. Marketing phase: Instagram (EN). Starter pack artifact + 3 rendered
+   posts exist in scratchpad history. Marketing team is defined:
+   agents trax-strategist / trax-analyst / trax-copywriter /
+   trax-designer / trax-auditor, plus the trax-weekly-content skill
+   ("bu haftayı planla" → full weekly run).
 4. Possible later: custom domain, admin API to delete Auth users,
    email_verified rules hardening.
 
