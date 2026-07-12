@@ -11,7 +11,7 @@ import {
   setPersistence,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
 import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymSummary, WaTemplates } from './types';
 
 export const ADMIN_EMAIL = 'goktugslv@gmail.com';
@@ -95,6 +95,8 @@ function useStoreValue(): StoreValue {
   // set during signup so the missing-doc branch knows this is a brand-new
   // account (gets a trial) and not a deleted one (stays locked out)
   const pendingSignupRef = useRef(false);
+  // live subscription listener (admin suspend / webhook renew apply instantly)
+  const subUnsubRef = useRef<(() => void) | null>(null);
 
   const session: Session | null = firebaseUser
     ? { email: firebaseUser.email || '', uid: firebaseUser.uid, at: Date.now() }
@@ -102,8 +104,20 @@ function useStoreValue(): StoreValue {
 
   const loading = firebaseUser === undefined;
 
+  // Live subscription updates: an open session must react to an admin
+  // suspension or a webhook renewal without waiting for a restart.
+  const watchSubscription = (uid: string) => {
+    subUnsubRef.current?.();
+    subUnsubRef.current = onSnapshot(doc(db, 'users', uid), snap => {
+      const sub = snap.data()?.subscription;
+      if (sub) setSubscription(prev =>
+        JSON.stringify(prev) === JSON.stringify(sub) ? prev : sub);
+    }, e => console.error('subscription watch failed:', e));
+  };
+
   useEffect(() => {
-    return onAuthStateChanged(auth, async (user) => {
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      subUnsubRef.current?.(); subUnsubRef.current = null;
       dataReadyRef.current = false;
       setLoadFailed(false);
       if (user) {
@@ -132,6 +146,7 @@ function useStoreValue(): StoreValue {
               setDoc(doc(db, 'users', user.uid), { subscription: legacy }, { merge: true }).catch(console.error);
             }
             dataReadyRef.current = true;
+            watchSubscription(user.uid);
           } else if (pendingSignupRef.current) {
             // brand-new signup whose doc write may still be in flight
             pendingSignupRef.current = false;
@@ -140,6 +155,7 @@ function useStoreValue(): StoreValue {
             setSubscription(trial);
             setDoc(doc(db, 'users', user.uid), { subscription: trial, email: user.email || '' }, { merge: true }).catch(console.error);
             dataReadyRef.current = true;
+            watchSubscription(user.uid);
           } else {
             // no doc and not signing up: account was deleted by the admin.
             // Lock it instead of handing out a fresh trial (zombie-login exploit).
@@ -162,6 +178,7 @@ function useStoreValue(): StoreValue {
       }
       setFirebaseUser(user);
     });
+    return () => { unsubAuth(); subUnsubRef.current?.(); };
   }, []);
 
   // Immediate Firestore sync on every state change — offline cache handles gaps.
@@ -182,6 +199,27 @@ function useStoreValue(): StoreValue {
       if (text === null || !text.trim()) delete next[id]; else next[id] = text;
       return next;
     });
+  }, []);
+
+  // Date checks only run on render — force one every minute and whenever the
+  // app returns to the foreground, so expiry trips without a restart. Member
+  // day counters are refreshed on resume too (identity-guarded: no-op sync
+  // unless something actually changed).
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const tick = () => forceTick(t => t + 1);
+    const iv = setInterval(tick, 60_000);
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        tick();
+        setMembers(ms => {
+          const next = refreshMembers(ms);
+          return next.some((m, i) => m !== ms[i]) ? next : ms;
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', onVis); };
   }, []);
 
   const setLang = useCallback((l: Lang) => {
