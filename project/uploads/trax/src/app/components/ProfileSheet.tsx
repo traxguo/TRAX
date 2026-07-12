@@ -155,6 +155,7 @@ export default function ProfileSheet({ open, onClose, onOpenAdmin }: ProfileShee
             <span className="link sm" onClick={() => setLegal('privacy')}>{t.privacyTitle}</span>
             <span style={{ color: 'var(--tx-3)', margin: '0 7px' }}>·</span>
             <a className="link sm" href="mailto:traxguo@gmail.com?subject=TRAX%20Support" style={{ textDecoration: 'none' }}>{t.supportRow}</a>
+            <div style={{ marginTop: 6, fontSize: 10.5, color: 'var(--tx-3)' }}>build {__BUILD__}</div>
           </div>
         </>
       )}

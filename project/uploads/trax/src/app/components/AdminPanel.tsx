@@ -167,6 +167,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <button className="btn" disabled={busy} onClick={() => extend(30)}>+1 Ay</button>
               <button className="btn" disabled={busy} onClick={() => extend(365)}>+1 Yıl</button>
             </div>
+            <button className="btn" style={{ marginTop: 8, fontSize: 13, color: 'var(--warn)' }} disabled={busy}
+              onClick={() => act({ endDate: new Date(Date.now() - 864e5).toISOString().slice(0, 10) })}>
+              Süreyi şimdi bitir
+            </button>
             {effStatus(sel) === 'suspended'
               ? <button className="btn" style={{ marginTop: 8, color: 'var(--ok)' }} disabled={busy} onClick={() => act({ status: 'active' })}>Aktifleştir</button>
               : <button className="btn danger" style={{ marginTop: 8 }} disabled={busy} onClick={() => act({ status: 'suspended' })}>Hesabı askıya al</button>}
