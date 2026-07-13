@@ -16,8 +16,12 @@ partner: direct, energetic, zero corporate fluff.
   `icon-1024.png` (wordmark on Apple-style charcoal gradient).
 - Rules: never recolor, skew, or restroke the wordmark. On light grounds use the
   dark icon tile, not a recolored wordmark. Clear space ≥ the height of the X.
-- Text fallback when images are unavailable: `TRA X` set bold with the X (or an
-  `↗`) in accent red.
+- CANONICAL FILES live in this skill: `assets/wordmark.png` (white,
+  transparent) and `assets/icon-1024.png`. In ANY rendered design (posts,
+  mockups, artifacts) ALWAYS place the real wordmark image — never imitate
+  the logo with styled text ("TRAX" in a font is NOT the logo). The text
+  fallback (`TRA X` with a red ↗) is allowed ONLY in live UI where an <img>
+  cannot load.
 
 ## Color
 
