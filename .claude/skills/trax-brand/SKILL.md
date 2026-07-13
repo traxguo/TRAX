@@ -71,7 +71,7 @@ partner: direct, energetic, zero corporate fluff.
 
 - Post 1080×1080, Story/Reels cover 1080×1920, ~4:5 feed 1080×1350.
 - One idea per post; headline readable at thumbnail size (≥72px at 1080w).
-- Handle: **@traxapp** · CTA: "14 gün ücretsiz — bio'daki link".
+- Handle: **@traxmanagementapp** · CTA: "14 gün ücretsiz — bio'daki link".
 - Content pillars: Problem→Çözüm ~30%, Özellik ~30%, Sosyal kanıt ~20%, Eğitim/İpucu ~20%.
 
 ## Product facts (for accurate copy)
