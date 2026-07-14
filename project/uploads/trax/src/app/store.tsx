@@ -11,7 +11,7 @@ import {
   setPersistence,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, getDocFromCache, setDoc, deleteDoc, getDocs, collection, onSnapshot } from 'firebase/firestore';
 import type { Member, Profile, Session, MemberFormData, Lang, Subscription, GymSummary, WaTemplates } from './types';
 
 export const ADMIN_EMAIL = 'goktugslv@gmail.com';
@@ -122,12 +122,20 @@ function useStoreValue(): StoreValue {
       setLoadFailed(false);
       if (user) {
         try {
-          // never hang on the splash: if the read stalls (tab-lease contention,
-          // dead connection) fall through to the retry screen instead
-          const snap = await Promise.race([
-            getDoc(doc(db, 'users', user.uid)),
-            new Promise<never>((_, rej) => setTimeout(() => rej(new Error('load timeout')), 8000)),
-          ]);
+          const ref = doc(db, 'users', user.uid);
+          // never hang on the splash: if the server read stalls (slow cold-start
+          // handshake, tab-lease contention) fall back to the offline cache so
+          // returning users still get in. Only a truly empty cache → retry screen.
+          let snap;
+          try {
+            snap = await Promise.race([
+              getDoc(ref),
+              new Promise<never>((_, rej) => setTimeout(() => rej(new Error('load timeout')), 12000)),
+            ]);
+          } catch (netErr) {
+            snap = await getDocFromCache(ref); // throws if nothing cached → outer catch
+            console.warn('served user doc from cache (server slow/unreachable):', netErr);
+          }
           if (snap.exists()) {
             const data = snap.data();
             // recompute daysLeft/status from expiry dates — stored values rot

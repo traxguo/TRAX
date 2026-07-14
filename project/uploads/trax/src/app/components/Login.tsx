@@ -34,7 +34,10 @@ function mapFirebaseError(code: string, t: T): string {
 
 export default function Login({ onLogin, onSignup }: LoginProps) {
   const t = useT();
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
+  // landing's "Try free" links to /?signup so it opens straight into sign-up
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>(
+    () => new URLSearchParams(window.location.search).has('signup') ? 'signup' : 'login'
+  );
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
