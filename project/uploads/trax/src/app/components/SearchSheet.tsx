@@ -44,7 +44,7 @@ export default function SearchSheet({ open, onClose, onOpenMember }: SearchSheet
               <div className="av" style={{ width: 40, height: 40, fontSize: 14, background: colorFor(m.name) }}>{initials(m.name)}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 650 }}>{m.name}</div>
-                <div className="muted" style={{ fontSize: 12.5 }}>{m.plan}</div>
+                <div className="muted" style={{ fontSize: 12.5 }}>{m.kind === 'aylik' ? t.monthlyPlan : t.packagePlan}</div>
               </div>
               <span className="tnum" style={{ color: c, fontSize: 12.5, fontWeight: 650 }}>{t.kalan(m)}</span>
             </div>

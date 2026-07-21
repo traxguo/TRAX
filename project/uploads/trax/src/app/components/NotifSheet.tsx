@@ -37,8 +37,8 @@ export default function NotifSheet({ open, onClose, onOpenMember }: NotifSheetPr
     members.forEach(m => {
       const g = glowOf(m);
       // t.kalan handles both monthly ("15 days ago") and package ("Package ended")
-      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: t.notifExpired(m.name), s: `${t.kalan(m)} · ${m.plan}` });
-      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: t.notifExpiring(m.name), s: `${t.kalan(m)} · ${m.plan}` });
+      if (g === 's-red') out.push({ id: 'r' + m.id, mid: m.id, ico: 'clock', tone: 'bad', t: t.notifExpired(m.name), s: `${t.kalan(m)} · ${m.kind === 'aylik' ? t.monthlyPlan : t.packagePlan}` });
+      else if (g === 's-yellow') out.push({ id: 'y' + m.id, mid: m.id, ico: 'clock', tone: 'warn', t: t.notifExpiring(m.name), s: `${t.kalan(m)} · ${m.kind === 'aylik' ? t.monthlyPlan : t.packagePlan}` });
     });
     const w = (tone: string) => (tone === 'bad' ? 0 : tone === 'warn' ? 1 : 2);
     return out.sort((a, b) => w(a.tone) - w(b.tone));

@@ -130,7 +130,7 @@ export default function MemberDetail({ id, back, onEdit, onDelete }: DetailProps
               <span className="dd" style={{ background: c }} />
               {g === 's-red' ? t.statusExpired : g === 's-yellow' ? t.statusExpiring : g === 's-frozen' ? t.statusFrozen : t.statusActive}
             </span>
-            <span className="dpill ghost"><Icon name="card" size={13} />{m.plan}</span>
+            <span className="dpill ghost"><Icon name="card" size={13} />{m.kind === 'aylik' ? t.monthlyPlan : t.packagePlan}</span>
           </div>
           <div className="dhero-days tnum" style={{ color: c }}>{t.kalan(m)}</div>
         </div>

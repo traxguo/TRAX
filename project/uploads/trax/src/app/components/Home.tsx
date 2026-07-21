@@ -124,7 +124,7 @@ export default function Home({ go, open }: HomeProps) {
               </div>
               <div>
                 <div className="nm">{m.name}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{m.plan}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{m.kind === 'aylik' ? t.monthlyPlan : t.packagePlan}</div>
               </div>
               <span className="kln tnum" style={{ color: c }}>{t.kalan(m)}</span>
             </div>
