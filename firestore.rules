@@ -1,0 +1,76 @@
+rules_version = '2';
+
+// TRAX — Firestore security rules.
+//
+// Model: every gym's data lives in a single document at /users/{uid}.
+// The owner reads and writes their own document; the admin account may
+// read, list and repair any account.
+//
+// The subscription field is the paywall, so it is treated as server-owned:
+//   • a client may set it ONLY while creating its own document, and only as
+//     a 14-day trial (status 'trial', standard price, end date within 15 days);
+//   • after that the client can never touch it again — renewals arrive from
+//     the Lemon Squeezy webhook (firebase-admin, which bypasses these rules)
+//     and manual changes come from the admin account.
+// Without this, anyone could open the console and grant themselves a
+// subscription that never expires.
+//
+// Deploy: Firebase console → Firestore → Rules → paste → Publish.
+// Tested by test/firestore.rules.test.mjs (npm run test:rules).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'goktugslv@gmail.com';
+    }
+
+    // true when this write leaves the subscription field exactly as it is
+    function subscriptionUntouched() {
+      return resource != null
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscription']);
+    }
+
+    // ISO date (YYYY-MM-DD) that is `days` from now — ISO strings sort
+    // lexicographically, so a plain string compare is a real date compare.
+    function isoIn(days) {
+      let t = request.time + duration.value(days, 'd');
+      let mm = t.month() < 10 ? '0' + string(t.month()) : string(t.month());
+      let dd = t.day() < 10 ? '0' + string(t.day()) : string(t.day());
+      return string(t.year()) + '-' + mm + '-' + dd;
+    }
+
+    // a self-served subscription may only ever be a fresh 14-day trial
+    function validTrial() {
+      let s = request.resource.data.subscription;
+      return !('subscription' in request.resource.data) || (
+        s.status == 'trial'
+        && s.priceUsd == 19.99
+        && s.endDate is string
+        && s.endDate <= isoIn(15)
+      );
+    }
+
+    match /users/{uid} {
+      allow get, list: if isOwner(uid) || isAdmin();
+      allow create:    if isAdmin() || (isOwner(uid) && validTrial());
+      allow update:    if isAdmin() || (isOwner(uid) && subscriptionUntouched());
+      allow delete:    if isOwner(uid) || isAdmin();
+    }
+
+    // nothing else is reachable from a client
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

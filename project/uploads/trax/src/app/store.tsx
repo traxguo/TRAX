@@ -149,9 +149,9 @@ function useStoreValue(): StoreValue {
               setSubscription(data.subscription);
             } else {
               // legacy doc from before subscriptions existed: trial counts as spent
-              const legacy = expiredLegacy();
-              setSubscription(legacy);
-              setDoc(doc(db, 'users', user.uid), { subscription: legacy }, { merge: true }).catch(console.error);
+              // read-only derivation: the subscription field is server-owned
+              // (Firestore rules), so the admin panel repairs these accounts.
+              setSubscription(expiredLegacy());
             }
             dataReadyRef.current = true;
             watchSubscription(user.uid);
@@ -322,7 +322,7 @@ function useStoreValue(): StoreValue {
     setMembers(ms => ms.map(m => {
       if (m.id !== memberId || m.kind !== 'paket') return m;
       const adet = m.adet || 0;
-      return { ...m, adet: wasAttended ? adet + 1 : adet - 1 };
+      return { ...m, adet: wasAttended ? adet + 1 : Math.max(0, adet - 1) };
     }));
   }, [attendanceLog]);
 
@@ -375,6 +375,8 @@ function useStoreValue(): StoreValue {
     if (isAdmin || !subscription) return false;
     if (subscription.status === 'suspended') return true;
     const end = new Date(subscription.endDate + 'T23:59:59').getTime();
+    // an unreadable end date must lock the app, never hand out free access
+    if (!Number.isFinite(end)) return true;
     return Date.now() > end;
   })();
 

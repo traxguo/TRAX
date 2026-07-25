@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import type { Member } from '../types';
 import { useStore } from '../store';
 import { useT } from '../i18n';
 import { toKey, toDow, getWeek } from '../utils';
@@ -28,8 +29,18 @@ export default function CheckIn() {
   const isFuture = !isAll && selKey > todayKey;
 
   const nonFrozen = members.filter(m => m.status !== 'frozen');
-  const visible   = isAll ? nonFrozen : nonFrozen.filter(m => (m.days || []).includes(selDow));
-  const addable   = isAll ? [] : nonFrozen.filter(m => !(m.days || []).includes(selDow));
+  const onSchedule = (m: Member) => (m.days || []).includes(selDow);
+  // A QR scan checks anyone in on any day, so someone can be marked present
+  // without being on that weekday's schedule. List those walk-ins too —
+  // otherwise the day's entry count shows people the owner can't see or undo.
+  // Their row stays for as long as this day is open (unchecking one by mistake
+  // must not make it vanish beyond reach), and resets when the day changes.
+  const stickyRef = useRef<{ date: string; ids: Set<number> }>({ date: ciDate, ids: new Set() });
+  if (stickyRef.current.date !== ciDate) stickyRef.current = { date: ciDate, ids: new Set() };
+  attended.forEach(id => stickyRef.current.ids.add(id));
+  const walkIns   = isAll ? [] : nonFrozen.filter(m => !onSchedule(m) && stickyRef.current.ids.has(m.id));
+  const visible   = isAll ? nonFrozen : [...nonFrozen.filter(onSchedule), ...walkIns];
+  const addable   = isAll ? [] : nonFrozen.filter(m => !onSchedule(m) && !attended.includes(m.id));
 
   const dayIdx  = isAll ? -1 : week.findIndex(d => toKey(d) === selKey);
   const dayName = isAll ? t.allWeekTitle : (DAYS[dayIdx] ?? '');
@@ -115,7 +126,7 @@ export default function CheckIn() {
           const came = attended.includes(m.id);
           return (
             <div key={m.id} className="ci-row">
-              {editMode && (
+              {editMode && !walkIns.includes(m) && (
                 <button
                   className="ci-remove-btn"
                   onClick={() => removeDayFromMember(m.id, selDow)}
@@ -132,7 +143,9 @@ export default function CheckIn() {
               </div>
               <div className="ci-info">
                 <div className="ci-name">{m.name}</div>
-                {m.trainer !== '—' && <div className="ci-sub">{m.trainer}</div>}
+                {walkIns.includes(m)
+                  ? <div className="ci-sub" style={{ color: 'var(--acc)' }}>{t.walkIn}</div>
+                  : m.trainer !== '—' && <div className="ci-sub">{m.trainer}</div>}
               </div>
               {!editMode && (
                 isFuture

@@ -11,8 +11,15 @@ reply in Turkish). Target market: US primary (English content), TR secondary.
 - Live: https://trax-two.vercel.app (app at `/`, marketing page at `/start.html`)
 - Firebase project `trax-5b78d` (eur3): Auth email/password + Firestore
   (persistentLocalCache multi-tab). All user data under `users/{uid}`.
-  Rules: owner-only + admin bypass for goktugslv@gmail.com (email_verified
-  hardening postponed until admin verifies e-mail).
+- Security rules live in `firestore.rules` (repo root) — paste into the
+  Firebase console to deploy. The `subscription` field is server-owned: a
+  client may only create a 14-day trial, never edit one afterwards
+  (otherwise anyone could grant themselves free access from devtools).
+  Renewals come from the webhook (firebase-admin bypasses rules); manual
+  changes come from the admin account. Verified by 21 emulator tests:
+    cd /tmp && mkdir -p rt && cd rt && npm i firebase-tools @firebase/rules-unit-testing firebase
+    cp <repo>/firestore.rules . && cp <repo>/test/*.mjs test/
+    npx firebase emulators:exec --project t "node test/firestore.rules.test.mjs"
 - Payments: Lemon Squeezy store `traxapp`, product TRAX Monthly $19.99.
   Buy link hardcoded in `SubLock.tsx`. Webhook `/api/ls-webhook` verifies
   X-Signature (env `LS_WEBHOOK_SECRET`), writes subscription via

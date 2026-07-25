@@ -105,6 +105,7 @@ const en = {
   absent:         'Absent',
   noSchedule:     'No one scheduled for today',
   addToSchedule:  'Add to schedule',
+  walkIn:         'Walk-in',
   addBtn:         'Add',
   editSchedule:   'Edit schedule',
 
@@ -376,6 +377,7 @@ const tr: typeof en = {
   absent:         'Gelmedi',
   noSchedule:     'Bu gün için kimse programda değil',
   addToSchedule:  'Programa üye ekle',
+  walkIn:         'Programsız',
   addBtn:         'Ekle',
   editSchedule:   'Program düzenle',
 

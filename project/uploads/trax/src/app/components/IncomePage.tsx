@@ -69,7 +69,9 @@ function RevenueChart({ data, min, max }: { data: number[]; min: number; max: nu
 }
 
 function relTime(startedAt: string) {
-  const d = Math.floor((Date.now() - new Date(startedAt + 'T00:00:00').getTime()) / 864e5);
+  const started = new Date((startedAt || '') + 'T00:00:00').getTime();
+  if (!Number.isFinite(started)) return '—';   // legacy docs may have no start date
+  const d = Math.floor((Date.now() - started) / 864e5);
   if (d <= 0) return 'bugün';
   if (d === 1) return 'dün';
   if (d < 7) return `${d} gün önce`;
@@ -87,7 +89,10 @@ export default function IncomePage({ onClose, onManage }: { onClose: () => void;
   const trials = (gyms || []).filter(g => effStatus(g) === 'trial');
   const mrr = active.reduce((s, g) => s + (g.subscription.priceUsd || 0), 0);
   const customers = active.length;
-  const newThisWeek = (gyms || []).filter(g => daysLeft(g.subscription.startedAt) > -7).length;
+  const newThisWeek = (gyms || []).filter(g => {
+    const dl = daysLeft(g.subscription.startedAt);
+    return Number.isFinite(dl) && dl > -7;
+  }).length;
 
   const animatedMrr = useAnimatedNumber(mrr, 1100);
   const animatedCustomers = useAnimatedNumber(customers, 700);
